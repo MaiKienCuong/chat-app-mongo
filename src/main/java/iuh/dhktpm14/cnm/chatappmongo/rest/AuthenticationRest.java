@@ -37,7 +37,7 @@ import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin("http://localhost:3000")
+@CrossOrigin("${spring.security.cross_origin}")
 public class AuthenticationRest {
 
     @Autowired
@@ -71,7 +71,6 @@ public class AuthenticationRest {
         userRepository.save(user);
 
         var refreshTokenCookie = new Cookie("refresh_token", jwtRefresh);
-        System.out.println("FIRST : " + jwtRefresh);
         refreshTokenCookie.setHttpOnly(true);
 //        refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setComment(SAME_SITE_STRICT_COMMENT);
@@ -86,7 +85,8 @@ public class AuthenticationRest {
         Cookie[] cookies = request.getCookies();
         String requestRefreshToken = null;
         if (cookies != null) {
-            Optional<Cookie> cookie = Arrays.stream(cookies).filter(c -> c.getName().equals("refresh_token"))
+            Optional<Cookie> cookie = Arrays.stream(cookies)
+                    .filter(c -> c.getName().equals("refresh_token"))
                     .findFirst();
             if (cookie.isPresent())
                 requestRefreshToken = cookie.get().getValue();

@@ -1,105 +1,104 @@
-# Chat-App
+#### Chat-App
 
 ```diff
 -- truy cập http://localhost:8080/swagger-ui/ để xem danh sách api
 ```
 
 ---
----
----
----
 
-# api check sdt
-/api/auth/signup/check_phone_number [POST]
+#### api/inboxs
 
-# api lưu thông tin user đăng ký
-/api/auth/signup/save_information [POST - PUT] 
-```
+lấy danh sách tất cả cuộc trò chuyện, trả về id(id của inbox), room(inbox này thuộc room nào), lastMessage(tin nhắn
+cuối), lastMessageReadBy(tin nhắn cuối được ai đọc), countNewMessage(số tin nhắn mới chưa đọc)
 
-    {
-       "displayName": "Mai Kiên Cường",
-        "password": "123456",
-        "phoneNumber": "07611234645"
-    }
+- nếu room.type=ONE (chat 1-1) thì tên cuộc trò chuyện=room.to.displayName, ảnh cuộc trò chuyện=room.to.imageUrl
 
-    return
-        thành công - > 
-            {
-                "id" : 20,
-               "displayName": "Mai Kiên Cường",
-                "password": "123456",
-                "phoneNumber": "07611234645"
-             }
-             
-         thất bại -> số điện thoại đã tồn tại
-```
+- nếu room.type=GROUP (chat nhóm) thì tên cuộc trò chuyện=room.name, ảnh cuộc trò chuyện=room.imageUrl
 
-# api gửi mã xác thực
-/api/auth/signup/send_vetification_code [POST] 
-data mẫu :
-
-```
-
-{
-    "phoneNumber": "0961516941",
-    "email": "maikiencuongiuh@gmail.com"
-}
-
-return
-
-        thất bại -> email đã tồn tại
-        thành công -> gửi mã xác thực thành công
-```
-
-
-
-# api xác thực email
-/api/auth/signup/vetify [POST]
 ```
 {
-    "email": "maikiencuongiuh@gmail.com",
-    "verificationCode":"720268"
-    
-}
-
-return
-    thất bại -> Mã xác nhận không chính xác
-    thành công -> Xác thực thành công
-   ```
-# api check email
-/api/auth/signup/check_email [POST]
-```
-    thành công -> Email hợp lệ
-    thất bại -> Email đã tồn tại
-```
-
-# api set mật khẩu
-/api/auth/signup/password  [POST]
-```
-    thành công -> SDT hợp lệ
-    thất bại -> SDT đã tồn tại
-
-```
-
-## Đăng nhập
-> /api/auth/signin [POST]
-```
-{
-    "email":"maikiencuong",
-    "password":"123456"
-}
-```
-> hoặc
-```
-{
-    "username":"maikiencuong",
-    "password":"123456"
-}
-```
-> hoặc
-```
-{
-    "phone":"maikiencuong",
-    "password":"123456"
+    "content": [
+        {
+            "id": "1",
+            "room": {
+                "id": "1",
+                "type": "ONE",
+                "to": {
+                    "id": "2",
+                    "displayName": "Trương Công Cường",
+                    "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms"
+                }
+            },
+            "lastMessage": {
+                "id": "2",
+                "sender": {
+                    "id": "2",
+                    "displayName": "Trương Công Cường",
+                    "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms"
+                },
+                "createAt": "2021-08-28 05:00:36",
+                "type": "text",
+                "content": "ừ, hello nha"
+            },
+            "lastMessageReadBy": [
+                {
+                    "readByUser": {
+                        "id": "1",
+                        "displayName": "Mai Kiên Cường",
+                        "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms"
+                    },
+                    "readAt": "2021-08-28 05:00:18"
+                }
+            ],
+            "countNewMessage": 0
+        },
+        {
+            "id": "3",
+            "room": {
+                "id": "2",
+                "name": "Nhóm Công nghệ phần mềm",
+                "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+                "type": "GROUP"
+            },
+            "lastMessage": {
+                "id": "6",
+                "sender": {
+                    "id": "4",
+                    "displayName": "Lưu Tuấn Kha",
+                    "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms"
+                },
+                "createAt": "2021-08-28 05:01:16",
+                "type": "text",
+                "content": "ừ, hello nha"
+            },
+            "lastMessageReadBy": [
+                {
+                    "readByUser": {
+                        "id": "3",
+                        "displayName": "Nguyễn Công Thành Đạt",
+                        "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms"
+                    },
+                    "readAt": "2021-08-28 05:00:26"
+                },
+                {
+                    "readByUser": {
+                        "id": "1",
+                        "displayName": "Mai Kiên Cường",
+                        "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms"
+                    },
+                    "readAt": "2021-08-28 05:00:25"
+                }
+            ],
+            "countNewMessage": 1
+        }
+    ],
+    "last": true, //có phải trang cuối hay không
+    "totalPages": 1, //tổng số trang
+    "totalElements": 2, //tổng số element trong database
+    "size": 20, // size của một trang
+    "number": 0, // trang hiện tại
+    "first": true,
+    "numberOfElements": 2, // số element trả về
+    "empty": false
 }
 ```
