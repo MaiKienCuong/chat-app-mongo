@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.validation.BindException;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -30,9 +29,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.List;
 
 @RestControllerAdvice
-public class MyExceptionHandler extends ResponseEntityExceptionHandler{
-	
-	  /**
+public class MyExceptionHandler extends ResponseEntityExceptionHandler {
+
+    /**
      * Handle method argument not valid.
      *
      * <p>
@@ -49,7 +48,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler{
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status, WebRequest request) {
-        BindingResult bindingResult = ex.getBindingResult();
+        var bindingResult = ex.getBindingResult();
         if (bindingResult.hasFieldErrors()) {
             List<FieldError> errors = bindingResult.getFieldErrors();
             return ResponseEntity.badRequest().body(new MessageResponse(errors.get(0).getDefaultMessage()));
@@ -69,8 +68,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler{
      * @return the response entity
      */
     @ExceptionHandler(PropertyReferenceException.class)
-    public final ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex,
-                                                                         WebRequest request) {
+    public final ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex, WebRequest request) {
         return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
     }
 
