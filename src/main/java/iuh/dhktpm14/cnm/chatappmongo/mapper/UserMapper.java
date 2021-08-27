@@ -15,13 +15,12 @@ public class UserMapper {
     private UserRepository userRepository;
 
     public UserProfileDto toUserProfileDto(String userId) {
+        if (userId == null)
+            return null;
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) return null;
-        var dto = new UserProfileDto();
-        dto.setId(user.get().getId());
-        dto.setDisplayName(user.get().getDisplayName());
-        dto.setImageUrl(user.get().getImageUrl());
-        return dto;
+
+        return toUserProfileDto(user.get());
     }
 
     public UserProfileDto toUserProfileDto(User user) {
