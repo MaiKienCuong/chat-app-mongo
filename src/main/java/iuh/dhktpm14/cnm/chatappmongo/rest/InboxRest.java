@@ -50,7 +50,7 @@ public class InboxRest {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getRoomIdsByUserId(@AuthenticationPrincipal User user, Pageable pageable) {
+    public ResponseEntity<?> getAllInboxByCurrentUser(@AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
         Page<Inbox> inboxPage = inboxRepository.findAllByOfUserId(user.getId(), pageable);
@@ -75,7 +75,7 @@ public class InboxRest {
             update.set("empty", true);
             mongoTemplate.updateFirst(Query.query(criteria), update, Inbox.class);
             inboxMessageRepository.deleteByInboxId(inbox.getId());
-            return ResponseEntity.ok(inbox);
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
     }
