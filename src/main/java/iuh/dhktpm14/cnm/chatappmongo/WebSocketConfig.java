@@ -1,7 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import iuh.dhktpm14.cnm.chatappmongo.rest.UserInterceptor;
+import iuh.dhktpm14.cnm.chatappmongo.chat.UserInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
