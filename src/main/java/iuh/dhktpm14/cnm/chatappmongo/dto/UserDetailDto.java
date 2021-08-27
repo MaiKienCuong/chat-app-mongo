@@ -1,14 +1,17 @@
 package iuh.dhktpm14.cnm.chatappmongo.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 //@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class UserDetailDto {
+public class UserDetailDto implements Serializable {
     private String id;
     private String username;
     private String displayName;

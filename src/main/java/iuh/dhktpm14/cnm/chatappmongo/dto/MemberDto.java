@@ -9,9 +9,10 @@ import java.util.Date;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ReadByDto implements Serializable {
-    private UserProfileDto readByUser;
+public class MemberDto implements Serializable {
+    private UserProfileDto user;
+    private UserProfileDto addByUser;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
-    private Date readAt;
+    private Date addTime;
 }
