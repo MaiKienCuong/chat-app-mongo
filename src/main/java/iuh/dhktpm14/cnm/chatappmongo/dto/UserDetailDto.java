@@ -1,8 +1,8 @@
 package iuh.dhktpm14.cnm.chatappmongo.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -25,27 +25,14 @@ public class UserDetailDto implements Serializable {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date createAt;
+    @JsonIgnore
     private boolean active;
+    @JsonIgnore
     private boolean block;
+    @JsonIgnore
     private boolean enable;
     private String imageUrl;
+    @JsonIgnore
     private String roles;
-    private String accessToken;
 
-    public UserDetailDto(User user, String accessToken) {
-        this.id = user.getId();
-        this.username = user.getUsername();
-        this.displayName = user.getDisplayName();
-        this.gender = user.getGender();
-        this.dateOfBirth = user.getDateOfBirth();
-        this.phoneNumber = user.getPhoneNumber();
-        this.active = user.isActive();
-        this.block = user.isBlock();
-        this.enable = user.isEnable();
-        this.imageUrl = user.getImageUrl();
-        this.roles = user.getRoles();
-        this.email = user.getEmail();
-        this.createAt = user.getCreateAt();
-        this.accessToken = accessToken;
-    }
 }
