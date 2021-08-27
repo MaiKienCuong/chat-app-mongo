@@ -36,7 +36,7 @@ public class AppUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findDistinctByUsername(username)
+        return userRepository.findDistinctByPhoneNumber(username)
                 .orElseThrow(() -> new UsernameNotFoundException("UsernameNotFoundException"));
     }
 
@@ -44,9 +44,9 @@ public class AppUserDetailService implements UserDetailsService {
         if (userRepository.existsByPhoneNumber(userDto.getPhoneNumber()))
             return false;
         var user = new User();
-        user.setDisplayName(user.getDisplayName());
-        user.setPassword(encoder.encode(user.getPassword()));
-        user.setPhoneNumber(user.getPhoneNumber());
+        user.setDisplayName(userDto.getDisplayName());
+        user.setPassword(encoder.encode(userDto.getPassword()));
+        user.setPhoneNumber(userDto.getPhoneNumber());
         user.setRoles("ROLE_USER");
         userRepository.save(user);
         return true;

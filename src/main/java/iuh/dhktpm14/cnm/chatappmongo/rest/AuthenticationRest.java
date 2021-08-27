@@ -36,8 +36,8 @@ import java.util.Optional;
 import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
 
 @RestController
-@RequestMapping("api/auth")
-@CrossOrigin("${spring.security.cross_origin}")
+@RequestMapping("/api/auth")
+@CrossOrigin("http://localhost:3000")
 public class AuthenticationRest {
 
     @Autowired
@@ -110,7 +110,7 @@ public class AuthenticationRest {
                 .body(new MessageResponse("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
     }
 
-    @PostMapping("/signup/save_information")
+    @PostMapping("signup/save_information")
     public ResponseEntity<?> signup(@Valid @RequestBody UserSignupDto user) {
         if (userService.signup(user)) {
             Optional<User> optional = userRepository.findDistinctByPhoneNumber(user.getPhoneNumber());
