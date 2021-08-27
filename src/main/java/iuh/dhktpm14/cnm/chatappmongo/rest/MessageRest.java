@@ -2,15 +2,17 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
-import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadBy;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageStatus;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.MessageNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.ReactionMapper;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.ReadByMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -56,6 +59,12 @@ public class MessageRest {
     private MessageMapper messageMapper;
 
     @Autowired
+    private ReadByMapper readByMapper;
+
+    @Autowired
+    private ReactionMapper reactionMapper;
+
+    @Autowired
     private MongoTemplate mongoTemplate;
 
     /**
@@ -67,7 +76,7 @@ public class MessageRest {
         if (user == null)
             throw new UnAuthenticateException();
         if (inboxRepository.existsByIdAndOfUserId(inboxId, user.getId())) {
-            Inbox inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
+            var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
             if (! inbox.isEmpty()) {
                 List<InboxMessage> inboxMessages = inboxMessageRepository.findAllByInboxId(inboxId, pageable);
                 if (inboxMessages.isEmpty())
@@ -91,7 +100,7 @@ public class MessageRest {
         // nếu tin nhắn có trong collection message nhưng không có trong messageIds của inbox của user thì không được xem
         if (user == null)
             throw new UnAuthenticateException();
-        Inbox inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
+        var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
         if (inbox == null)
             return ResponseEntity.badRequest().build();
         if (inboxMessageRepository.existsByInboxIdAndMessageId(inbox.getId(), messageId)) {
@@ -100,7 +109,7 @@ public class MessageRest {
                 throw new MessageNotFoundException();
             return ResponseEntity.ok(messageOptional.get());
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.badRequest().build();
     }
 
     /**
@@ -157,6 +166,36 @@ public class MessageRest {
         update.push("reactions", reaction);
         mongoTemplate.updateFirst(Query.query(criteria), update, Message.class);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * lấy danh sách những người đã xem tin nhắn
+     */
+    @GetMapping("/readby/{messageId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getReadbyes(@PathVariable String messageId, @AuthenticationPrincipal User user) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+        if (optionalMessage.isEmpty())
+            return ResponseEntity.badRequest().build();
+        Set<ReadBy> readByes = optionalMessage.get().getReadByes();
+        return ResponseEntity.ok(readByes.stream().map(x -> readByMapper.toReadByDto(x)).collect(Collectors.toSet()));
+    }
+
+    /**
+     * lấy danh sách người đã bày tỏ cảm xúc về một tin nhắn
+     */
+    @GetMapping("/react/{messageId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getReaction(@PathVariable String messageId, @AuthenticationPrincipal User user) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+        if (optionalMessage.isEmpty())
+            return ResponseEntity.badRequest().build();
+        List<Reaction> reactions = optionalMessage.get().getReactions();
+        return ResponseEntity.ok(reactions.stream().map(x -> reactionMapper.toReactionDto(x)).collect(Collectors.toList()));
     }
 
     /**
