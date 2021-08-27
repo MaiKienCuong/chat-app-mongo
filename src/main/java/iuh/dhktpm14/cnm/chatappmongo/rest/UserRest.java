@@ -21,7 +21,7 @@ public class UserRest {
     @GetMapping("/email")
     public ResponseEntity<?> existEmail(@RequestBody String email) {
         if (userRepository.existsByEmail(email)) {
-            return ResponseEntity.ok(new MessageResponse(" Email đã tồn tại"));
+            return ResponseEntity.badRequest().body(new MessageResponse(" Email đã tồn tại"));
         }
         return null;
     }
