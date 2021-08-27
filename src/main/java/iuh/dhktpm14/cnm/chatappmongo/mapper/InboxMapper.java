@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.mapper;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class InboxMapper {
@@ -24,6 +26,9 @@ public class InboxMapper {
     private RoomMapper roomMapper;
 
     @Autowired
+    private ReadByMapper readByMapper;
+
+    @Autowired
     private InboxRepository inboxRepository;
 
     public InboxDto toInboxDto(String inboxId) {
@@ -32,14 +37,7 @@ public class InboxMapper {
             throw new UnAuthenticateException();
         Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
         if (inboxOptional.isEmpty()) return null;
-        var inbox = inboxOptional.get();
-        var dto = new InboxDto();
-        dto.setId(inbox.getId());
-        dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
-        dto.setOfUserId(user.getId());
-        dto.setCountNewMessage(messageRepository.countNewMessage(inbox.getRoomId(), user.getId()));
-        dto.setLastMessage(messageMapper.toMessageDto(messageRepository.findLastMessageByRoomId(inbox.getRoomId())));
-        return dto;
+        return toInboxDto(inboxOptional.get());
     }
 
     public InboxDto toInboxDto(Inbox inbox) {
@@ -48,9 +46,14 @@ public class InboxMapper {
         var dto = new InboxDto();
         dto.setId(inbox.getId());
         dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
-        dto.setOfUserId(inbox.getOfUserId());
         dto.setCountNewMessage(messageRepository.countNewMessage(inbox.getRoomId(), inbox.getOfUserId()));
         dto.setLastMessage(messageMapper.toMessageDto(messageRepository.findLastMessageByRoomId(inbox.getRoomId())));
+        Optional<Message> message = messageRepository.findById(dto.getLastMessage().getId());
+        if (message.isPresent()) {
+            dto.setLastMessageReadBy(message.get().getReadByes()
+                    .stream().map(x -> readByMapper.toReadByDto(x))
+                    .collect(Collectors.toSet()));
+        }
         return dto;
     }
 }
