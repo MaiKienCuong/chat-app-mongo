@@ -113,7 +113,7 @@ public class AuthenticationRest {
     @PostMapping("signup/save_information")
     public ResponseEntity<?> signup(@Valid @RequestBody UserSignupDto user) {
         if (userService.signup(user)) {
-            Optional<User> optional = userRepository.findDistinctByPhoneNumber(user.getPhoneNumber());
+            Optional<User> optional = userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(user.getPhoneNumber());
             if (optional.isPresent()) {
                 user.setId(optional.get().getId());
                 return ResponseEntity.ok(user);
