@@ -80,7 +80,8 @@ public class AppUserDetailService implements UserDetailsService {
         helper.setSubject(subject);
         helper.setText(content, true);
 
-        mailSender.send(message);
+        new Thread(() -> mailSender.send(message)).start();
+
     }
 
     public boolean verify(User user) {
@@ -90,6 +91,7 @@ public class AppUserDetailService implements UserDetailsService {
         var existsUser = userOptional.get();
         if (existsUser.getVerificationCode().equalsIgnoreCase(user.getVerificationCode())) {
             existsUser.setEnable(true);
+            existsUser.setActive(true);
             existsUser.setVerificationCode(null);
             userRepository.save(existsUser);
             return true;
