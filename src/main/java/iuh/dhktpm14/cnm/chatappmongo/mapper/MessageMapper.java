@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class MessageMapper {
@@ -18,26 +17,11 @@ public class MessageMapper {
     @Autowired
     private UserMapper userMapper;
 
-    @Autowired
-    private ReadByMapper readByMapper;
-
     public MessageDto toMessageDto(String messageId) {
-        var dto = new MessageDto();
         Optional<Message> messageOptional = messageRepository.findById(messageId);
         if (messageOptional.isEmpty()) return null;
-        var message = messageOptional.get();
-        dto.setId(message.getId());
-        dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
-        dto.setCreateAt(message.getCreateAt());
-        dto.setType(message.getType());
-        dto.setContent(message.getContent());
-        dto.setPin(message.getPin());
-        dto.setDeleted(message.getDeleted());
-        dto.setStatus(message.getStatus());
-        if (message.getReadByes() != null)
-            dto.setReadByes(message.getReadByes().stream().map(readByMapper::toReadByDto).collect(Collectors.toList()));
-        dto.setReactions(message.getReactions());
-        return dto;
+
+        return toMessageDto(messageOptional.get());
     }
 
     public MessageDto toMessageDto(Message message) {
@@ -51,8 +35,6 @@ public class MessageMapper {
         dto.setPin(message.getPin());
         dto.setDeleted(message.getDeleted());
         dto.setStatus(message.getStatus());
-        if (message.getReadByes() != null)
-            dto.setReadByes(message.getReadByes().stream().map(readByMapper::toReadByDto).collect(Collectors.toList()));
         dto.setReactions(message.getReactions());
         return dto;
     }
