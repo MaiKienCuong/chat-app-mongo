@@ -14,10 +14,19 @@ public interface InboxRepository extends MongoRepository<Inbox, String> {
     @Query(value = "{ofUserId: ?0, empty: false}")
     Page<Inbox> findAllByOfUserId(String ofUserId, Pageable pageable);
 
+    /**
+     * tìm inbox theo userId và roomId
+     */
     Inbox findByOfUserIdAndRoomId(String ofUserId, String roomId);
 
+    /**
+     * kiểm tra xem inboxId có phải thuộc về người này hay không
+     */
     boolean existsByIdAndOfUserId(String id, String ofUserId);
 
+    /**
+     *
+     */
     Inbox findByIdAndOfUserId(String id, String ofUserId);
 
 }

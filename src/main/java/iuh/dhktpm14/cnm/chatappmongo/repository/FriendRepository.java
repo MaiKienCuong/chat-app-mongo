@@ -9,10 +9,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FriendRepository extends MongoRepository<Friend, String> {
 
+    /**
+     * lấy danh sách bạn bè của một người
+     */
     Page<Friend> findAllByUserIdOrderByCreateAtDesc(String userId, Pageable pageable);
 
+    /**
+     * kiểm tra xem hai người có phải bạn bè hay không
+     */
     boolean existsByUserIdAndFriendId(String userId, String friendIdToCheck);
 
+    /**
+     * xóa bạn bè
+     */
     void deleteByUserIdAndFriendId(String userId, String friendIdToDelete);
 
 }

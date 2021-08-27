@@ -19,8 +19,14 @@ public interface InboxMessageRepository extends MongoRepository<InboxMessage, St
     @Query(value = "{inboxId: ?0}", sort = "{'messageCreateAt': -1}")
     List<InboxMessage> findAllByInboxId(String inboxId, Pageable pageable);
 
+    /**
+     * xóa inbox theo inboxId
+     */
     void deleteByInboxId(String inboxId);
 
+    /**
+     * kiểm tra xem tin nhắn này có thuộc inboxId hay không
+     */
     boolean existsByInboxIdAndMessageId(String inboxId, String messageId);
 
 }

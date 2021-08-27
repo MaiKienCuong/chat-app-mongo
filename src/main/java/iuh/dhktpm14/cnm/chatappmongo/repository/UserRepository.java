@@ -11,6 +11,9 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends MongoRepository<User, String> {
 
+    /**
+     * tìm kiếm user theo tên gần đúng, k phân biệt hoa thường
+     */
     List<User> findAllByDisplayNameContainingIgnoreCaseOrderByDisplayNameAsc(String displayName);
 
     List<User> findByIdIn(List<String> ids);
