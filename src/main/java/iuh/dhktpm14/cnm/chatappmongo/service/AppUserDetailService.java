@@ -36,7 +36,7 @@ public class AppUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findDistinctByPhoneNumber(username)
+        return userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("UsernameNotFoundException"));
     }
 

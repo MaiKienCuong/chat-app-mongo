@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.repository;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,7 +19,8 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findDistinctByEmail(String email);
 
-    Optional<User> findDistinctByPhoneNumber(String phoneNumber);
+    @Query("{$or: [{username: ?0}, {email: ?0}, {phoneNumber: ?0}]}")
+    Optional<User> findDistinctByPhoneNumberOrUsernameOrEmail(String phoneNumber);
 
     boolean existsByUsername(String userName);
 
