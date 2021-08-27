@@ -10,13 +10,14 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-
+@Document
 @Data
 @Accessors(chain = true) //setter trả về this chứ không phải trả về void
 @AllArgsConstructor
