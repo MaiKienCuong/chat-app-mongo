@@ -10,7 +10,6 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InboxDto implements Serializable {
     private String id;
-//    private String ofUserId;
     private Object room;
     private MessageDto lastMessage;
     private Set<ReadByDto> lastMessageReadBy;

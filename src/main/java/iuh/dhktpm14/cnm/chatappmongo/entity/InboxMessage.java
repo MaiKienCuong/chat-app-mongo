@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,5 +23,7 @@ public class InboxMessage implements Serializable {
     private String id;
     private String inboxId;
     private String messageId;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date messageCreateAt;
 }

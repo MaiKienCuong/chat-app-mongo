@@ -26,6 +26,6 @@ public class Member implements Serializable {
      * khi tạo phải set bằng ngày hiện tại, chú thích @CreatedDate không hoạt động cho element nhúng
      */
     @CreatedDate
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date addTime;
 }
