@@ -81,7 +81,7 @@ public class AuthenticationRest {
     }
 
     @GetMapping("/refreshtoken")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> getRefreshToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         String requestRefreshToken = null;
         if (cookies != null) {

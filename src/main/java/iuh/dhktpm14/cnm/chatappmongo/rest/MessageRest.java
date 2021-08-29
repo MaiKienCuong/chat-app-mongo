@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
@@ -38,6 +39,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -74,13 +77,13 @@ public class MessageRest {
      */
     @GetMapping("/inbox/{inboxId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> findAllByInboxId(@PathVariable String inboxId, Pageable pageable, @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> getAllMessageOfInbox(@PathVariable String inboxId, Pageable pageable, @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         if (inboxRepository.existsByIdAndOfUserId(inboxId, user.getId())) {
             var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
             if (! inbox.isEmpty()) {
-                List<InboxMessage> inboxMessages = inboxMessageRepository.findAllByInboxId(inboxId, pageable);
+                List<InboxMessage> inboxMessages = inboxMessageRepository.getAllInboxMessageOfInbox(inboxId, pageable);
                 if (inboxMessages.isEmpty())
                     return ResponseEntity.ok(new ArrayList<>());
                 Page<Message> messagePage = messageRepository
@@ -140,7 +143,7 @@ public class MessageRest {
      */
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> post(@RequestBody MessageCreateDto messageDto, @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> sendMessage(@RequestBody MessageCreateDto messageDto, @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         var message = Message.builder()
@@ -158,8 +161,8 @@ public class MessageRest {
      */
     @PostMapping("/react/{messageId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> addReact(@PathVariable String messageId, @RequestBody Reaction
-            reaction, @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> addReact(@PathVariable String messageId, @RequestBody Reaction reaction,
+                                      @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         reaction.setReactByUserId(user.getId());
@@ -182,7 +185,10 @@ public class MessageRest {
         if (optionalMessage.isEmpty())
             return ResponseEntity.badRequest().build();
         Set<ReadBy> readByes = optionalMessage.get().getReadByes();
-        return ResponseEntity.ok(readByes.stream().map(x -> readByMapper.toReadByDto(x)).collect(Collectors.toSet()));
+        Set<ReadByDto> dto = readByes.stream().map(x -> readByMapper.toReadByDto(x))
+                .sorted(Comparator.comparing(ReadByDto::getReadAt))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return ResponseEntity.ok(dto);
     }
 
     /**

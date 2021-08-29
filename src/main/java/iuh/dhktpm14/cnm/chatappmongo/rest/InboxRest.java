@@ -52,10 +52,10 @@ public class InboxRest {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getAllInboxByCurrentUser(@AuthenticationPrincipal User user, Pageable pageable) {
+    public ResponseEntity<?> getAllInboxOfCurrentUser(@AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
-        Page<Inbox> inboxPage = inboxRepository.findAllByOfUserId(user.getId(), pageable);
+        Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), pageable);
         return ResponseEntity.ok(toInboxDto(inboxPage));
     }
 
@@ -75,8 +75,10 @@ public class InboxRest {
             var criteria = Criteria.where("_id").is(inboxId);
             var update = new Update();
             update.set("empty", true);
+            // cập nhật thuộc tính empty=true
             mongoTemplate.updateFirst(Query.query(criteria), update, Inbox.class);
-            inboxMessageRepository.deleteByInboxId(inbox.getId());
+            // xóa tất cả message liên kết với inbox này, không xóa trong collection message
+            inboxMessageRepository.deleteAllMessageOfInbox(inbox.getId());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();

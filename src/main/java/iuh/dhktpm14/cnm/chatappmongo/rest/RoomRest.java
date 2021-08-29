@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
@@ -72,13 +73,21 @@ public class RoomRest {
             var room = optional.get();
             Set<Member> members = room.getMembers();
             for (Member m : members) {
-                if (m.getUserId().equals(user.getId()))
-                    return ResponseEntity.ok(members.stream().map(x -> memberMapper.toMemberDto(x)).collect(Collectors.toSet()));
+                // nếu là thành viên trong room mới xem được thông tin
+                if (m.getUserId().equals(user.getId())) {
+                    Set<MemberDto> dto = members.stream()
+                            .map(x -> memberMapper.toMemberDto(x))
+                            .collect(Collectors.toSet());
+                    return ResponseEntity.ok(dto);
+                }
             }
         }
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * lấy thông tin chi tiết về room
+     */
     @GetMapping("/{roomId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getById(@AuthenticationPrincipal User user, @PathVariable String roomId) {
@@ -88,6 +97,7 @@ public class RoomRest {
         if (optional.isPresent()) {
             var room = optional.get();
             for (Member m : room.getMembers()) {
+                // nếu là thành viên trong room mới xem được thông tin
                 if (m.getUserId().equals(user.getId())) {
                     return ResponseEntity.ok(roomMapper.toRoomDetailDto(roomId));
                 }
@@ -103,7 +113,7 @@ public class RoomRest {
     @GetMapping("/{roomId}/last-message")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getLastMessage(@PathVariable String roomId) {
-        return ResponseEntity.ok(messageRepository.findLastMessageByRoomId(roomId));
+        return ResponseEntity.ok(messageRepository.getLastMessageOfRoom(roomId));
     }
 
     /**
@@ -124,6 +134,7 @@ public class RoomRest {
                 m.setAddTime(new Date());
             }
         }
+        // thêm người dùng hiện tại vào nhóm
         room.getMembers().add(Member.builder().userId(user.getId()).build());
         return ResponseEntity.ok(roomRepository.save(room));
     }
