@@ -12,7 +12,7 @@ public interface InboxRepository extends MongoRepository<Inbox, String> {
      * lấy tất cả inbox của userId mà inbox đó không trống
      */
     @Query(value = "{ofUserId: ?0, empty: false}")
-    Page<Inbox> findAllByOfUserId(String ofUserId, Pageable pageable);
+    Page<Inbox> getAllInboxOfUser(String ofUserId, Pageable pageable);
 
     /**
      * tìm inbox theo userId và roomId

@@ -20,7 +20,7 @@ public interface MessageRepository extends MongoRepository<Message, String> {
             "{$match: {roomId: ?0}}",
             "{$sort: {createAt: -1}}",
             "{$limit: 1}" })
-    Message findLastMessageByRoomId(String roomId);
+    Message getLastMessageOfRoom(String roomId);
 
     /**
      * lấy tất cả tin nhắn của inbox, khi gọi sẽ truyền messageIds=inbox.getMessageIds()
