@@ -49,4 +49,33 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new UserInterceptor());
     }
+
+    /**
+     * lắng nghe sự kiện connected và disconnect của user đến websocket
+     */
+    /*@Override
+    public void configureWebSocketTransport(final WebSocketTransportRegistration registration) {
+        registration.addDecoratorFactory(new WebSocketHandlerDecoratorFactory() {
+            @Override
+            public WebSocketHandler decorate(final WebSocketHandler handler) {
+                return new WebSocketHandlerDecorator(handler) {
+                    @Override
+                    public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+                        System.out.println(session.getId());
+                        System.out.println(session.getPrincipal());
+                        System.out.println("------------disconnect");
+                        super.afterConnectionClosed(session, closeStatus);
+                    }
+
+                    @Override
+                    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+                        System.out.println(session.getId());
+                        System.out.println(session.getPrincipal());
+                        System.out.println("---------connect");
+                        super.afterConnectionEstablished(session);
+                    }
+                };
+            }
+        });
+    }*/
 }
