@@ -40,7 +40,8 @@ public class InboxMapper {
         if (inboxId == null)
             return null;
         Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
-        if (inboxOptional.isEmpty()) return null;
+        if (inboxOptional.isEmpty())
+            return null;
         return toInboxDto(inboxOptional.get());
     }
 
@@ -51,7 +52,7 @@ public class InboxMapper {
         dto.setId(inbox.getId());
         dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
         dto.setCountNewMessage(messageRepository.countNewMessage(inbox.getRoomId(), inbox.getOfUserId()));
-        var lastMessage = messageRepository.findLastMessageByRoomId(inbox.getRoomId());
+        var lastMessage = messageRepository.getLastMessageOfRoom(inbox.getRoomId());
         if (lastMessage != null) {
             dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
             dto.setLastMessageReadBy(lastMessage.getReadByes()

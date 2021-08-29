@@ -21,13 +21,15 @@ public class MessageMapper {
         if (messageId == null)
             return null;
         Optional<Message> messageOptional = messageRepository.findById(messageId);
-        if (messageOptional.isEmpty()) return null;
+        if (messageOptional.isEmpty())
+            return null;
 
         return toMessageDto(messageOptional.get());
     }
 
     public MessageDto toMessageDto(Message message) {
-        if (message == null) return null;
+        if (message == null)
+            return null;
         var dto = new MessageDto();
         dto.setId(message.getId());
         dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));

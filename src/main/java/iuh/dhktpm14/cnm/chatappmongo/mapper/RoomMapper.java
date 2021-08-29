@@ -37,7 +37,8 @@ public class RoomMapper {
         if (roomId == null)
             return null;
         Optional<Room> roomOptional = roomRepository.findById(roomId);
-        if (roomOptional.isEmpty()) return null;
+        if (roomOptional.isEmpty())
+            return null;
         var room = roomOptional.get();
         if (room.getType().equals(RoomType.ONE)) {
             var one = new RoomOneSummaryDto();
@@ -68,7 +69,8 @@ public class RoomMapper {
         if (roomId == null)
             return null;
         Optional<Room> roomOptional = roomRepository.findById(roomId);
-        if (roomOptional.isEmpty()) return null;
+        if (roomOptional.isEmpty())
+            return null;
         var room = roomOptional.get();
         if (room.getType().equals(RoomType.ONE)) {
             var one = new RoomOneDetailDto();
