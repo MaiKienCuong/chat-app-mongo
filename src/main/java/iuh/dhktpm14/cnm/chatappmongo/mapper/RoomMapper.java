@@ -8,7 +8,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,7 +33,9 @@ public class RoomMapper {
     public Object toRoomSummaryDto(String roomId) {
         var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (currentUser == null)
-            throw new MyException("Vui lòng đăng nhập");
+            throw new UnAuthenticateException();
+        if (roomId == null)
+            return null;
         Optional<Room> roomOptional = roomRepository.findById(roomId);
         if (roomOptional.isEmpty()) return null;
         var room = roomOptional.get();
@@ -62,7 +64,9 @@ public class RoomMapper {
     public Object toRoomDetailDto(String roomId) {
         var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (currentUser == null)
-            throw new MyException("Vui lòng đăng nhập");
+            throw new UnAuthenticateException();
+        if (roomId == null)
+            return null;
         Optional<Room> roomOptional = roomRepository.findById(roomId);
         if (roomOptional.isEmpty()) return null;
         var room = roomOptional.get();

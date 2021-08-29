@@ -12,6 +12,8 @@ public class ReadByMapper {
     private UserMapper userMapper;
 
     public ReadByDto toReadByDto(ReadBy readBy) {
+        if (readBy == null)
+            return null;
         var dto = new ReadByDto();
         dto.setReadAt(readBy.getReadAt());
         dto.setReadByUser(userMapper.toUserProfileDto(readBy.getReadByUserId()));

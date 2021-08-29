@@ -18,6 +18,8 @@ public class MessageMapper {
     private UserMapper userMapper;
 
     public MessageDto toMessageDto(String messageId) {
+        if (messageId == null)
+            return null;
         Optional<Message> messageOptional = messageRepository.findById(messageId);
         if (messageOptional.isEmpty()) return null;
 
@@ -25,8 +27,8 @@ public class MessageMapper {
     }
 
     public MessageDto toMessageDto(Message message) {
-        var dto = new MessageDto();
         if (message == null) return null;
+        var dto = new MessageDto();
         dto.setId(message.getId());
         dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
         dto.setCreateAt(message.getCreateAt());
