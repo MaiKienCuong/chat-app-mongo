@@ -1,6 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.mapper;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -54,7 +56,7 @@ public class InboxMapper {
             dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
             dto.setLastMessageReadBy(lastMessage.getReadByes()
                     .stream().map(x -> readByMapper.toReadByDto(x))
-                    .sorted((x, y) -> y.getReadAt().compareTo(x.getReadAt()))
+                    .sorted(Comparator.comparing(ReadByDto::getReadAt))
                     .collect(Collectors.toCollection(LinkedHashSet::new)));
         }
         return dto;
