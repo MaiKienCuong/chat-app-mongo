@@ -12,16 +12,16 @@ public interface FriendRepository extends MongoRepository<Friend, String> {
     /**
      * lấy danh sách bạn bè của một người
      */
-    Page<Friend> findAllByUserIdOrderByCreateAtDesc(String userId, Pageable pageable);
+    Page<Friend> findAllByUserIdOrderByCreateAtDesc(String currentUserId, Pageable pageable);
 
     /**
      * kiểm tra xem hai người có phải bạn bè hay không
      */
-    boolean existsByUserIdAndFriendId(String userId, String friendIdToCheck);
+    boolean existsByUserIdAndFriendId(String currentUserId, String friendIdToCheck);
 
     /**
      * xóa bạn bè
      */
-    void deleteByUserIdAndFriendId(String userId, String friendIdToDelete);
+    void deleteByUserIdAndFriendId(String currentUserId, String friendIdToDelete);
 
 }

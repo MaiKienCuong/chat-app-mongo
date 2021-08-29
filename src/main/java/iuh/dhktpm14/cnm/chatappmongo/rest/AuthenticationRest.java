@@ -65,8 +65,8 @@ public class AuthenticationRest {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         var user = (User) authentication.getPrincipal();
-        String jwt = jwtUtils.generateJwtToken(authentication);
-        String jwtRefresh = jwtUtils.generateJwtRefreshToken(user.getUsername());
+        String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
+        String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
         user.setRefreshToken(jwtRefresh);
         userRepository.save(user);
 
@@ -77,7 +77,7 @@ public class AuthenticationRest {
         refreshTokenCookie.setPath("/");
         response.addCookie(refreshTokenCookie);
 
-        return ResponseEntity.ok(new UserSummaryDto(user, jwt));
+        return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
     }
 
     @GetMapping("/refreshtoken")
@@ -92,10 +92,10 @@ public class AuthenticationRest {
                 requestRefreshToken = cookie.get().getValue();
         }
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
-            Optional<User> user = userRepository.findDistinctByUsername(jwtUtils.getUserNameFromJwtToken(requestRefreshToken));
+            Optional<User> user = userRepository.findById(jwtUtils.getUserIdFromJwtToken(requestRefreshToken));
             if (user.isPresent() && user.get().getRefreshToken().equals(requestRefreshToken)) {
-                String token = jwtUtils.generateTokenFromUsername(user.get().getUsername());
-                String newRefreshToken = jwtUtils.generateJwtRefreshToken(user.get().getUsername());
+                String token = jwtUtils.generateJwtAccessTokenFromUserId(user.get().getId());
+                String newRefreshToken = jwtUtils.generateJwtRefreshTokenFromUserId(user.get().getId());
                 var cookie = new Cookie("refresh_token", newRefreshToken);
                 cookie.setHttpOnly(true);
                 cookie.setComment(SAME_SITE_STRICT_COMMENT);
