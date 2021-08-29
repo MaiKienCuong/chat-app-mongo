@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
+//chạy xong lần đầu có dữ liệu rồi thì comment @Component
 public class DataTest implements CommandLineRunner {
 
     @Autowired
@@ -45,7 +46,6 @@ public class DataTest implements CommandLineRunner {
     @Autowired
     InboxRepository inboxRepository;
 
-
     @Override
     public void run(String... args) {
 
@@ -58,7 +58,6 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
                 .roles("ROLE_USER")
@@ -76,7 +75,6 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
                 .roles("ROLE_USER")
@@ -94,7 +92,6 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
                 .roles("ROLE_USER")
@@ -112,7 +109,6 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
                 .roles("ROLE_USER")
@@ -130,7 +126,6 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
                 .roles("ROLE_USER")

@@ -28,8 +28,6 @@ public class UserDetailDto implements Serializable {
     private Date createAt;
 
     @JsonIgnore
-    private boolean active;
-    @JsonIgnore
     private boolean block;
     @JsonIgnore
     private boolean enable;

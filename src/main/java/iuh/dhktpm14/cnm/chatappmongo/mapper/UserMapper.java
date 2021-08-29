@@ -41,7 +41,6 @@ public class UserMapper {
         dto.setId(user.getId());
         dto.setDisplayName(user.getDisplayName());
         dto.setImageUrl(user.getImageUrl());
-        dto.setActive(user.isActive());
         dto.setBlock(user.isBlock());
         dto.setCreateAt(user.getCreateAt());
         dto.setEmail(user.getEmail());

@@ -47,6 +47,7 @@ public class AppUserDetailService implements UserDetailsService {
         user.setDisplayName(userDto.getDisplayName());
         user.setPassword(encoder.encode(userDto.getPassword()));
         user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setEnable(false);
         user.setRoles("ROLE_USER");
         userRepository.save(user);
         return true;
@@ -91,7 +92,6 @@ public class AppUserDetailService implements UserDetailsService {
         var existsUser = userOptional.get();
         if (existsUser.getVerificationCode().equalsIgnoreCase(user.getVerificationCode())) {
             existsUser.setEnable(true);
-            existsUser.setActive(true);
             existsUser.setVerificationCode(null);
             userRepository.save(existsUser);
             return true;

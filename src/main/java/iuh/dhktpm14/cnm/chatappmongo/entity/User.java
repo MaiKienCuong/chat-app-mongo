@@ -44,7 +44,6 @@ public class User implements UserDetails {
     @CreatedDate
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date createAt;
-    private boolean active;
     private boolean block;
     private String imageUrl;
     private String roles;
@@ -81,7 +80,7 @@ public class User implements UserDetails {
     @Override
     @JsonIgnore
     public boolean isEnabled() {
-        return active;
+        return enable;
     }
 
 }
