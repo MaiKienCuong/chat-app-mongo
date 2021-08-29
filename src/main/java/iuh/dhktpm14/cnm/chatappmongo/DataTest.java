@@ -121,6 +121,24 @@ public class DataTest implements CommandLineRunner {
                 .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .build());
 
+        userRepository.save(User.builder()
+                .id("5")
+                .displayName("Hoàng Hữu Huy")
+                .username("hoanghuuhuy")
+                .email("hoanghuuhuy@gmail.com")
+                .phoneNumber("0961516945")
+                .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .gender("Nam")
+                .dateOfBirth(new Date())
+                .active(true)
+                .block(false)
+                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .roles("ROLE_USER")
+                .enable(true)
+                .verificationCode("123456")
+                .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .build());
+
         roomRepository.save(Room.builder()
                 .id("1")
                 .members(Set.of(
@@ -136,7 +154,8 @@ public class DataTest implements CommandLineRunner {
                         Member.builder().userId("1").addTime(new Date(new Date().getTime()+1000)).build(),
                         Member.builder().userId("2").addByUserId("1").addTime(new Date(new Date().getTime()+2000)).build(),
                         Member.builder().userId("3").addByUserId("2").addTime(new Date(new Date().getTime()+3000)).build(),
-                        Member.builder().userId("4").addByUserId("2").addTime(new Date(new Date().getTime()+4000)).build()))
+                        Member.builder().userId("4").addByUserId("2").addTime(new Date(new Date().getTime()+4000)).build(),
+                        Member.builder().userId("5").addByUserId("2").addTime(new Date(new Date().getTime()+4000)).build()))
                 .type(RoomType.GROUP)
                 .createByUserId("1")
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
@@ -174,8 +193,11 @@ public class DataTest implements CommandLineRunner {
                 .type("text")
                 .createAt(new Date(new Date().getTime()+30000))
                 .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
                         ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+4000)).build()))
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
                 .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
                 .build());
 
@@ -187,8 +209,11 @@ public class DataTest implements CommandLineRunner {
                 .type("text")
                 .createAt(new Date(new Date().getTime()+40000))
                 .readByes(Set.of(
-                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+5000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+6000)).build()))
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
                 .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
                 .build());
 
@@ -200,8 +225,11 @@ public class DataTest implements CommandLineRunner {
                 .type("text")
                 .createAt(new Date(new Date().getTime()+50000))
                 .readByes(Set.of(
-                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+7000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+8000)).build()))
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
                 .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
                 .build());
 
@@ -213,8 +241,11 @@ public class DataTest implements CommandLineRunner {
                 .type("text")
                 .createAt(new Date(new Date().getTime()+60000))
                 .readByes(Set.of(
-                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+9000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+10000)).build()))
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
                 .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
                 .build());
 
