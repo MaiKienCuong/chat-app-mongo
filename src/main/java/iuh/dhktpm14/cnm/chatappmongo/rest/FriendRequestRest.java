@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestReceivedDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestSentDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,7 +53,8 @@ public class FriendRequestRest {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getAllFriendRequestReceived(@AuthenticationPrincipal User user, Pageable pageable) {
+    @ApiOperation("Lấy tất cả lời mời kết bạn đã nhận được")
+    public ResponseEntity<?> getAllFriendRequestReceived(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
         Page<FriendRequest> friendRequestPage = friendRequestRepository.getAllFriendRequestReceived(user.getId(), pageable);
@@ -64,7 +67,8 @@ public class FriendRequestRest {
      */
     @GetMapping("/sent")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getAllFriendRequestSent(@AuthenticationPrincipal User user, Pageable pageable) {
+    @ApiOperation("Lấy tất cả lời mời kết bạn đã gửi đi")
+    public ResponseEntity<?> getAllFriendRequestSent(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
         Page<FriendRequest> friendRequestPage = friendRequestRepository.getAllFriendRequestSent(user.getId(), pageable);
@@ -77,7 +81,8 @@ public class FriendRequestRest {
      */
     @PostMapping("/{toId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> addNewFriendRequest(@AuthenticationPrincipal User user, @PathVariable String toId) {
+    @ApiOperation("Gửi lời mời kết bạn đến người khác")
+    public ResponseEntity<?> addNewFriendRequest(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String toId) {
         if (user == null)
             throw new UnAuthenticateException();
         // gửi đến chính mình
@@ -107,7 +112,8 @@ public class FriendRequestRest {
      */
     @PutMapping("/{idToAccept}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> acceptFriendRequest(@PathVariable String idToAccept, @AuthenticationPrincipal User user, Pageable pageable) {
+    @ApiOperation("Chấp nhận lời mời kết bạn")
+    public ResponseEntity<?> acceptFriendRequest(@PathVariable String idToAccept, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         // hai người đã là bạn bè
@@ -133,7 +139,8 @@ public class FriendRequestRest {
      */
     @DeleteMapping("/{deleteId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteFriendRequest(@AuthenticationPrincipal User user, @PathVariable String deleteId) {
+    @ApiOperation("Thu hồi lại lời mời kết bạn đã gửi")
+    public ResponseEntity<?> deleteFriendRequest(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String deleteId) {
         if (user == null)
             throw new UnAuthenticateException();
         // hủy kết bạn với chính mình
@@ -155,7 +162,9 @@ public class FriendRequestRest {
      */
     private Page<?> toFriendRequestReceivedDto(Page<FriendRequest> friendRequestPage) {
         List<FriendRequest> content = friendRequestPage.getContent();
-        List<FriendRequestReceivedDto> dto = content.stream().map(x -> friendMapper.toFriendRequestReceived(x)).collect(Collectors.toList());
+        List<FriendRequestReceivedDto> dto = content.stream()
+                .map(x -> friendMapper.toFriendRequestReceived(x))
+                .collect(Collectors.toList());
         return new PageImpl<>(dto, friendRequestPage.getPageable(), friendRequestPage.getTotalElements());
     }
 
@@ -164,7 +173,9 @@ public class FriendRequestRest {
      */
     private Page<?> toFriendRequestSentDto(Page<FriendRequest> friendRequestPage) {
         List<FriendRequest> content = friendRequestPage.getContent();
-        List<FriendRequestSentDto> dto = content.stream().map(x -> friendMapper.toFriendRequestSent(x)).collect(Collectors.toList());
+        List<FriendRequestSentDto> dto = content.stream()
+                .map(x -> friendMapper.toFriendRequestSent(x))
+                .collect(Collectors.toList());
         return new PageImpl<>(dto, friendRequestPage.getPageable(), friendRequestPage.getTotalElements());
     }
 

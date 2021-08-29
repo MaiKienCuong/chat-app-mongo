@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
 @RequestMapping("api/user")
@@ -35,7 +37,8 @@ public class UserRest {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal User user) {
+    @ApiOperation("Lấy thông tin về người dùng hiện tại")
+    public ResponseEntity<?> getCurrentUser(@ApiIgnore @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(userMapper.toUserDetailDto(user));
     }
 

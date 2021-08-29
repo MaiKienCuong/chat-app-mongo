@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -77,7 +79,8 @@ public class MessageRest {
      */
     @GetMapping("/inbox/{inboxId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getAllMessageOfInbox(@PathVariable String inboxId, Pageable pageable, @AuthenticationPrincipal User user) {
+    @ApiOperation("Lấy tất cả tin nhắn của một cuộc trò chuyện")
+    public ResponseEntity<?> getAllMessageOfInbox(@PathVariable String inboxId, Pageable pageable, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         if (inboxRepository.existsByIdAndOfUserId(inboxId, user.getId())) {
@@ -100,7 +103,8 @@ public class MessageRest {
      */
     @GetMapping("/{messageId}/inbox/{inboxId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> findById(@PathVariable String messageId, @PathVariable String inboxId, @AuthenticationPrincipal User user) {
+    @ApiOperation("Lấy chi tiết tin nhắn theo id")
+    public ResponseEntity<?> findById(@PathVariable String messageId, @PathVariable String inboxId, @ApiIgnore @AuthenticationPrincipal User user) {
         // kiểm tra xem tin nhắn này có trong messageIds của inbox của user hay không
         // nếu tin nhắn có trong collection message nhưng không có trong messageIds của inbox của user thì không được xem
         if (user == null)
@@ -122,7 +126,8 @@ public class MessageRest {
      */
     @DeleteMapping("/{messageId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> delete(@PathVariable String messageId, @AuthenticationPrincipal User user) {
+    @ApiOperation("Gỡ một tin nhắn")
+    public ResponseEntity<?> delete(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Message> messageOptional = messageRepository.findById(messageId);
@@ -139,11 +144,12 @@ public class MessageRest {
     }
 
     /**
-     * gửi một tin nhắn vào room
+     * gửi một tin nhắn vào room, đang test
      */
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> sendMessage(@RequestBody MessageCreateDto messageDto, @AuthenticationPrincipal User user) {
+    @ApiIgnore
+    public ResponseEntity<?> sendMessage(@RequestBody MessageCreateDto messageDto, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         var message = Message.builder()
@@ -161,8 +167,9 @@ public class MessageRest {
      */
     @PostMapping("/react/{messageId}")
     @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Bày tỏ cảm xúc về một tin nhắn")
     public ResponseEntity<?> addReact(@PathVariable String messageId, @RequestBody Reaction reaction,
-                                      @AuthenticationPrincipal User user) {
+                                      @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         reaction.setReactByUserId(user.getId());
@@ -178,7 +185,8 @@ public class MessageRest {
      */
     @GetMapping("/readby/{messageId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getReadbyes(@PathVariable String messageId, @AuthenticationPrincipal User user) {
+    @ApiOperation("Chi tiết tin nhắn: Lấy danh sách những người đã xem tin nhắn này")
+    public ResponseEntity<?> getReadbyes(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
@@ -196,7 +204,8 @@ public class MessageRest {
      */
     @GetMapping("/react/{messageId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getReaction(@PathVariable String messageId, @AuthenticationPrincipal User user) {
+    @ApiOperation("Chi tiết tin nhắn: Lấy danh sách những người đã bày tỏ cảm xúc về tin nhắn này")
+    public ResponseEntity<?> getReaction(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Message> optionalMessage = messageRepository.findById(messageId);

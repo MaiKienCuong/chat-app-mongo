@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,7 +54,8 @@ public class InboxRest {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getAllInboxOfCurrentUser(@AuthenticationPrincipal User user, Pageable pageable) {
+    @ApiOperation("Lấy danh sách cuộc trò chuyện")
+    public ResponseEntity<?> getAllInboxOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
         Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), pageable);
@@ -64,7 +67,8 @@ public class InboxRest {
      */
     @DeleteMapping("/{inboxId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteInbox(@PathVariable String inboxId, @AuthenticationPrincipal User user) {
+    @ApiOperation("Xóa cuộc trò chuyện")
+    public ResponseEntity<?> deleteInbox(@PathVariable String inboxId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
@@ -89,7 +93,9 @@ public class InboxRest {
      */
     private Page<?> toInboxDto(Page<Inbox> inboxPage) {
         List<Inbox> content = inboxPage.getContent();
-        List<InboxDto> dto = content.stream().map(x -> inboxMapper.toInboxDto(x)).collect(Collectors.toList());
+        List<InboxDto> dto = content.stream()
+                .map(x -> inboxMapper.toInboxDto(x))
+                .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
     }
 

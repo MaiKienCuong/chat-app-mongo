@@ -44,7 +44,7 @@ public class ChatAppMongoApplication {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.any())
+                .apis(RequestHandlerSelectors.basePackage("iuh.dhktpm14.cnm.chatappmongo"))
                 .paths(PathSelectors.any())
                 .build();
     }

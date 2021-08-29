@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,7 +45,8 @@ public class FriendRest {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getAllFriendOfCurrentUser(@AuthenticationPrincipal User user, Pageable pageable) {
+    @ApiOperation("Lấy danh sách bạn bè")
+    public ResponseEntity<?> getAllFriendOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
         Page<Friend> friendPage = friendRepository.getAllFriendOfUser(user.getId(), pageable);
@@ -56,7 +59,8 @@ public class FriendRest {
      */
     @DeleteMapping("/{deleteId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteFriend(@AuthenticationPrincipal User user, @PathVariable String deleteId) {
+    @ApiOperation("Xóa bạn bè")
+    public ResponseEntity<?> deleteFriend(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String deleteId) {
         if (user == null)
             throw new UnAuthenticateException();
         // xóa bạn bè với chính mình
@@ -78,7 +82,9 @@ public class FriendRest {
      */
     private Page<?> toFriendDto(Page<Friend> friendPage) {
         List<Friend> content = friendPage.getContent();
-        List<FriendDto> dto = content.stream().map(x -> friendMapper.toFriendDto(x)).collect(Collectors.toList());
+        List<FriendDto> dto = content.stream()
+                .map(x -> friendMapper.toFriendDto(x))
+                .collect(Collectors.toList());
         return new PageImpl<>(dto, friendPage.getPageable(), friendPage.getTotalElements());
     }
 
