@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,11 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.Optional;
 
 import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
@@ -81,16 +80,7 @@ public class AuthenticationRest {
     }
 
     @GetMapping("/refreshtoken")
-    public ResponseEntity<?> getRefreshToken(HttpServletRequest request, HttpServletResponse response) {
-        Cookie[] cookies = request.getCookies();
-        String requestRefreshToken = null;
-        if (cookies != null) {
-            Optional<Cookie> cookie = Arrays.stream(cookies)
-                    .filter(c -> c.getName().equals("refresh_token"))
-                    .findFirst();
-            if (cookie.isPresent())
-                requestRefreshToken = cookie.get().getValue();
-        }
+    public ResponseEntity<?> getRefreshToken(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             Optional<User> user = userRepository.findById(jwtUtils.getUserIdFromJwtToken(requestRefreshToken));
             if (user.isPresent() && user.get().getRefreshToken().equals(requestRefreshToken)) {
@@ -169,28 +159,23 @@ public class AuthenticationRest {
             return ResponseEntity.ok(new MessageResponse("Xác thực thành công"));
         return ResponseEntity.badRequest().body(new MessageResponse("Mã xác nhận không chính xác"));
     }
-    
-    @GetMapping("/signout")
-    public ResponseEntity<?> signout(HttpServletRequest request){
-    	 Cookie[] cookies = request.getCookies();
-         String requestRefreshToken = null;
-         if (cookies != null) {
-             Optional<Cookie> cookie = Arrays.stream(cookies)
-                     .filter(c -> c.getName().equals("refresh_token"))
-                     .findFirst();
-             if (cookie.isPresent())
-                 requestRefreshToken = cookie.get().getValue();
-         }
-         
-         if(jwtUtils.validateJwtToken(requestRefreshToken)) {
-        	 String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
-        	 User user = userService.findById(userId);
-        	 user.setRefreshToken(null);
-        	 userService.save(user);
-        	 return ResponseEntity.ok(new MessageResponse("Đăng xuất thành công"));
-         }
-         return ResponseEntity.badRequest().body(new MessageResponse("Phiên đăng nhập đã hết hạn. . ."));
-    	
+
+    @PostMapping("/signout")
+    public ResponseEntity<?> signout(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
+        if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
+            String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
+            var user = userService.findById(userId);
+            user.setRefreshToken(null);
+            userService.save(user);
+            var cookie = new Cookie("refresh_token", "");
+            cookie.setMaxAge(0);
+            cookie.setHttpOnly(true);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+            return ResponseEntity.ok(new MessageResponse("Đăng xuất thành công"));
+        }
+        return ResponseEntity.badRequest().body(new MessageResponse("Phiên đăng nhập đã hết hạn. . ."));
+
     }
 
     /*
@@ -200,11 +185,11 @@ public class AuthenticationRest {
      * MessageResponse("update_password_susscess")); else return
      * ResponseEntity.ok(new MessageResponse("update_password__fail")); }
      */
-    
+
     //// for mobile
-    
+
     @PostMapping(path = "/signin", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> signinForMobile( SiginRequest payload, HttpServletResponse response) {
+    public ResponseEntity<?> signinForMobile(SiginRequest payload, HttpServletResponse response) {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
@@ -230,8 +215,8 @@ public class AuthenticationRest {
 
         return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
     }
-    
-    @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded" )
+
+    @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded")
     public ResponseEntity<?> signupForMoblie(UserSignupDto user) {
         if (userService.signup(user)) {
             Optional<User> optional = userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(user.getPhoneNumber());
