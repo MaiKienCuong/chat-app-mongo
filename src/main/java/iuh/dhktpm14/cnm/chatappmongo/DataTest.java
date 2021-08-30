@@ -76,7 +76,7 @@ public class DataTest implements CommandLineRunner {
                 .gender("Nam")
                 .dateOfBirth(new Date())
                 .block(false)
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .imageUrl("https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
@@ -93,7 +93,7 @@ public class DataTest implements CommandLineRunner {
                 .gender("Nam")
                 .dateOfBirth(new Date())
                 .block(false)
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .imageUrl("https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
@@ -110,7 +110,7 @@ public class DataTest implements CommandLineRunner {
                 .gender("Nam")
                 .dateOfBirth(new Date())
                 .block(false)
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .imageUrl("https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
@@ -127,7 +127,7 @@ public class DataTest implements CommandLineRunner {
                 .gender("Nam")
                 .dateOfBirth(new Date())
                 .block(false)
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .imageUrl("https://img.webmd.com/dtmcms/live/webmd/consumer_assets/site_images/article_thumbnails/other/scoop_on_cat_poop_other/1800x1200_scoop_on_cat_poop_other.jpg?resize=600px:*")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
@@ -156,6 +156,7 @@ public class DataTest implements CommandLineRunner {
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
                 .build());
 
+        //
         messageRepository.save(Message.builder()
                 .id("1")
                 .roomId("1")
@@ -180,6 +181,102 @@ public class DataTest implements CommandLineRunner {
                 .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
                 .build());
 
+        messageRepository.save(Message.builder()
+                .id("7")
+                .roomId("1")
+                .content("ừ, hello nha1")
+                .senderId("2")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("8")
+                .roomId("1")
+                .content("ừ, hello nha2")
+                .senderId("2")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("9")
+                .roomId("1")
+                .content("ừ, hello nha3")
+                .senderId("2")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("10")
+                .roomId("1")
+                .content("ừ, hello nha4")
+                .senderId("2")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("11")
+                .roomId("1")
+                .content("chào nha1")
+                .senderId("1")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("12")
+                .roomId("1")
+                .content("chào nha2")
+                .senderId("1")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("13")
+                .roomId("1")
+                .content("chào nha3")
+                .senderId("1")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("14")
+                .roomId("1")
+                .content("chào nha4")
+                .senderId("1")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+20000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
+                .build());
+        //
         messageRepository.save(Message.builder()
                 .id("3")
                 .roomId("2")
@@ -217,6 +314,179 @@ public class DataTest implements CommandLineRunner {
                 .roomId("2")
                 .content("chào nha")
                 .senderId("3")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("15")
+                .roomId("2")
+                .content("chào nha15")
+                .senderId("3")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("16")
+                .roomId("2")
+                .content("chào nha16")
+                .senderId("3")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+        messageRepository.save(Message.builder()
+                .id("17")
+                .roomId("2")
+                .content("chào nha17")
+                .senderId("3")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("18")
+                .roomId("2")
+                .content("chào nha18")
+                .senderId("1")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("19")
+                .roomId("2")
+                .content("chào nha19")
+                .senderId("1")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("19")
+                .roomId("2")
+                .content("chào nha19")
+                .senderId("1")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("20")
+                .roomId("2")
+                .content("chào nha20")
+                .senderId("2")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("21")
+                .roomId("2")
+                .content("chào nha21")
+                .senderId("2")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+
+        messageRepository.save(Message.builder()
+                .id("22")
+                .roomId("2")
+                .content("chào nha22")
+                .senderId("4")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+        messageRepository.save(Message.builder()
+                .id("23")
+                .roomId("2")
+                .content("chào nha23")
+                .senderId("4")
+                .type("text")
+                .createAt(new Date(new Date().getTime()+50000))
+                .readByes(Set.of(
+                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("4").readAt(new Date(new Date().getTime()+3000)).build(),
+                        ReadBy.builder().readByUserId("5").readAt(new Date(new Date().getTime()+4000)).build()))
+                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .build());
+        messageRepository.save(Message.builder()
+                .id("24")
+                .roomId("2")
+                .content("chào nha24")
+                .senderId("4")
                 .type("text")
                 .createAt(new Date(new Date().getTime()+50000))
                 .readByes(Set.of(
@@ -307,6 +577,55 @@ public class DataTest implements CommandLineRunner {
                 .inboxId("2")
                 .messageCreateAt(new Date(new Date().getTime()+1000))
                 .messageId("2")
+                .build());
+
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("21")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("7")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("22")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("8")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("23")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("9")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("24")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("10")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("25")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("11")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("26")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("12")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("27")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("13")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("28")
+                .inboxId("1")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("14")
                 .build());
         //
         inboxMessageRepository.save(InboxMessage.builder()
@@ -408,6 +727,68 @@ public class DataTest implements CommandLineRunner {
                 .inboxId("6")
                 .messageCreateAt(new Date(new Date().getTime()+1000))
                 .messageId("6")
+                .build());
+        //
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("29")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("15")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("30")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("16")
+                .build());
+
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("31")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("17")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("32")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("18")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("33")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("19")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("34")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("20")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("35")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("21")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("36")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("22")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("37")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("23")
+                .build());
+        inboxMessageRepository.save(InboxMessage.builder()
+                .id("38")
+                .inboxId("6")
+                .messageCreateAt(new Date(new Date().getTime()+1000))
+                .messageId("24")
                 .build());
 
 //        Collation collation = Collation.of("de");
