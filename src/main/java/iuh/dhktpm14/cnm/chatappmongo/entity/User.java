@@ -11,6 +11,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,8 +32,11 @@ import java.util.stream.Collectors;
 public class User implements UserDetails {
     @Id
     private String id;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String username;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String email;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String phoneNumber;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
