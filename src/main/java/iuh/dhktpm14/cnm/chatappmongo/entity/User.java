@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -50,6 +51,10 @@ public class User implements UserDetails {
     private boolean enable;
     private String verificationCode;
     private String refreshToken;
+
+    private OnlineStatus onlineStatus;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private Date lastOnline;
 
     @Override
     @JsonIgnore

@@ -31,6 +31,8 @@ public class UserMapper {
         dto.setId(user.getId());
         dto.setDisplayName(user.getDisplayName());
         dto.setImageUrl(user.getImageUrl());
+        dto.setOnlineStatus(user.getOnlineStatus());
+        dto.setLastOnline(user.getLastOnline());
         return dto;
     }
 
@@ -49,6 +51,8 @@ public class UserMapper {
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setRoles(user.getRoles());
         dto.setUsername(user.getUsername());
+        dto.setOnlineStatus(user.getOnlineStatus());
+        dto.setLastOnline(user.getLastOnline());
         return dto;
     }
 
