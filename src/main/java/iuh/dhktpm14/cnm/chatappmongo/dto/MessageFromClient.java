@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MessageCreateDto implements Serializable {
+public class MessageFromClient implements Serializable {
     private String roomId;
     private String type;
     private String content;
