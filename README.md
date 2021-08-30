@@ -1,6 +1,16 @@
 # Chat-App
 
 
+# api đăng xuất
+/api/auth/signout [GET]
+```
+     return
+        thành công - > Đăng xuất thành công
+            
+             
+         lỗi -> Phiên đăng nhập đã hết hạn. . .
+    
+```
 
 # api check sdt
 /api/auth/signup/check_phone_number [POST]
