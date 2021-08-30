@@ -51,7 +51,7 @@ public class AuthenticationRest {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @PostMapping("/signin")
+    @PostMapping(path = "/signin", consumes = "application/json")
     public ResponseEntity<?> signin(@RequestBody SiginRequest payload, HttpServletResponse response) {
         Authentication authentication;
         try {
@@ -100,7 +100,7 @@ public class AuthenticationRest {
                 .body(new MessageResponse("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
     }
 
-    @PostMapping("signup/save_information")
+    @PostMapping(path = "signup/save_information", consumes = "application/json")
     public ResponseEntity<?> signup(@Valid @RequestBody UserSignupDto user) {
         if (userService.signup(user)) {
             Optional<User> optional = userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(user.getPhoneNumber());
@@ -160,6 +160,24 @@ public class AuthenticationRest {
         return ResponseEntity.badRequest().body(new MessageResponse("Mã xác nhận không chính xác"));
     }
 
+    @PostMapping("/signout")
+    public ResponseEntity<?> signout(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
+        if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
+            String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
+            var user = userService.findById(userId);
+            user.setRefreshToken(null);
+            userService.save(user);
+            var cookie = new Cookie("refresh_token", "");
+            cookie.setMaxAge(0);
+            cookie.setHttpOnly(true);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+            return ResponseEntity.ok(new MessageResponse("Đăng xuất thành công"));
+        }
+        return ResponseEntity.badRequest().body(new MessageResponse("Phiên đăng nhập đã hết hạn. . ."));
+
+    }
+
     /*
      * @PostMapping("/signup/password") public ResponseEntity<?>
      * enterPassword(@RequestBody UserPasswordUpdateDTO user){
@@ -167,5 +185,47 @@ public class AuthenticationRest {
      * MessageResponse("update_password_susscess")); else return
      * ResponseEntity.ok(new MessageResponse("update_password__fail")); }
      */
+
+    //// for mobile
+
+    @PostMapping(path = "/signin", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<?> signinForMobile(SiginRequest payload, HttpServletResponse response) {
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(payload.getUsername(), payload.getPassword()));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Đăng nhập không thành công. Tài khoản hoặc mật khẩu không đúng"));
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        var user = (User) authentication.getPrincipal();
+        String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
+        String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
+        user.setRefreshToken(jwtRefresh);
+        userRepository.save(user);
+
+        var refreshTokenCookie = new Cookie("refresh_token", jwtRefresh);
+        refreshTokenCookie.setHttpOnly(true);
+//        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setComment(SAME_SITE_STRICT_COMMENT);
+        refreshTokenCookie.setPath("/");
+        response.addCookie(refreshTokenCookie);
+
+        return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
+    }
+
+    @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<?> signupForMoblie(UserSignupDto user) {
+        if (userService.signup(user)) {
+            Optional<User> optional = userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(user.getPhoneNumber());
+            if (optional.isPresent()) {
+                user.setId(optional.get().getId());
+                return ResponseEntity.ok(user);
+            }
+        }
+        return ResponseEntity.badRequest().body(new MessageResponse("Số điện thoại đã tồn tại"));
+    }
 
 }
