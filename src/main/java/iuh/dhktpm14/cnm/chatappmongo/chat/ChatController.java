@@ -43,6 +43,7 @@ public class ChatController {
 
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageCreateDto messageDto, UserPrincipal userPrincipal) {
+        System.out.println("access_token = " + userPrincipal.getAccessToken());
         Optional<Room> roomOptional = roomRepository.findById(messageDto.getRoomId());
         Optional<User> userOptional = userRepository.findById(userPrincipal.getName());
         if (roomOptional.isPresent() && userOptional.isPresent()) {
