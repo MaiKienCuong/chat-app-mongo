@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -24,6 +26,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@CompoundIndexes(@CompoundIndex(background = true, def = "{roomId: 1, createAt: -1}"))
+// do hay tìm kiếm dùng 2 trường này nên tạo index kết hợp trên cả hai trường
 public class Message implements Serializable {
     @Id
     private String id;
