@@ -184,7 +184,7 @@ public class AuthenticationRest {
          
          if(jwtUtils.validateJwtToken(requestRefreshToken)) {
         	 String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
-        	 User user = userService.findByUserName(userId);
+        	 User user = userService.findById(userId);
         	 user.setRefreshToken(null);
         	 userService.save(user);
         	 return ResponseEntity.ok(new MessageResponse("Đăng xuất thành công"));
