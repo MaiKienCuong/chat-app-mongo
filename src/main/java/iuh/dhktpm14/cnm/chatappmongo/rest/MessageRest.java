@@ -86,13 +86,27 @@ public class MessageRest {
         if (inboxRepository.existsByIdAndOfUserId(inboxId, user.getId())) {
             var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
             if (! inbox.isEmpty()) {
-                List<InboxMessage> inboxMessages = inboxMessageRepository.getAllInboxMessageOfInbox(inboxId, pageable);
+                /*
+                 lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
+                 sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
+                 tức là số lượng document là đã bị giới hạn
+                 */
+                Page<InboxMessage> inboxMessages = inboxMessageRepository.getAllInboxMessageOfInbox(inboxId, pageable);
                 if (inboxMessages.isEmpty())
                     return ResponseEntity.ok(new ArrayList<>());
-                Page<Message> messagePage = messageRepository
-                        .findAllByIdInMessageIdsPaged(inboxMessages.stream().map(InboxMessage::getMessageId)
-                                .collect(Collectors.toList()), pageable);
-                return ResponseEntity.ok(toMessageDto(messagePage));
+                List<String> messageIds = inboxMessages.getContent().stream().map(InboxMessage::getMessageId)
+                        .collect(Collectors.toList());
+                /*
+                lấy ra danh sách message trong collection message mà có id nằm trong list messageIds
+                do trước đó đã phân trang và sắp xếp theo messageCreateAt: -1
+                nên truy vấn này truyền vào Pageable.unpaged() (không phân trang) để lấy tất cả document khớp
+                vì truy vấn trước trả về số bản ghi giới hạn không phải là getAll trong collection
+                 */
+                Page<Message> messagePage = messageRepository.findAllByIdInMessageIdsPaged(messageIds, Pageable.unpaged());
+                /*
+                xem hàm toMessageDto
+                 */
+                return ResponseEntity.ok(toMessageDto(messagePage, inboxMessages));
             }
         }
         return ResponseEntity.badRequest().build();
@@ -218,10 +232,17 @@ public class MessageRest {
     /**
      * chuyển từ page message qua page messageDto
      */
-    private Page<?> toMessageDto(Page<Message> messagePage) {
+    private Page<?> toMessageDto(Page<Message> messagePage, Page<InboxMessage> inboxMessagePage) {
         List<Message> content = messagePage.getContent();
         List<MessageDto> dto = content.stream().map(x -> messageMapper.toMessageDto(x.getId())).collect(Collectors.toList());
-        return new PageImpl<>(dto, messagePage.getPageable(), messagePage.getTotalElements());
+
+        /*
+        tham số thứ 2 truyền vào là pageAble của truy vấn trước đó trong collection inboxMessage
+        tham số thứ 3 truyền vào là totalElement của truy vấn trước đó trong collection inboxMessage,
+        vì đã phân trang ở truy vấn thứ nhât, truy vấn thứ 2 chỉ là getAll trong collection Message
+        nến không thể lấy các giá trị này từ truy vấn thứ 2
+         */
+        return new PageImpl<>(dto, inboxMessagePage.getPageable(), inboxMessagePage.getTotalElements());
     }
 
 }
