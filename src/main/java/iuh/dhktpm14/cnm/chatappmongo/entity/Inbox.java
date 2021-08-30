@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -19,6 +21,7 @@ import java.io.Serializable;
 public class Inbox implements Serializable {
     @Id
     private String id;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String ofUserId;
     private String roomId;
     private boolean empty;
