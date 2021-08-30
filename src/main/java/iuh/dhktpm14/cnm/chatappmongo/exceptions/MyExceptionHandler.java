@@ -97,7 +97,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(NullPointerException.class)
     public final ResponseEntity<Object> handleNullPointerException(NullPointerException ex, WebRequest request) {
-        return ResponseEntity.badRequest().body(new MessageResponse(null));
+        return ResponseEntity.badRequest().body(new MessageResponse("NullPointerException: " + ex.getMessage()));
     }
 
     @Override

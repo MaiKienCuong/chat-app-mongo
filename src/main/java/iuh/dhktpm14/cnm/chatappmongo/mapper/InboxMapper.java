@@ -55,10 +55,12 @@ public class InboxMapper {
         var lastMessage = messageRepository.getLastMessageOfRoom(inbox.getRoomId());
         if (lastMessage != null) {
             dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
-            dto.setLastMessageReadBy(lastMessage.getReadByes()
-                    .stream().map(x -> readByMapper.toReadByDto(x))
-                    .sorted(Comparator.comparing(ReadByDto::getReadAt))
-                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+            if (lastMessage.getReadByes() != null) {
+                dto.setLastMessageReadBy(lastMessage.getReadByes()
+                        .stream().map(x -> readByMapper.toReadByDto(x))
+                        .sorted(Comparator.comparing(ReadByDto::getReadAt))
+                        .collect(Collectors.toCollection(LinkedHashSet::new)));
+            }
         }
         return dto;
     }
