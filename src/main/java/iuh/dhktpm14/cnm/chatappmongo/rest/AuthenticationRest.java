@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,11 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.Optional;
 
 import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
@@ -81,16 +80,7 @@ public class AuthenticationRest {
     }
 
     @GetMapping("/refreshtoken")
-    public ResponseEntity<?> getRefreshToken(HttpServletRequest request, HttpServletResponse response) {
-        Cookie[] cookies = request.getCookies();
-        String requestRefreshToken = null;
-        if (cookies != null) {
-            Optional<Cookie> cookie = Arrays.stream(cookies)
-                    .filter(c -> c.getName().equals("refresh_token"))
-                    .findFirst();
-            if (cookie.isPresent())
-                requestRefreshToken = cookie.get().getValue();
-        }
+    public ResponseEntity<?> getRefreshToken(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             Optional<User> user = userRepository.findById(jwtUtils.getUserIdFromJwtToken(requestRefreshToken));
             if (user.isPresent() && user.get().getRefreshToken().equals(requestRefreshToken)) {
