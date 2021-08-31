@@ -6,7 +6,7 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
-import iuh.dhktpm14.cnm.chatappmongo.entity.ReadBy;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.MessageNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
@@ -17,11 +17,11 @@ import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -75,6 +75,9 @@ public class MessageRest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private ReadTrackingRepository readTrackingRepository;
+
     /**
      * lấy tất cả tin nhắn của inboxId
      */
@@ -89,9 +92,9 @@ public class MessageRest {
             var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
             if (! inbox.isEmpty()) {
                 /*
-                khi gọi api này thì mặc định tất cả những tin nhắn chưa xem sẽ được chuyển thành đã xem
+                cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
                  */
-                updateMessagesIsSeen(user.getId(), inbox.getRoomId());
+                updateReadTracking(user.getId(), inbox.getRoomId());
                 /*
                  lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
                  sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
@@ -122,26 +125,17 @@ public class MessageRest {
      * lấy danh sách tin nhắn chưa đọc của userId trong roomId
      * và cập nhật thành đã đọc
      */
-    private void updateMessagesIsSeen(String userId, String roomId) {
-        List<Message> allMessageUnSeen = messageRepository.getAllMessageUnSeen(roomId, userId);
-        /*
-        BulkOperations: dùng để cập nhật hàng loạt, ví dụ mỗi 20 document thì ghi xuống database
-        thay vì với mỗi document lại ghi xuống database một lần, làm tăng hiệu suất
-         */
-        BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Message.class);
-        var i = 0;
-        for (Message message : allMessageUnSeen) {
-            var criteria = Criteria.where("_id").is(message.getId());
+    private void updateReadTracking(String userId, String roomId) {
+        var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, userId);
+        if (readTracking != null && readTracking.getUnReadMessage() != 0) {
+            var lastMessage = messageRepository.getLastMessageOfRoom(roomId);
+            var criteria = Criteria.where("roomId").is(roomId).and("userId").is(userId);
             var update = new Update();
-            update.push("readByes", ReadBy.builder().readByUserId(userId)
-                    .readAt(new Date()).build());
-            ops.updateOne(Query.query(criteria), update);
-            i++;
-            if (i % 20 == 0)
-                ops.execute();
+            update.set("messageId", lastMessage.getId());
+            update.set("readAt", new Date());
+            update.set("unReadMessage", 0);
+            mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
         }
-        if (i != 0)
-            ops.execute();
     }
 
     /**
@@ -222,8 +216,8 @@ public class MessageRest {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty())
             return ResponseEntity.badRequest().build();
-        Set<ReadBy> readByes = optionalMessage.get().getReadByes();
-        Set<ReadByDto> dto = readByes.stream().map(x -> readByMapper.toReadByDto(x))
+        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(messageId);
+        Set<ReadByDto> dto = readTracking.stream().map(readByMapper::toReadByDto)
                 .sorted(Comparator.comparing(ReadByDto::getReadAt))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         return ResponseEntity.ok(dto);
