@@ -17,7 +17,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 @Document
 @Data
@@ -40,8 +39,8 @@ public class Message implements Serializable {
     private String type;
     private String content;
     private Boolean pin;
-    private Set<ReadBy> readByes;
     private List<Reaction> reactions;
     private MessageStatus status;
     private Boolean deleted;
+    private String replyId;
 }
