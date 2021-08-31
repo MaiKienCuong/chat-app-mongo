@@ -1,4 +1,4 @@
-package iuh.dhktpm14.cnm.chatappmongo.dto;
+package iuh.dhktpm14.cnm.chatappmongo.dto.chat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;

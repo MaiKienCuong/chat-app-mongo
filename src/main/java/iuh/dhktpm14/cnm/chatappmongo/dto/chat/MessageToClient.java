@@ -1,14 +1,13 @@
-package iuh.dhktpm14.cnm.chatappmongo.dto;
+package iuh.dhktpm14.cnm.chatappmongo.dto.chat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
+import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageStatus;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -21,8 +20,5 @@ public class MessageToClient implements Serializable {
     private Date createAt;
     private String type;
     private String content;
-    private Boolean pin;
-    private Boolean deleted;
     private MessageStatus status;
-    private List<Reaction> reactions;
 }

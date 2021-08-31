@@ -1,6 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.chat;
 
-import iuh.dhktpm14.cnm.chatappmongo.dto.MessageFromClient;
+import iuh.dhktpm14.cnm.chatappmongo.dto.chat.MessageFromClient;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
