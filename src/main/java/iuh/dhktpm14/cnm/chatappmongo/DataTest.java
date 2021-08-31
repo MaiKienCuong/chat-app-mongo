@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo;
 
+import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
@@ -11,6 +12,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.ReactionType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
+import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
@@ -55,11 +57,14 @@ public class DataTest implements CommandLineRunner {
     @Autowired
     ReadTrackingRepository readTrackingRepository;
 
-    private Random random = new Random();
+    @Autowired
+    FriendRepository friendRepository;
+
+    private final Random random = new Random();
 
     private Long time = 1629451079000L;
 
-    private List<String> images = List.of(
+    private final List<String> images = List.of(
             "https://timesofindia.indiatimes.com/photo/67586673.cms",
             "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
             "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
@@ -67,7 +72,7 @@ public class DataTest implements CommandLineRunner {
             "https://img.webmd.com/dtmcms/live/webmd/consumer_assets/site_images/article_thumbnails/other/scoop_on_cat_poop_other/1800x1200_scoop_on_cat_poop_other.jpg?resize=600px:*"
     );
 
-    private List<ReactionType> reactionTypes = List.of(ReactionType.SAD,
+    private final List<ReactionType> reactionTypes = List.of(ReactionType.SAD,
             ReactionType.WOW,
             ReactionType.LIKE,
             ReactionType.LOVE,
@@ -89,8 +94,27 @@ public class DataTest implements CommandLineRunner {
 
         insertReadTracking();
 
+        insertFriend();
+
         System.out.println("------insert ok------");
 
+    }
+
+    private void insertFriend() {
+        List<User> users = userRepository.findAll();
+        for (User u : users) {
+            List<Integer> ids = new ArrayList<>();
+            ids.add(Integer.valueOf(u.getId()));
+            for (var i = 0; i < 4; i++) {
+                var randomId = randomNotDuplicate(5, ids);
+                var friend = Friend.builder()
+                        .userId(u.getId())
+                        .friendId(randomId + "")
+                        .build();
+                ids.add(randomId);
+                friendRepository.save(friend);
+            }
+        }
     }
 
     private void insertReadTracking() {

@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -22,6 +24,7 @@ import java.util.Date;
 public class Friend implements Serializable {
     @Id
     private String id;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String userId;
     private String friendId;
 
