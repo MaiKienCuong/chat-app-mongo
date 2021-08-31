@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -257,6 +258,7 @@ public class MessageRest {
         vì đã phân trang ở truy vấn thứ nhât, truy vấn thứ 2 chỉ là getAll trong collection Message
         nến không thể lấy các giá trị này từ truy vấn thứ 2
          */
+        Collections.reverse(dto);
         return new PageImpl<>(dto, inboxMessagePage.getPageable(), inboxMessagePage.getTotalElements());
     }
 
