@@ -15,6 +15,11 @@ public interface InboxRepository extends MongoRepository<Inbox, String> {
     Page<Inbox> getAllInboxOfUser(String ofUserId, Pageable pageable);
 
     /**
+     *
+     */
+    boolean existsByOfUserIdAndRoomId(String ofUserId, String roomId);
+
+    /**
      * tìm inbox theo userId và roomId
      */
     Inbox findByOfUserIdAndRoomId(String ofUserId, String roomId);
