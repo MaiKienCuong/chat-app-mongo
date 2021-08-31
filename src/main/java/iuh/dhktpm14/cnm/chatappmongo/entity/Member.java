@@ -28,4 +28,5 @@ public class Member implements Serializable {
     @CreatedDate
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date addTime;
+    private Boolean isAdmin;
 }
