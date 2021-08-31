@@ -1,7 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
@@ -9,7 +8,6 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.ReadBy;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageStatus;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.MessageNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
@@ -23,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -42,6 +41,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -83,9 +83,14 @@ public class MessageRest {
     public ResponseEntity<?> getAllMessageOfInbox(@PathVariable String inboxId, Pageable pageable, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
+        // kiểm tra xem inboxId có thuộc về user hiện tại hay không
         if (inboxRepository.existsByIdAndOfUserId(inboxId, user.getId())) {
             var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
             if (! inbox.isEmpty()) {
+                /*
+                khi gọi api này thì mặc định tất cả những tin nhắn chưa xem sẽ được chuyển thành đã xem
+                 */
+                updateMessagesIsSeen(user.getId(), inbox.getRoomId());
                 /*
                  lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
                  sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
@@ -93,14 +98,14 @@ public class MessageRest {
                  */
                 Page<InboxMessage> inboxMessages = inboxMessageRepository.getAllInboxMessageOfInbox(inboxId, pageable);
                 if (inboxMessages.isEmpty())
-                    return ResponseEntity.ok(new ArrayList<>());
+                    return ResponseEntity.ok(new PageImpl<>(new ArrayList<>(), pageable, inboxMessages.getTotalElements()));
                 List<String> messageIds = inboxMessages.getContent().stream().map(InboxMessage::getMessageId)
                         .collect(Collectors.toList());
                 /*
-                lấy ra danh sách message trong collection message mà có id nằm trong list messageIds
+                lấy ra danh sách message trong collection message mà có id nằm trong list messageIds,
                 do trước đó đã phân trang và sắp xếp theo messageCreateAt: -1
-                nên truy vấn này truyền vào Pageable.unpaged() (không phân trang) để lấy tất cả document khớp
-                vì truy vấn trước trả về số bản ghi giới hạn không phải là getAll trong collection
+                nên truy vấn này truyền vào Pageable.unpaged() (không phân trang) để lấy tất cả document khớp,
+                truy vấn trước trả về số bản ghi giới hạn không phải là getAll trong collection
                  */
                 Page<Message> messagePage = messageRepository.findAllByIdInMessageIdsPaged(messageIds, Pageable.unpaged());
                 /*
@@ -113,12 +118,38 @@ public class MessageRest {
     }
 
     /**
+     * lấy danh sách tin nhắn chưa đọc của userId trong roomId
+     * và cập nhật thành đã đọc
+     */
+    private void updateMessagesIsSeen(String userId, String roomId) {
+        List<Message> allMessageUnSeen = messageRepository.getAllMessageUnSeen(roomId, userId);
+        /*
+        BulkOperations: dùng để cập nhật hàng loạt, ví dụ mỗi 20 document thì ghi xuống database
+        thay vì với mỗi document lại ghi xuống database một lần, làm tăng hiệu suất
+         */
+        BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Message.class);
+        var i = 0;
+        for (Message message : allMessageUnSeen) {
+            var criteria = Criteria.where("_id").is(message.getId());
+            var update = new Update();
+            update.push("readByes", ReadBy.builder().readByUserId(userId)
+                    .readAt(new Date()).build());
+            ops.updateOne(Query.query(criteria), update);
+            i++;
+            if (i % 20 == 0)
+                ops.execute();
+        }
+        if (i != 0)
+            ops.execute();
+    }
+
+    /**
      * lấy tin nhắn theo id
      */
     @GetMapping("/{messageId}/inbox/{inboxId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy chi tiết tin nhắn theo id")
-    public ResponseEntity<?> findById(@PathVariable String messageId, @PathVariable String inboxId, @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> getById(@PathVariable String messageId, @PathVariable String inboxId, @ApiIgnore @AuthenticationPrincipal User user) {
         // kiểm tra xem tin nhắn này có trong messageIds của inbox của user hay không
         // nếu tin nhắn có trong collection message nhưng không có trong messageIds của inbox của user thì không được xem
         if (user == null)
@@ -141,7 +172,7 @@ public class MessageRest {
     @DeleteMapping("/{messageId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Gỡ một tin nhắn")
-    public ResponseEntity<?> delete(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> deleteById(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Message> messageOptional = messageRepository.findById(messageId);
@@ -150,30 +181,14 @@ public class MessageRest {
         var message = messageOptional.get();
         // kiểm tra xem người gửi có phải người dùng hiện tại hay không mới cho xóa
         if (user.getId().equals(message.getSenderId())) {
-            message.setContent("Đã xóa");
-            message.setDeleted(true);
-            return ResponseEntity.ok(messageRepository.save(message));
+            var criteria = Criteria.where("_id").is(messageId);
+            var update = new Update();
+            update.set("content", "Đã xóa");
+            update.set("deleted", true);
+            mongoTemplate.updateFirst(Query.query(criteria), update, Message.class);
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Bạn không có quyền xóa tin nhắn này"));
-    }
-
-    /**
-     * gửi một tin nhắn vào room, đang test
-     */
-    @PostMapping
-    @PreAuthorize("isAuthenticated()")
-    @ApiIgnore
-    public ResponseEntity<?> sendMessage(@RequestBody MessageCreateDto messageDto, @ApiIgnore @AuthenticationPrincipal User user) {
-        if (user == null)
-            throw new UnAuthenticateException();
-        var message = Message.builder()
-                .type(messageDto.getType())
-                .roomId(messageDto.getRoomId())
-                .content(messageDto.getContent())
-                .status(MessageStatus.SENT)
-                .senderId(user.getId())
-                .build();
-        return ResponseEntity.ok(messageRepository.save(message));
     }
 
     /**
@@ -182,8 +197,8 @@ public class MessageRest {
     @PostMapping("/react/{messageId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Bày tỏ cảm xúc về một tin nhắn")
-    public ResponseEntity<?> addReact(@PathVariable String messageId, @RequestBody Reaction reaction,
-                                      @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> addReactToMessage(@PathVariable String messageId, @RequestBody Reaction reaction,
+                                               @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         reaction.setReactByUserId(user.getId());
