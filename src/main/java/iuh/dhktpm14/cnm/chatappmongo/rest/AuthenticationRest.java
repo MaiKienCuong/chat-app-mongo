@@ -10,12 +10,14 @@ import iuh.dhktpm14.cnm.chatappmongo.payload.SiginRequest;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,6 +52,9 @@ public class AuthenticationRest {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+    
+    @Autowired
+    private MessageSource messageSource;
 
     @PostMapping(path = "/signin", consumes = "application/json")
     public ResponseEntity<?> signin(@RequestBody SiginRequest payload, HttpServletResponse response) {
@@ -216,8 +221,13 @@ public class AuthenticationRest {
         return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
     }
 
-    @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> signupForMoblie(UserSignupDto user) {
+    @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded" )
+    public ResponseEntity<?> signupForMoblie(@Valid UserSignupDto user, BindingResult result) {
+    	if(result.hasErrors()) {
+    		
+    		return ResponseEntity.badRequest()
+                    .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), null)));
+    	}
         if (userService.signup(user)) {
             Optional<User> optional = userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(user.getPhoneNumber());
             if (optional.isPresent()) {
@@ -226,6 +236,35 @@ public class AuthenticationRest {
             }
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Số điện thoại đã tồn tại"));
+    }
+    
+    
+    @PutMapping(path = "/signup/send_vetification_code", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<?> sendVerificationCodeForMobile(User user)
+            throws UnsupportedEncodingException, MessagingException {
+        if (! userService.regexEmail(user.getEmail()))
+            return ResponseEntity.badRequest().body(new MessageResponse("Email không hợp lệ."));
+        if (user.getId() == null)
+            return ResponseEntity.badRequest().body(new MessageResponse("Dữ liệu gửi lên không hợp lệ - thiếu id."));
+        var userDB = userService.findById(user.getId());
+        var userCheckEmail = userService.findByEmail(user.getEmail());
+        if (userDB == null)
+            return ResponseEntity.badRequest().body(new MessageResponse("User không tồn tại."));
+        if (userCheckEmail != null && ! (userDB.getId().equals(userCheckEmail.getId())))
+            return ResponseEntity.badRequest().body(new MessageResponse("Email đã tồn tại."));
+
+        userDB.setEmail(user.getEmail());
+        userService.sendVerificationEmail(userDB);
+        return ResponseEntity.ok(new MessageResponse("Gửi mã xác thực thành công."));
+
+    }
+    
+    
+    @PostMapping(path = "/signup/verify", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<?> verifyForMobile( User user) {
+        if (userService.verify(user))
+            return ResponseEntity.ok(new MessageResponse("Xác thực thành công"));
+        return ResponseEntity.badRequest().body(new MessageResponse("Mã xác nhận không chính xác"));
     }
 
 }

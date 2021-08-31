@@ -1,6 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.chat;
 
-import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
+//import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
@@ -41,7 +41,7 @@ public class ChatController {
     @Autowired
     private UserMapper userMapper;
 
-    @MessageMapping("/chat")
+    /*@MessageMapping("/chat")
     public void processMessage(@Payload MessageCreateDto messageDto, UserPrincipal userPrincipal) {
         System.out.println("access_token = " + userPrincipal.getAccessToken());
         Optional<Room> roomOptional = roomRepository.findById(messageDto.getRoomId());
@@ -60,7 +60,7 @@ public class ChatController {
                     messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages", dto);
                 }
             }
-        }
-    }
+        }*/
+//    }
 
 }

@@ -1,7 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
+//import iuh.dhktpm14.cnm.chatappmongo.dto.MessageCreateDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
@@ -160,21 +160,19 @@ public class MessageRest {
     /**
      * gửi một tin nhắn vào room, đang test
      */
-    @PostMapping
-    @PreAuthorize("isAuthenticated()")
-    @ApiIgnore
-    public ResponseEntity<?> sendMessage(@RequestBody MessageCreateDto messageDto, @ApiIgnore @AuthenticationPrincipal User user) {
-        if (user == null)
-            throw new UnAuthenticateException();
-        var message = Message.builder()
-                .type(messageDto.getType())
-                .roomId(messageDto.getRoomId())
-                .content(messageDto.getContent())
-                .status(MessageStatus.SENT)
-                .senderId(user.getId())
-                .build();
-        return ResponseEntity.ok(messageRepository.save(message));
-    }
+	/*
+	 * @PostMapping
+	 * 
+	 * @PreAuthorize("isAuthenticated()")
+	 * 
+	 * @ApiIgnore public ResponseEntity<?> sendMessage(@RequestBody MessageCreateDto
+	 * messageDto, @ApiIgnore @AuthenticationPrincipal User user) { if (user ==
+	 * null) throw new UnAuthenticateException(); var message = Message.builder()
+	 * .type(messageDto.getType()) .roomId(messageDto.getRoomId())
+	 * .content(messageDto.getContent()) .status(MessageStatus.SENT)
+	 * .senderId(user.getId()) .build(); return
+	 * ResponseEntity.ok(messageRepository.save(message)); }
+	 */
 
     /**
      * bày tỏ cảm xúc về một tin nhắn
