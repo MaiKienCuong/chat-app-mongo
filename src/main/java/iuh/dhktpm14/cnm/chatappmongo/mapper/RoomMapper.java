@@ -39,7 +39,15 @@ public class RoomMapper {
         Optional<Room> roomOptional = roomRepository.findById(roomId);
         if (roomOptional.isEmpty())
             return null;
-        var room = roomOptional.get();
+        return toRoomSummaryDto(roomOptional.get());
+    }
+
+    public Object toRoomSummaryDto(Room room) {
+        var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (currentUser == null)
+            throw new UnAuthenticateException();
+        if (room == null)
+            return null;
         if (room.getType().equals(RoomType.ONE)) {
             var one = new RoomOneSummaryDto();
             one.setId(room.getId());
@@ -71,7 +79,15 @@ public class RoomMapper {
         Optional<Room> roomOptional = roomRepository.findById(roomId);
         if (roomOptional.isEmpty())
             return null;
-        var room = roomOptional.get();
+        return toRoomDetailDto(roomOptional.get());
+    }
+
+    public Object toRoomDetailDto(Room room) {
+        var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (currentUser == null)
+            throw new UnAuthenticateException();
+        if (room == null)
+            return null;
         if (room.getType().equals(RoomType.ONE)) {
             var one = new RoomOneDetailDto();
             one.setId(room.getId());

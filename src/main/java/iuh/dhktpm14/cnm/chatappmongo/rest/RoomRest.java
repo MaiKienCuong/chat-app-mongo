@@ -171,6 +171,30 @@ public class RoomRest {
         return ResponseEntity.ok(roomRepository.save(room));
     }
 
+    @GetMapping("/common-group/count/{anotherUserId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Lấy số lượng nhóm chung giữa hai người")
+    public ResponseEntity<?> countCommonGroup(@PathVariable String anotherUserId, @ApiIgnore @AuthenticationPrincipal User user) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        if (anotherUserId == null)
+            return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(roomRepository.countCommonGroupBetween(user.getId(), anotherUserId));
+    }
+
+    @GetMapping("/common-group/{anotherUserId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Lấy danh sách nhóm chung giữa hai người")
+    public ResponseEntity<?> getCommonGroup(@PathVariable String anotherUserId, @ApiIgnore @AuthenticationPrincipal User user) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        if (anotherUserId == null)
+            return ResponseEntity.badRequest().build();
+        List<Room> commonGroups = roomRepository.findCommonGroupBetween(user.getId(), anotherUserId);
+        List<Object> roomSummaryList = commonGroups.stream().map(roomMapper::toRoomSummaryDto).collect(Collectors.toList());
+        return ResponseEntity.ok(roomSummaryList);
+    }
+
     /**
      * chuyển từ Page<Room> qua Page<RoomDto>
      */
