@@ -1,20 +1,17 @@
 package iuh.dhktpm14.cnm.chatappmongo.mapper;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class InboxMapper {
@@ -28,10 +25,10 @@ public class InboxMapper {
     private RoomMapper roomMapper;
 
     @Autowired
-    private ReadByMapper readByMapper;
+    private InboxRepository inboxRepository;
 
     @Autowired
-    private InboxRepository inboxRepository;
+    private ReadTrackingRepository readTrackingRepository;
 
     public InboxDto toInboxDto(String inboxId) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -46,22 +43,22 @@ public class InboxMapper {
     }
 
     public InboxDto toInboxDto(Inbox inbox) {
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user == null)
+            throw new UnAuthenticateException();
         if (inbox == null)
             return null;
         var dto = new InboxDto();
         dto.setId(inbox.getId());
         dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
-        dto.setCountNewMessage(messageRepository.countNewMessage(inbox.getRoomId(), inbox.getOfUserId()));
+        /*
+        lấy số tin nhắn chưa đọc theo roomId và userId
+         */
+        var readTracking = readTrackingRepository.findByRoomIdAndUserId(inbox.getRoomId(), user.getId());
+        if (readTracking != null)
+            dto.setCountNewMessage(readTracking.getUnReadMessage());
         var lastMessage = messageRepository.getLastMessageOfRoom(inbox.getRoomId());
-        if (lastMessage != null) {
-            dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
-            if (lastMessage.getReadByes() != null) {
-                dto.setLastMessageReadBy(lastMessage.getReadByes()
-                        .stream().map(x -> readByMapper.toReadByDto(x))
-                        .sorted(Comparator.comparing(ReadByDto::getReadAt))
-                        .collect(Collectors.toCollection(LinkedHashSet::new)));
-            }
-        }
+        dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
         return dto;
     }
 }

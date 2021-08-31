@@ -1,13 +1,18 @@
 package iuh.dhktpm14.cnm.chatappmongo.mapper;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.chat.MessageToClient;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class MessageMapper {
@@ -17,6 +22,12 @@ public class MessageMapper {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private ReadByMapper readByMapper;
+
+    @Autowired
+    private ReadTrackingRepository readTrackingRepository;
 
     public MessageDto toMessageDto(String messageId) {
         if (messageId == null)
@@ -35,8 +46,6 @@ public class MessageMapper {
         dto.setId(message.getId());
         if (message.getSenderId() != null)
             dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
-        else
-            dto.setSender(null);
         dto.setCreateAt(message.getCreateAt());
         dto.setType(message.getType());
         dto.setContent(message.getContent());
@@ -44,6 +53,12 @@ public class MessageMapper {
         dto.setDeleted(message.getDeleted());
         dto.setStatus(message.getStatus());
         dto.setReactions(message.getReactions());
+        /*
+        lấy danh sách người đã đọc tin nhắn này
+         */
+        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
+        List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
+        dto.setReadbyes(readBy);
         return dto;
     }
 
@@ -54,8 +69,6 @@ public class MessageMapper {
         dto.setId(message.getId());
         if (message.getSenderId() != null)
             dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
-        else
-            dto.setSender(null);
         dto.setCreateAt(message.getCreateAt());
         dto.setType(message.getType());
         dto.setContent(message.getContent());
