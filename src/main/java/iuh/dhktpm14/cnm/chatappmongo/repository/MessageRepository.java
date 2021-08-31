@@ -39,4 +39,7 @@ public interface MessageRepository extends MongoRepository<Message, String> {
     @Query(value = "{roomId: ?0, 'readByes.readByUserId': {$ne: ?1}, 'senderId': {$ne: ?1}}", sort = "{createAt: -1}", count = true)
     Long countNewMessage(String roomId, String userId);
 
+    @Query(value = "{roomId: ?0, 'readByes.readByUserId': {$ne: ?1}, 'senderId': {$ne: ?1}}", sort = "{createAt: -1}")
+    List<Message> getAllMessageUnSeen(String roomId, String userId);
+
 }
