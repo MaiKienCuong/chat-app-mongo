@@ -25,4 +25,10 @@ public interface RoomRepository extends MongoRepository<Room, String> {
     @Query("{$and: [{'members.userId': ?0}, {'members.userId': ?1}, {$expr: {$gt: [{$size: '$members'}, 2]}}, {type: 'GROUP'}]}")
     List<Room> findCommonGroupBetween(String firstUserId, String secondUserId);
 
+    /**
+     * đếm số nhóm chung giữa hai người
+     */
+    @Query(value = "{$and: [{'members.userId': ?0}, {'members.userId': ?1}, {$expr: {$gt: [{$size: '$members'}, 2]}}, {type: 'GROUP'}]}", count = true)
+    Long countCommonGroupBetween(String firstUserId, String secondUserId);
+
 }
