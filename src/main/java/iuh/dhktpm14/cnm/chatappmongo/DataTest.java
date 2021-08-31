@@ -5,7 +5,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
-import iuh.dhktpm14.cnm.chatappmongo.entity.ReadBy;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
@@ -14,22 +14,23 @@ import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-//@Component
+@Component
 //chạy xong lần đầu có dữ liệu rồi thì comment @Component
 public class DataTest implements CommandLineRunner {
 
@@ -50,6 +51,9 @@ public class DataTest implements CommandLineRunner {
 
     @Autowired
     InboxRepository inboxRepository;
+
+    @Autowired
+    ReadTrackingRepository readTrackingRepository;
 
     private Random random = new Random();
 
@@ -83,8 +87,26 @@ public class DataTest implements CommandLineRunner {
 
         insertInboxMessage();
 
+        insertReadTracking();
+
         System.out.println("------insert ok------");
 
+    }
+
+    private void insertReadTracking() {
+        List<Room> rooms = roomRepository.findAll();
+        for (Room room : rooms) {
+            var lastMessage = messageRepository.getLastMessageOfRoom(room.getId());
+            for (Member member : room.getMembers()) {
+                var tracking = ReadTracking.builder()
+                        .roomId(room.getId())
+                        .messageId(lastMessage.getId())
+                        .unReadMessage(randomInRange(0, 30))
+                        .userId(member.getUserId())
+                        .build();
+                readTrackingRepository.save(tracking);
+            }
+        }
     }
 
     private void insertInboxMessage() {
@@ -111,15 +133,6 @@ public class DataTest implements CommandLineRunner {
             for (var i = 0; i < 500; i++) {
                 int sizeMembers = members.size();
                 String senderId = members.get(randomInRange(0, sizeMembers - 1)).getUserId();
-
-                Set<ReadBy> readBIES = new HashSet<>();
-                for (Member m : members) {
-                    readBIES.add(ReadBy.builder()
-                            .readByUserId(m.getUserId())
-                            .readAt(new Date(time))
-                            .build());
-                    time += 1000;
-                }
                 List<Reaction> reactions = new ArrayList<>();
                 for (var ii = 0; ii < randomInRange(0, 5); ii++) {
                     reactions.add(Reaction
@@ -138,7 +151,6 @@ public class DataTest implements CommandLineRunner {
                         .content(count + ". Lorem Ipsum is simply dummy text of the printing and typesetting industry."
                                 + UUID.randomUUID().toString()
                                 + " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s")
-                        .readByes(readBIES)
                         .reactions(reactions)
                         .deleted(false)
                         .build();
