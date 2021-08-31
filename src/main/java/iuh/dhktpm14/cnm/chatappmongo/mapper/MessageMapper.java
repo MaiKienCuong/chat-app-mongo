@@ -53,6 +53,10 @@ public class MessageMapper {
         dto.setDeleted(message.getDeleted());
         dto.setStatus(message.getStatus());
         dto.setReactions(message.getReactions());
+        if (message.getReplyId() != null) {
+            Optional<Message> optional = messageRepository.findById(message.getReplyId());
+            optional.ifPresent(value -> dto.setReply(toMessageDto(value)));
+        }
         /*
         lấy danh sách người đã đọc tin nhắn này
          */
