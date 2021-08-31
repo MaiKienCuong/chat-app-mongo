@@ -31,15 +31,4 @@ public interface MessageRepository extends MongoRepository<Message, String> {
     @Query(value = "{id: {$in: ?0}}", sort = "{createAt: -1}")
     List<Message> findAllByIdInMessageIds(List<String> messageIds, Pageable pageable);
 
-    /**
-     * đếm số tin nhắn mới của roomid
-     * điều kiện là senderId của message khác với userId hiện tại
-     * và userId hiện tại không có trong danh sách đã xem của tin nhắn
-     */
-    @Query(value = "{roomId: ?0, 'readByes.readByUserId': {$ne: ?1}, 'senderId': {$ne: ?1}}", sort = "{createAt: -1}", count = true)
-    Long countNewMessage(String roomId, String userId);
-
-    @Query(value = "{roomId: ?0, 'readByes.readByUserId': {$ne: ?1}, 'senderId': {$ne: ?1}}", sort = "{createAt: -1}")
-    List<Message> getAllMessageUnSeen(String roomId, String userId);
-
 }

@@ -12,6 +12,7 @@ import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MemberMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.RoomMapper;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,6 +52,9 @@ public class RoomRest {
     @Autowired
     private MemberMapper memberMapper;
 
+    @Autowired
+    private ReadTrackingRepository readTrackingRepository;
+
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
      */
@@ -60,7 +64,11 @@ public class RoomRest {
     public ResponseEntity<?> countNewMessage(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
         if (user == null)
             throw new UnAuthenticateException();
-        return ResponseEntity.ok(messageRepository.countNewMessage(roomId, user.getId()));
+        var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, user.getId());
+        if (readTracking != null) {
+            return ResponseEntity.ok(readTracking.getUnReadMessage());
+        }
+        return ResponseEntity.ok(0);
     }
 
     /**
