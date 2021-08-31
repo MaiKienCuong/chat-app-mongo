@@ -24,4 +24,5 @@ public class MessageDto implements Serializable {
     private Boolean deleted;
     private MessageStatus status;
     private List<Reaction> reactions;
+    private List<ReadByDto> readbyes;
 }
