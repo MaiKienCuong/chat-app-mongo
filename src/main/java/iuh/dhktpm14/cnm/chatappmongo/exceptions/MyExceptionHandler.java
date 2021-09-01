@@ -19,6 +19,7 @@ import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
@@ -83,8 +84,11 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
      * @param request the request
      * @return the response entity
      */
-    @ExceptionHandler(MyException.class)
-    public final ResponseEntity<Object> handleMyException(MyException ex, WebRequest request) {
+    @ExceptionHandler({ MyException.class, InboxNotFoundException.class, MessageNotFoundException.class,
+            PhoneNumberExistException.class, RoomNotFoundException.class, UnAuthenticateException.class,
+            UserNotFoundException.class })
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public final ResponseEntity<Object> handleMyException(Throwable ex, WebRequest request) {
         return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
     }
 

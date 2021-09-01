@@ -3,19 +3,11 @@ package iuh.dhktpm14.cnm.chatappmongo.exceptions;
 public class UnAuthenticateException extends RuntimeException {
 
     public UnAuthenticateException() {
-        super("Vui lòng đăng nhập");
+        super("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại");
     }
 
     public UnAuthenticateException(String message) {
         super(message);
-    }
-
-    public UnAuthenticateException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public UnAuthenticateException(Throwable cause) {
-        super(cause);
     }
 
 }
