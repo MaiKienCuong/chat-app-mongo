@@ -3,21 +3,18 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
-import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.InboxMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,7 +45,10 @@ public class InboxRest {
     private InboxMapper inboxMapper;
 
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private InboxService inboxService;
+
+    @Autowired
+    private ReadTrackingService readTrackingService;
 
     /**
      * lấy tất cả inbox của người dùng hiện tại
@@ -74,18 +74,16 @@ public class InboxRest {
             throw new UnAuthenticateException();
         Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
         if (inboxOptional.isEmpty())
-            return ResponseEntity.badRequest().body(new MessageResponse("Xóa không thành công"));
+            return ResponseEntity.badRequest().body(new MessageResponse("Xóa không thành công. Thử lại sau"));
         var inbox = inboxOptional.get();
         if (user.getId().equals(inbox.getOfUserId())) {
-            var criteria = Criteria.where("_id").is(inboxId);
-            var update = new Update();
-            update.set("empty", true);
-            // cập nhật thuộc tính empty=true
-            mongoTemplate.updateFirst(Query.query(criteria), update, Inbox.class);
+            inboxService.updateEmptyStatusInbox(inboxId, true);
+
             // xóa tất cả message liên kết với inbox này, không xóa trong collection message
-            inboxMessageRepository.deleteAllMessageOfInbox(inbox.getId());
+            inboxMessageRepository.deleteAllMessageOfInbox(inboxId);
+
             // reset số tin nhắn chưa đọc thành 0
-            resetUnreadMessageToZero(inbox.getRoomId(), user.getId());
+            readTrackingService.resetUnreadMessageToZero(inbox.getRoomId(), user.getId());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
@@ -101,14 +99,6 @@ public class InboxRest {
                 .sorted()
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
-    }
-
-    private void resetUnreadMessageToZero(String roomId, String userId) {
-        var criteria = Criteria.where("roomId").is(roomId)
-                .and("userId").is(userId);
-        var update = new Update();
-        update.set("unReadMessage", 0);
-        mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
     }
 
 }
