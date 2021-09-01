@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,8 +32,11 @@ import java.util.stream.Collectors;
 public class User implements UserDetails {
     @Id
     private String id;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String username;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String email;
+    @Indexed(background = true, direction = IndexDirection.ASCENDING)
     private String phoneNumber;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -44,13 +50,16 @@ public class User implements UserDetails {
     @CreatedDate
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date createAt;
-    private boolean active;
     private boolean block;
     private String imageUrl;
     private String roles;
     private boolean enable;
     private String verificationCode;
     private String refreshToken;
+
+    private OnlineStatus onlineStatus;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private Date lastOnline;
 
     @Override
     @JsonIgnore
@@ -81,7 +90,7 @@ public class User implements UserDetails {
     @Override
     @JsonIgnore
     public boolean isEnabled() {
-        return active;
+        return enable;
     }
 
 }

@@ -1,7 +1,9 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.InboxMapper;
@@ -19,11 +21,13 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +35,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/inboxs")
+@CrossOrigin("${spring.security.cross_origin}")
 public class InboxRest {
 
     @Autowired
@@ -50,10 +55,11 @@ public class InboxRest {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getRoomIdsByUserId(@AuthenticationPrincipal User user, Pageable pageable) {
+    @ApiOperation("Lấy danh sách cuộc trò chuyện")
+    public ResponseEntity<?> getAllInboxOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
-        Page<Inbox> inboxPage = inboxRepository.findAllByOfUserId(user.getId(), pageable);
+        Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), pageable);
         return ResponseEntity.ok(toInboxDto(inboxPage));
     }
 
@@ -62,7 +68,8 @@ public class InboxRest {
      */
     @DeleteMapping("/{inboxId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteInbox(@PathVariable String inboxId, @AuthenticationPrincipal User user) {
+    @ApiOperation("Xóa cuộc trò chuyện")
+    public ResponseEntity<?> deleteInbox(@PathVariable String inboxId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
@@ -73,9 +80,13 @@ public class InboxRest {
             var criteria = Criteria.where("_id").is(inboxId);
             var update = new Update();
             update.set("empty", true);
+            // cập nhật thuộc tính empty=true
             mongoTemplate.updateFirst(Query.query(criteria), update, Inbox.class);
-            inboxMessageRepository.deleteByInboxId(inbox.getId());
-            return ResponseEntity.ok(inbox);
+            // xóa tất cả message liên kết với inbox này, không xóa trong collection message
+            inboxMessageRepository.deleteAllMessageOfInbox(inbox.getId());
+            // reset số tin nhắn chưa đọc thành 0
+            resetUnreadMessageToZero(inbox.getRoomId(), user.getId());
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
     }
@@ -85,8 +96,18 @@ public class InboxRest {
      */
     private Page<?> toInboxDto(Page<Inbox> inboxPage) {
         List<Inbox> content = inboxPage.getContent();
-        List<InboxDto> dto = content.stream().map(x -> inboxMapper.toInboxDto(x)).collect(Collectors.toList());
+        List<InboxDto> dto = content.stream()
+                .map(x -> inboxMapper.toInboxDto(x))
+                .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
+    }
+
+    private void resetUnreadMessageToZero(String roomId, String userId) {
+        var criteria = Criteria.where("roomId").is(roomId)
+                .and("userId").is(userId);
+        var update = new Update();
+        update.set("unReadMessage", 0);
+        mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
     }
 
 }

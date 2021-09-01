@@ -6,6 +6,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -26,31 +27,38 @@ public class InboxMapper {
     @Autowired
     private InboxRepository inboxRepository;
 
+    @Autowired
+    private ReadTrackingRepository readTrackingRepository;
+
     public InboxDto toInboxDto(String inboxId) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (user == null)
             throw new UnAuthenticateException();
+        if (inboxId == null)
+            return null;
         Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
-        if (inboxOptional.isEmpty()) return null;
-        var inbox = inboxOptional.get();
-        var dto = new InboxDto();
-        dto.setId(inbox.getId());
-        dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
-        dto.setOfUserId(user.getId());
-        dto.setCountNewMessage(messageRepository.countNewMessage(inbox.getRoomId(), user.getId()));
-        dto.setLastMessage(messageMapper.toMessageDto(messageRepository.findLastMessageByRoomId(inbox.getRoomId())));
-        return dto;
+        if (inboxOptional.isEmpty())
+            return null;
+        return toInboxDto(inboxOptional.get());
     }
 
     public InboxDto toInboxDto(Inbox inbox) {
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user == null)
+            throw new UnAuthenticateException();
         if (inbox == null)
             return null;
         var dto = new InboxDto();
         dto.setId(inbox.getId());
         dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
-        dto.setOfUserId(inbox.getOfUserId());
-        dto.setCountNewMessage(messageRepository.countNewMessage(inbox.getRoomId(), inbox.getOfUserId()));
-        dto.setLastMessage(messageMapper.toMessageDto(messageRepository.findLastMessageByRoomId(inbox.getRoomId())));
+        /*
+        lấy số tin nhắn chưa đọc theo roomId và userId
+         */
+        var readTracking = readTrackingRepository.findByRoomIdAndUserId(inbox.getRoomId(), user.getId());
+        if (readTracking != null)
+            dto.setCountNewMessage(readTracking.getUnReadMessage());
+        var lastMessage = messageRepository.getLastMessageOfRoom(inbox.getRoomId());
+        dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
         return dto;
     }
 }

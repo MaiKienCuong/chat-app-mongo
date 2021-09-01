@@ -11,7 +11,9 @@ public class ReactionMapper {
     @Autowired
     private UserMapper userMapper;
 
-    public ReactionDto toReadByDto(Reaction reaction) {
+    public ReactionDto toReactionDto(Reaction reaction) {
+        if (reaction == null)
+            return null;
         var dto = new ReactionDto();
         dto.setType(reaction.getType());
         dto.setReactByUser(userMapper.toUserProfileDto(reaction.getReactByUserId()));

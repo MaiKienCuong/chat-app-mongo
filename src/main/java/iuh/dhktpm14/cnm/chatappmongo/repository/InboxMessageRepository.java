@@ -1,12 +1,13 @@
 package iuh.dhktpm14.cnm.chatappmongo.repository;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
+@Repository
 public interface InboxMessageRepository extends MongoRepository<InboxMessage, String> {
 
     /**
@@ -15,10 +16,17 @@ public interface InboxMessageRepository extends MongoRepository<InboxMessage, St
      * hàm này không được gọi trực tiếp mà được gọi bởi hàm khác
      */
     @Query(value = "{inboxId: ?0}", sort = "{'messageCreateAt': -1}")
-    List<InboxMessage> findAllByInboxId(String inboxId, Pageable pageable);
+    Page<InboxMessage> getAllInboxMessageOfInbox(String inboxId, Pageable pageable);
 
-    void deleteByInboxId(String inboxId);
+    /**
+     * xóa inbox theo inboxId
+     */
+    @Query(value = "{inboxId: ?0}", delete = true)
+    void deleteAllMessageOfInbox(String inboxId);
 
+    /**
+     * kiểm tra xem tin nhắn này có thuộc inboxId hay không
+     */
     boolean existsByInboxIdAndMessageId(String inboxId, String messageId);
 
 }

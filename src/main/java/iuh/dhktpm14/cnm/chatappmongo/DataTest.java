@@ -1,18 +1,22 @@
 package iuh.dhktpm14.cnm.chatappmongo;
 
+import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
-import iuh.dhktpm14.cnm.chatappmongo.entity.ReadBy;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.ReactionType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
+import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +24,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
+//chạy xong lần đầu có dữ liệu rồi thì comment @Component
 public class DataTest implements CommandLineRunner {
 
     @Autowired
@@ -45,25 +54,200 @@ public class DataTest implements CommandLineRunner {
     @Autowired
     InboxRepository inboxRepository;
 
+    @Autowired
+    ReadTrackingRepository readTrackingRepository;
+
+    @Autowired
+    FriendRepository friendRepository;
+
+    private final Random random = new Random();
+
+    private Long time = 1629451079000L;
+
+    private final List<String> images = List.of(
+            "https://timesofindia.indiatimes.com/photo/67586673.cms",
+            "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+            "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+            "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+            "https://img.webmd.com/dtmcms/live/webmd/consumer_assets/site_images/article_thumbnails/other/scoop_on_cat_poop_other/1800x1200_scoop_on_cat_poop_other.jpg?resize=600px:*"
+    );
+
+    private final List<ReactionType> reactionTypes = List.of(ReactionType.SAD,
+            ReactionType.WOW,
+            ReactionType.LIKE,
+            ReactionType.LOVE,
+            ReactionType.HAHA,
+            ReactionType.DISLIKE);
 
     @Override
     public void run(String... args) {
 
-//        Collation collation = Collation.of("de");
-//        AggregationOptions options = AggregationOptions.builder().build();
+        insertUser();
 
-//        var aggregation = Aggregation.newAggregation(
-//                Aggregation.match(Criteria.where("inboxId").is("1")),
-//                Aggregation.sort(Sort.Direction.DESC, "message.createAt"),
-//                Aggregation.lookup("message", "message.id", "_id", "messageResults"),
-//                Aggregation.project("messageResults"),
-//                Aggregation.unwind("messageResults"),
-//                Aggregation.replaceRoot("messageResults")
-//        );
-//
-//        AggregationResults<Message> results = mongoTemplate.aggregate(aggregation, "inbox_message", Message.class);
-//        System.out.println(results.getMappedResults());
+        insertRoom();
 
+        insertInbox();
+
+        insertMessage();
+
+        insertInboxMessage();
+
+        insertReadTracking();
+
+        insertFriend();
+
+        System.out.println("------insert ok------");
+
+    }
+
+    private void insertFriend() {
+        List<User> users = userRepository.findAll();
+        for (User u : users) {
+            List<Integer> ids = new ArrayList<>();
+            ids.add(Integer.valueOf(u.getId()));
+            for (var i = 0; i < 4; i++) {
+                var randomId = randomNotDuplicate(5, ids);
+                var friend = Friend.builder()
+                        .userId(u.getId())
+                        .friendId(randomId + "")
+                        .build();
+                ids.add(randomId);
+                friendRepository.save(friend);
+            }
+        }
+    }
+
+    private void insertReadTracking() {
+        List<Room> rooms = roomRepository.findAll();
+        for (Room room : rooms) {
+            var lastMessage = messageRepository.getLastMessageOfRoom(room.getId());
+            for (Member member : room.getMembers()) {
+                var tracking = ReadTracking.builder()
+                        .roomId(room.getId())
+                        .messageId(lastMessage.getId())
+                        .unReadMessage(randomInRange(0, 30))
+                        .userId(member.getUserId())
+                        .build();
+                readTrackingRepository.save(tracking);
+            }
+        }
+    }
+
+    private void insertInboxMessage() {
+        var count = 1L;
+        List<Inbox> inboxList = inboxRepository.findAll();
+        List<Message> messageList = messageRepository.findAll();
+        for (Inbox inbox : inboxList) {
+            for (Message message : messageList) {
+                inboxMessageRepository.save(InboxMessage
+                        .builder()
+                        .id((count++) + "")
+                        .inboxId(inbox.getId())
+                        .messageId(message.getId())
+                        .messageCreateAt(message.getCreateAt())
+                        .build());
+            }
+        }
+    }
+
+    private void insertMessage() {
+        long count = 1;
+        for (Room room : roomRepository.findAll()) {
+            ArrayList<Member> members = new ArrayList<>(room.getMembers());
+            for (var i = 0; i < 500; i++) {
+                int sizeMembers = members.size();
+                String senderId = members.get(randomInRange(0, sizeMembers - 1)).getUserId();
+                List<Reaction> reactions = new ArrayList<>();
+                for (var ii = 0; ii < randomInRange(0, 5); ii++) {
+                    reactions.add(Reaction
+                            .builder()
+                            .type(reactionTypes.get(randomInRange(0, 4)))
+                            .reactByUserId(members.get(randomInRange(0, sizeMembers - 1)).getUserId())
+                            .build());
+                }
+                var message = Message
+                        .builder()
+                        .id((count++) + "")
+                        .roomId(room.getId())
+                        .senderId(senderId)
+                        .createAt(new Date(time))
+                        .type("TEXT")
+                        .content(count + ". Lorem Ipsum is simply dummy text of the printing and typesetting industry."
+                                + UUID.randomUUID().toString()
+                                + " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s")
+                        .reactions(reactions)
+                        .deleted(false)
+                        .build();
+                time += 1000;
+                messageRepository.save(message);
+            }
+        }
+    }
+
+    private void insertInbox() {
+        var j = 1L;
+        for (Room room : roomRepository.findAll()) {
+            for (Member m : room.getMembers()) {
+                inboxRepository.save(
+                        Inbox.builder()
+                                .id((j++) + "")
+                                .ofUserId(m.getUserId())
+                                .roomId(room.getId())
+                                .empty(false)
+                                .build()
+                );
+            }
+        }
+    }
+
+    private void insertRoom() {
+        // thêm room chat
+        for (var i = 1; i <= 40; i++) {
+            // room chat 1-1
+            if (i % 2 == 1) {
+                List<Integer> ids = new ArrayList<>();
+                for (var k = 0; k < 2; k++) {
+                    ids.add(randomNotDuplicate(5, ids));
+                }
+                roomRepository.save(Room.builder()
+                        .id(i + "")
+                        .members(ids.stream().map(x ->
+                                Member.builder().userId(x + "")
+                                        .build())
+                                .collect(Collectors.toSet()))
+                        .type(RoomType.ONE)
+                        .build());
+            } else {
+                // room chat group
+                Integer createByUserId = randomInRange(1, 5);
+                List<Integer> ids = new ArrayList<>();
+                ids.add(createByUserId);
+                for (var k = 0; k < randomInRange(2, 4); k++) {
+                    ids.add(randomNotDuplicate(5, ids));
+                }
+                Set<Member> members = ids.stream()
+                        .map(x -> Member.builder().userId(x + "").build())
+                        .collect(Collectors.toSet());
+                for (Member m : members) {
+                    if (! m.getUserId().equals(createByUserId.toString())) {
+                        m.setAddByUserId(createByUserId + "");
+                        m.setAddTime(new Date(time));
+                        time += 1000L;
+                    }
+                }
+                roomRepository.save(Room.builder()
+                        .id(i + "")
+                        .name("Nhóm chat " + i)
+                        .members(members)
+                        .type(RoomType.GROUP)
+                        .createByUserId(createByUserId + "")
+                        .imageUrl(images.get(randomInRange(0, 4)))
+                        .build());
+            }
+        }
+    }
+
+    private void insertUser() {
         userRepository.save(User.builder()
                 .id("1")
                 .displayName("Mai Kiên Cường")
@@ -73,13 +257,14 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
                 .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
                 .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .onlineStatus(OnlineStatus.OFFLINE)
+                .lastOnline(new Date())
                 .build());
 
         userRepository.save(User.builder()
@@ -91,13 +276,14 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .imageUrl("https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
                 .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .onlineStatus(OnlineStatus.OFFLINE)
+                .lastOnline(new Date())
                 .build());
 
         userRepository.save(User.builder()
@@ -109,13 +295,14 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .imageUrl("https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
                 .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .onlineStatus(OnlineStatus.OFFLINE)
+                .lastOnline(new Date())
                 .build());
 
         userRepository.save(User.builder()
@@ -127,288 +314,60 @@ public class DataTest implements CommandLineRunner {
                 .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
                 .gender("Nam")
                 .dateOfBirth(new Date())
-                .active(true)
                 .block(false)
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
+                .imageUrl("https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925")
                 .roles("ROLE_USER")
                 .enable(true)
                 .verificationCode("123456")
                 .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .onlineStatus(OnlineStatus.OFFLINE)
+                .lastOnline(new Date())
                 .build());
 
-        roomRepository.save(Room.builder()
-                .id("1")
-                .members(Set.of(
-                        Member.builder().userId("1").build(),
-                        Member.builder().userId("2").build()))
-                .type(RoomType.ONE)
-                .build());
-
-        roomRepository.save(Room.builder()
-                .id("2")
-                .name("Nhóm Công nghệ phần mềm")
-                .members(Set.of(
-                        Member.builder().userId("1").addTime(new Date(new Date().getTime()+1000)).build(),
-                        Member.builder().userId("2").addByUserId("1").addTime(new Date(new Date().getTime()+2000)).build(),
-                        Member.builder().userId("3").addByUserId("2").addTime(new Date(new Date().getTime()+3000)).build(),
-                        Member.builder().userId("4").addByUserId("2").addTime(new Date(new Date().getTime()+4000)).build()))
-                .type(RoomType.GROUP)
-                .createByUserId("1")
-                .imageUrl("https://timesofindia.indiatimes.com/photo/67586673.cms")
-                .build());
-
-        messageRepository.save(Message.builder()
-                .id("1")
-                .roomId("1")
-                .content("chào nha")
-                .senderId("1")
-                .type("text")
-                .createAt(new Date(new Date().getTime()+10000))
-                .readByes(Set.of(
-                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+1000)).build()))
-                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
-                .build());
-
-        messageRepository.save(Message.builder()
-                .id("2")
-                .roomId("1")
-                .content("ừ, hello nha")
-                .senderId("2")
-                .type("text")
-                .createAt(new Date(new Date().getTime()+20000))
-                .readByes(Set.of(
-                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+2000)).build()))
-                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
-                .build());
-
-        messageRepository.save(Message.builder()
-                .id("3")
-                .roomId("2")
-                .content("chào nha")
-                .senderId("1")
-                .type("text")
-                .createAt(new Date(new Date().getTime()+30000))
-                .readByes(Set.of(
-                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+3000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+4000)).build()))
-                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
-                .build());
-
-        messageRepository.save(Message.builder()
-                .id("4")
-                .roomId("2")
-                .content("ừ, hello nha")
-                .senderId("2")
-                .type("text")
-                .createAt(new Date(new Date().getTime()+40000))
-                .readByes(Set.of(
-                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+5000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+6000)).build()))
-                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
-                .build());
-
-        messageRepository.save(Message.builder()
+        userRepository.save(User.builder()
                 .id("5")
-                .roomId("2")
-                .content("chào nha")
-                .senderId("3")
-                .type("text")
-                .createAt(new Date(new Date().getTime()+50000))
-                .readByes(Set.of(
-                        ReadBy.builder().readByUserId("2").readAt(new Date(new Date().getTime()+7000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+8000)).build()))
-                .reactions(List.of(Reaction.builder().reactByUserId("2").type(ReactionType.HAHA).build()))
+                .displayName("Hoàng Hữu Huy")
+                .username("hoanghuuhuy")
+                .email("hoanghuuhuy@gmail.com")
+                .phoneNumber("0961516945")
+                .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .gender("Nam")
+                .dateOfBirth(new Date())
+                .block(false)
+                .imageUrl("https://img.webmd.com/dtmcms/live/webmd/consumer_assets/site_images/article_thumbnails/other/scoop_on_cat_poop_other/1800x1200_scoop_on_cat_poop_other.jpg?resize=600px:*")
+                .roles("ROLE_USER")
+                .enable(true)
+                .verificationCode("123456")
+                .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                .onlineStatus(OnlineStatus.OFFLINE)
+                .lastOnline(new Date())
                 .build());
-
-        messageRepository.save(Message.builder()
-                .id("6")
-                .roomId("2")
-                .content("ừ, hello nha")
-                .senderId("4")
-                .type("text")
-                .createAt(new Date(new Date().getTime()+60000))
-                .readByes(Set.of(
-                        ReadBy.builder().readByUserId("1").readAt(new Date(new Date().getTime()+9000)).build(),
-                        ReadBy.builder().readByUserId("3").readAt(new Date(new Date().getTime()+10000)).build()))
-                .reactions(List.of(Reaction.builder().reactByUserId("1").type(ReactionType.SAD).build()))
-                .build());
-
-        inboxRepository.save(Inbox.builder()
-                .id("1").empty(false)
-                .roomId("1")
-                .ofUserId("1")
-                .build());
-
-        inboxRepository.save(Inbox.builder()
-                .id("2").empty(true)
-                .roomId("1")
-                .ofUserId("2")
-                .build());
-//
-        inboxRepository.save(Inbox.builder()
-                .id("3").empty(false)
-                .roomId("2")
-                .ofUserId("1")
-                .build());
-
-        inboxRepository.save(Inbox.builder()
-                .id("4").empty(false)
-                .roomId("2")
-                .ofUserId("2")
-                .build());
-
-        inboxRepository.save(Inbox.builder()
-                .id("5").empty(false)
-                .roomId("2")
-                .ofUserId("3")
-                .build());
-
-        inboxRepository.save(Inbox.builder()
-                .id("6").empty(false)
-                .roomId("2")
-                .ofUserId("4")
-                .build());
-
-        //
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("1")
-                .inboxId("1")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("1")
-                .build());
-
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("2")
-                .inboxId("1")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("2")
-                .build());
-
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("3")
-                .inboxId("2")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("1")
-                .build());
-
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("4")
-                .inboxId("2")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("2")
-                .build());
-        //
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("5")
-                .inboxId("3")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("3")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("6")
-                .inboxId("3")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("4")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("7")
-                .inboxId("3")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("5")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("8")
-                .inboxId("3")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("6")
-                .build());
-        //
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("9")
-                .inboxId("4")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("3")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("10")
-                .inboxId("4")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("4")
-                .build());
-
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("11")
-                .inboxId("4")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("5")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("12")
-                .inboxId("4")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("6")
-                .build());
-//
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("13")
-                .inboxId("5")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("3")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("14")
-                .inboxId("5")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("4")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("15")
-                .inboxId("5")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("5")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("16")
-                .inboxId("5")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("6")
-                .build());
-        //
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("17")
-                .inboxId("6")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("3")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("18")
-                .inboxId("6")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("4")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("19")
-                .inboxId("6")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("5")
-                .build());
-        inboxMessageRepository.save(InboxMessage.builder()
-                .id("20")
-                .inboxId("6")
-                .messageCreateAt(new Date(new Date().getTime()+1000))
-                .messageId("6")
-                .build());
-
-//        System.out.println(roomRepository.findAllByUserId("1", Pageable.unpaged()));
-//        System.out.println(roomRepository.findCommonRoomBetween("1", "2", PageRequest.of(0, 1)));
-//        System.out.println(roomRepository.findCommonGroupBetween("1", "2"));
-//        System.out.println(roomRepository.findCommonGroupBetween("1", "3"));
-//        System.out.println(roomRepository.findCommonGroupBetween("2", "3"));
-//
-//        System.out.println(messageRepository.findAllByRoomId("1", PageRequest.of(0, 1)));
-//        System.out.println(messageRepository.findAllByRoomId("1", Pageable.unpaged()));
-//        System.out.println(messageRepository.countNewMessage("4", "1"));
-//        System.out.println(messageRepository.countNewMessage("4", "4"));
     }
 
+    private Integer randomNotDuplicate(int bound, List<Integer> inputToNotDuplicateArray) {
+        int i = random.nextInt(bound) + 1;
+        while (inputToNotDuplicateArray.contains(i)) {
+            i = random.nextInt(bound) + 1;
+        }
+        return i;
+    }
+
+    private int randomInRange(int min, int max) {
+        return (int) ((Math.random() * (max - min)) + min);
+    }
+
+  /*  Collation collation = Collation.of("de");
+    AggregationOptions options = AggregationOptions.builder().build();
+
+    var aggregation = Aggregation.newAggregation(
+            Aggregation.match(Criteria.where("inboxId").is("1")),
+            Aggregation.sort(Sort.Direction.DESC, "message.createAt"),
+            Aggregation.lookup("message", "message.id", "_id", "messageResults"),
+            Aggregation.project("messageResults"),
+            Aggregation.unwind("messageResults"),
+            Aggregation.replaceRoot("messageResults")
+    );
+
+    AggregationResults<Message> results = mongoTemplate.aggregate(aggregation, "inbox_message", Message.class);
+        System.out.println(results.getMappedResults());*/
 }

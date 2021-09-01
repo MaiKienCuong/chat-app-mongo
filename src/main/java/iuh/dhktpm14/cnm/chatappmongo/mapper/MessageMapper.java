@@ -1,11 +1,16 @@
 package iuh.dhktpm14.cnm.chatappmongo.mapper;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.chat.MessageToClient;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -21,39 +26,58 @@ public class MessageMapper {
     @Autowired
     private ReadByMapper readByMapper;
 
+    @Autowired
+    private ReadTrackingRepository readTrackingRepository;
+
     public MessageDto toMessageDto(String messageId) {
-        var dto = new MessageDto();
+        if (messageId == null)
+            return null;
         Optional<Message> messageOptional = messageRepository.findById(messageId);
-        if (messageOptional.isEmpty()) return null;
-        var message = messageOptional.get();
-        dto.setId(message.getId());
-        dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
-        dto.setCreateAt(message.getCreateAt());
-        dto.setType(message.getType());
-        dto.setContent(message.getContent());
-        dto.setPin(message.getPin());
-        dto.setDeleted(message.getDeleted());
-        dto.setStatus(message.getStatus());
-        if (message.getReadByes() != null)
-            dto.setReadByes(message.getReadByes().stream().map(readByMapper::toReadByDto).collect(Collectors.toList()));
-        dto.setReactions(message.getReactions());
-        return dto;
+        if (messageOptional.isEmpty())
+            return null;
+
+        return toMessageDto(messageOptional.get());
     }
 
     public MessageDto toMessageDto(Message message) {
+        if (message == null)
+            return null;
         var dto = new MessageDto();
-        if (message == null) return null;
         dto.setId(message.getId());
-        dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
+        if (message.getSenderId() != null)
+            dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
         dto.setCreateAt(message.getCreateAt());
         dto.setType(message.getType());
         dto.setContent(message.getContent());
         dto.setPin(message.getPin());
         dto.setDeleted(message.getDeleted());
         dto.setStatus(message.getStatus());
-        if (message.getReadByes() != null)
-            dto.setReadByes(message.getReadByes().stream().map(readByMapper::toReadByDto).collect(Collectors.toList()));
         dto.setReactions(message.getReactions());
+        if (message.getReplyId() != null) {
+            Optional<Message> optional = messageRepository.findById(message.getReplyId());
+            optional.ifPresent(value -> dto.setReply(toMessageDto(value)));
+        }
+        /*
+        lấy danh sách người đã đọc tin nhắn này
+         */
+        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
+        List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
+        dto.setReadbyes(readBy);
+        return dto;
+    }
+
+    public MessageToClient toMessageToClient(Message message) {
+        if (message == null)
+            return null;
+        var dto = new MessageToClient();
+        dto.setId(message.getId());
+        if (message.getSenderId() != null)
+            dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
+        dto.setCreateAt(message.getCreateAt());
+        dto.setType(message.getType());
+        dto.setContent(message.getContent());
+        dto.setStatus(message.getStatus());
+        dto.setRoomId(message.getRoomId());
         return dto;
     }
 }

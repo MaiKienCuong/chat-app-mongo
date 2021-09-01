@@ -14,5 +14,5 @@ public class RoomGroupSummaryDto implements Serializable {
     private String name;
     private String imageUrl;
     private RoomType type;
-//    private Set<Member> members;
+    private Integer numOfMembers;
 }

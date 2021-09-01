@@ -23,7 +23,6 @@ public class JwtUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-
     @Value("${security.jwt.expiration:86400}")
     private int expiration;
 
@@ -33,31 +32,38 @@ public class JwtUtils {
     @Value("${security.jwt.secret}")
     private String secret;
 
-    public String generateJwtToken(Authentication authentication) {
+    public String generateJwtAccessTokenFromAuthentication(Authentication authentication) {
         var user = (User) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject((user.getUsername()))
+                .setSubject((user.getId()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expiration * 1000L))
                 .signWith(SignatureAlgorithm.HS512, secret).compact();
     }
 
+    public String generateJwtAccessTokenFromUserId(String userId) {
+        return Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + expiration * 1000L))
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
+    }
 
-    public String getUserNameFromJwtToken(String token) {
+    public String generateJwtRefreshTokenFromUserId(String userId) {
+        return Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + refreshExpiration * 1000L))
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
+    }
+
+    public String getUserIdFromJwtToken(String token) {
         return Jwts.parser()
                 .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
-    }
-
-    public Date getExpirationFromJwtToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration();
     }
 
     public boolean validateJwtToken(String authToken) {
@@ -79,23 +85,4 @@ public class JwtUtils {
         return false;
     }
 
-
-    public String generateTokenFromUsername(String username) {
-        return  Jwts.builder().setSubject(username).setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + expiration * 1000L))
-                .signWith(SignatureAlgorithm.HS512, secret).compact();
-    }
-
-    public String generateJwtRefreshToken(Authentication authentication) {
-        var user = (User) authentication.getPrincipal();
-
-        return Jwts.builder()
-                .setSubject((user.getUsername()))
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + refreshExpiration * 1000L))
-                .signWith(SignatureAlgorithm.HS512, secret).compact();
-    }
-
-    public void verifyExpiration(String token) {
-    }
 }

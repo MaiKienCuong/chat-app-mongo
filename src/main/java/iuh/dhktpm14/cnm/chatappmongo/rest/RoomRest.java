@@ -1,5 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
+import io.swagger.annotations.ApiOperation;
+import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
@@ -7,8 +9,10 @@ import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.RoomNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.MemberMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.RoomMapper;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,10 +27,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,15 +49,75 @@ public class RoomRest {
     @Autowired
     private RoomMapper roomMapper;
 
+    @Autowired
+    private MemberMapper memberMapper;
+
+    @Autowired
+    private ReadTrackingRepository readTrackingRepository;
+
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
      */
     @GetMapping("/{roomId}/count-new-message")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> countNewMessage(@AuthenticationPrincipal User user, @PathVariable String roomId) {
+    @ApiOperation("Lấy số tin nhắn mới, hiện tại chưa cần")
+    public ResponseEntity<?> countNewMessage(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
         if (user == null)
             throw new UnAuthenticateException();
-        return ResponseEntity.ok(messageRepository.countNewMessage(roomId, user.getId()));
+        var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, user.getId());
+        if (readTracking != null) {
+            return ResponseEntity.ok(readTracking.getUnReadMessage());
+        }
+        return ResponseEntity.ok(0);
+    }
+
+    /**
+     * lấy tất cả thành viên trong room
+     */
+    @GetMapping("/{roomId}/members")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Chi tiết cuộc trò chuyện: Lấy danh sách thành viên")
+    public ResponseEntity<?> getAllMembers(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        Optional<Room> optional = roomRepository.findById(roomId);
+        if (optional.isPresent()) {
+            var room = optional.get();
+            Set<Member> members = room.getMembers();
+            for (Member m : members) {
+                // nếu là thành viên trong room mới xem được thông tin
+                if (m.getUserId().equals(user.getId())) {
+                    Set<MemberDto> dto = members.stream()
+                            .map(x -> memberMapper.toMemberDto(x))
+                            .collect(Collectors.toSet());
+                    return ResponseEntity.ok(dto);
+                }
+            }
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * lấy thông tin chi tiết về room
+     */
+    @GetMapping("/{roomId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Thông tin chi tiết cuộc trò chuyện")
+    public ResponseEntity<?> getById(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        Optional<Room> optional = roomRepository.findById(roomId);
+        if (optional.isPresent()) {
+            var room = optional.get();
+            for (Member m : room.getMembers()) {
+                // nếu là thành viên trong room mới xem được thông tin
+                if (m.getUserId().equals(user.getId())) {
+                    return ResponseEntity.ok(roomMapper.toRoomDetailDto(roomId));
+                }
+            }
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 
     /**
@@ -59,8 +125,9 @@ public class RoomRest {
      */
     @GetMapping("/{roomId}/last-message")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> lastMessage(@PathVariable String roomId) {
-        return ResponseEntity.ok(messageRepository.findLastMessageByRoomId(roomId));
+    @ApiOperation("Lấy tin nhắn cuối, hiện tại chưa cần")
+    public ResponseEntity<?> getLastMessage(@PathVariable String roomId) {
+        return ResponseEntity.ok(messageRepository.getLastMessageOfRoom(roomId));
     }
 
     /**
@@ -68,7 +135,8 @@ public class RoomRest {
      */
     @PostMapping("/group")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> lastMessage(@RequestBody Room room, @AuthenticationPrincipal User user) {
+    @ApiOperation("Tạo nhóm chat mới")
+    public ResponseEntity<?> createNewGroup(@RequestBody Room room, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         room.setCreateByUserId(user.getId());
@@ -81,6 +149,7 @@ public class RoomRest {
                 m.setAddTime(new Date());
             }
         }
+        // thêm người dùng hiện tại vào nhóm
         room.getMembers().add(Member.builder().userId(user.getId()).build());
         return ResponseEntity.ok(roomRepository.save(room));
     }
@@ -90,7 +159,8 @@ public class RoomRest {
      */
     @PostMapping("/group/{roomId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> lastMessage(@PathVariable String roomId, @RequestBody List<Member> members, @AuthenticationPrincipal User user) {
+    @ApiOperation("Thêm thành viên vào nhóm chat")
+    public ResponseEntity<?> addMemberToRoom(@PathVariable String roomId, @RequestBody List<Member> members, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Room> roomOptional = roomRepository.findById(roomId);
@@ -107,6 +177,30 @@ public class RoomRest {
         }
         room.getMembers().addAll(members);
         return ResponseEntity.ok(roomRepository.save(room));
+    }
+
+    @GetMapping("/common-group/count/{anotherUserId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Lấy số lượng nhóm chung giữa hai người")
+    public ResponseEntity<?> countCommonGroup(@PathVariable String anotherUserId, @ApiIgnore @AuthenticationPrincipal User user) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        if (anotherUserId == null)
+            return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(roomRepository.countCommonGroupBetween(user.getId(), anotherUserId));
+    }
+
+    @GetMapping("/common-group/{anotherUserId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Lấy danh sách nhóm chung giữa hai người")
+    public ResponseEntity<?> getCommonGroup(@PathVariable String anotherUserId, @ApiIgnore @AuthenticationPrincipal User user) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        if (anotherUserId == null)
+            return ResponseEntity.badRequest().build();
+        List<Room> commonGroups = roomRepository.findCommonGroupBetween(user.getId(), anotherUserId);
+        List<Object> roomSummaryList = commonGroups.stream().map(roomMapper::toRoomSummaryDto).collect(Collectors.toList());
+        return ResponseEntity.ok(roomSummaryList);
     }
 
     /**

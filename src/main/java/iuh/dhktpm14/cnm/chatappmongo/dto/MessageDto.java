@@ -23,6 +23,7 @@ public class MessageDto implements Serializable {
     private Boolean pin;
     private Boolean deleted;
     private MessageStatus status;
-    private List<ReadByDto> readByes;
     private List<Reaction> reactions;
+    private List<ReadByDto> readbyes;
+    private MessageDto reply;
 }

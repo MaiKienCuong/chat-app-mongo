@@ -14,130 +14,125 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 import java.util.Random;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 public class AppUserDetailService implements UserDetailsService {
 
-	@Autowired
-	private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	@Autowired
-	private JavaMailSender mailSender;
+    @Autowired
+    private JavaMailSender mailSender;
 
-	@Autowired
-	private PasswordEncoder encoder;
+    @Autowired
+    private PasswordEncoder encoder;
 
-	@Autowired
-	private AuthenticationManager authenticationManager;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		return userRepository.findDistinctByUsername(username)
-				.orElseThrow(() -> new UsernameNotFoundException("UsernameNotFoundException"));
-	}
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("UsernameNotFoundException"));
+    }
 
-	public boolean signup(UserSignupDto user) {
-		/*
-		 * if(userRepository.existsByPhoneNumber(user.getPhoneNumber())) return false;
-		 */
-		if (userRepository.existsByPhoneNumber(user.getPhoneNumber()))
-			return false;
-		User user2 = new User();
-		user2.setDisplayName(user.getDisplayName());
-		user2.setPassword(encoder.encode(user.getPassword()));
-		user2.setPhoneNumber(user.getPhoneNumber());
-		user2.setRoles("ROLE_USER");
-		userRepository.save(user2);
-		return true;
-	}
+    public boolean signup(UserSignupDto userDto) {
+        if (userRepository.existsByPhoneNumber(userDto.getPhoneNumber()))
+            return false;
+        var user = new User();
+        user.setDisplayName(userDto.getDisplayName());
+        user.setPassword(encoder.encode(userDto.getPassword()));
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setEnable(false);
+        user.setRoles("ROLE_USER");
+        userRepository.save(user);
+        return true;
+    }
 
-	public boolean checkPhoneNumber(String phoneNumber) {
-		if (userRepository.existsByPhoneNumber(phoneNumber))
-			return true;
-		else
-			return false;
-	}
+    public boolean checkPhoneNumber(String phoneNumber) {
+        return userRepository.existsByPhoneNumber(phoneNumber);
+    }
 
-	public boolean checkEmail(String email) {
-		if (userRepository.existsByEmail(email))
-			return true;
-		else
-			return false;
-	}
+    public boolean checkEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 
-	public void sendVerificationEmail(User user) throws UnsupportedEncodingException, MessagingException {
-		Random random = new Random();
-		int vetificationCode = random.nextInt((999999 - 100000) + 1) + 100000;
-		user.setVerificationCode(vetificationCode + "");
-		userRepository.save(user);
-		String toAddress = user.getEmail();
-		String fromAddress = "chat_app_email";
-		String senderName = "chat_app_admin";
-		String subject = "Please verify your registration";
-		String content = "Hello " + user.getDisplayName() + ",<br>" + "This is verification code :<br>" + "Code :"
-				+ user.getVerificationCode() + "<br>" + "Welcome to our social network,<br>" + "Chat App -->>>>.";
+    public void sendVerificationEmail(User user) throws UnsupportedEncodingException, MessagingException {
+        var random = new Random();
+        int verificationCode = random.nextInt((999999 - 100000) + 1) + 100000;
+        user.setVerificationCode(verificationCode + "");
+        userRepository.save(user);
+        String toAddress = user.getEmail();
+        String fromAddress = "chat_app_email";
+        String senderName = "chat_app_admin";
+        String subject = "Please verify your registration";
+        String content = "Hello " + user.getDisplayName() + ",<br>" + "This is verification code :<br>" + "Code :"
+                + user.getVerificationCode() + "<br>" + "Welcome to our social network,<br>" + "Chat App -->>>>.";
 
-		MimeMessage message = mailSender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(message);
+        var message = mailSender.createMimeMessage();
+        var helper = new MimeMessageHelper(message);
 
-		helper.setFrom(fromAddress, senderName);
-		helper.setTo(toAddress);
-		helper.setSubject(subject);
-		helper.setText(content, true);
+        helper.setFrom(fromAddress, senderName);
+        helper.setTo(toAddress);
+        helper.setSubject(subject);
+        helper.setText(content, true);
 
-		mailSender.send(message);
-	}
+        new Thread(() -> mailSender.send(message)).start();
 
-	public boolean vetify(User user) {
-		User userDB = userRepository.findByEmail(user.getEmail());
-		if (userDB == null)
-			return false;
-		if (userDB.getVerificationCode().equalsIgnoreCase(user.getVerificationCode())) {
-			userDB.setEnable(true);
-			userDB.setVerificationCode(null);
-			userRepository.save(userDB);
-			return true;
-		} else
-			return false;
-	}
+    }
 
-	
+    public boolean verify(User user) {
+        Optional<User> userOptional = userRepository.findDistinctByEmail(user.getEmail());
+        if (userOptional.isEmpty())
+            return false;
+        var existsUser = userOptional.get();
+        if (existsUser.getVerificationCode().equalsIgnoreCase(user.getVerificationCode())) {
+            existsUser.setEnable(true);
+            existsUser.setVerificationCode(null);
+            userRepository.save(existsUser);
+            return true;
+        }
+        return false;
+    }
 
-	public boolean updateInformation(UserSignupDto dto) {
-		if(userRepository.existsByPhoneNumber(dto.getPhoneNumber()) && !userRepository.findById(dto.getId()).get().getPhoneNumber().equals(dto.getPhoneNumber()))
-			return false;
-		Optional<User> optional = userRepository.findById(dto.getId());
-		User user = optional.get();
-		user.setDisplayName(dto.getDisplayName());
-		user.setPassword(dto.getPassword());
-		user.setPhoneNumber(dto.getPhoneNumber());
-		userRepository.save(user);
-		return true;
-	}
-	
-	public User findById(String id) {
-		User user = null;
-		Optional<User> optional = userRepository.findById(id);
-		if(optional.isPresent())
-			user = optional.get();
-		return user;
-	}
-	
-	public User findByEmail(String email) {
-		User user = userRepository.findByEmail(email);
-		return user;
-	}
-	
-	public boolean regexEmail(String email) {
-		Pattern pattern = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(email);
-		return matcher.find();
-	}
+
+    public boolean updateInformation(UserSignupDto dto) {
+        Optional<User> optional = userRepository.findById(dto.getId());
+        if (optional.isEmpty())
+            return false;
+        var user = optional.get();
+        if (userRepository.existsByPhoneNumber(dto.getPhoneNumber()) && ! user.getPhoneNumber().equals(dto.getPhoneNumber()))
+            return false;
+        user.setDisplayName(dto.getDisplayName());
+        user.setPassword(dto.getPassword());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        userRepository.save(user);
+        return true;
+    }
+
+    public User findById(String id) {
+        Optional<User> optional = userRepository.findById(id);
+        return optional.orElse(null);
+    }
+
+    public User findByEmail(String email) {
+        Optional<User> optional = userRepository.findDistinctByEmail(email);
+        return optional.orElse(null);
+    }
+
+    
+    public void save(User user) {
+    	userRepository.save(user);
+    }
+
+    public boolean regexEmail(String email) {
+        var pattern = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+        var matcher = pattern.matcher(email);
+        return matcher.find();
+    }
 
 }
