@@ -32,7 +32,7 @@ public interface FriendRequestRepository extends MongoRepository<FriendRequest, 
      * kiểm tra xem đã người này đã gửi lời mời kết bạn đến mình hay chưa
      */
     @Query(value = "{toId: ?0, fromId: ?1}", exists = true)
-    boolean isReceived(String currentUserId, String toId);
+    boolean isReceived(String currentUserId, String fromId);
 
     /**
      * xóa lời mời kết bạn

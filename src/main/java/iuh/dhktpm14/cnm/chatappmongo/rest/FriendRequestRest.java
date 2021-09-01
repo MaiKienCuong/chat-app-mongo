@@ -139,7 +139,7 @@ public class FriendRequestRest {
      */
     @DeleteMapping("/{deleteId}")
     @PreAuthorize("isAuthenticated()")
-    @ApiOperation("Thu hồi lại lời mời kết bạn đã gửi")
+    @ApiOperation("Thu hồi lại lời mời kết bạn đã gửi hoặc xóa lời mời đã nhận")
     public ResponseEntity<?> deleteFriendRequest(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String deleteId) {
         if (user == null)
             throw new UnAuthenticateException();
@@ -152,6 +152,11 @@ public class FriendRequestRest {
         // chỉ xóa khi đã gửi lời mời đến người này
         if (friendRequestRepository.isSent(user.getId(), deleteId)) {
             friendRequestRepository.deleteFriendRequest(user.getId(), deleteId);
+            return ResponseEntity.ok().build();
+        }
+        // xóa lời mời đã nhận được
+        if (friendRequestRepository.isReceived(user.getId(), deleteId)) {
+            friendRequestRepository.deleteFriendRequest(deleteId, user.getId());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
