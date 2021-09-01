@@ -98,6 +98,7 @@ public class InboxRest {
         List<Inbox> content = inboxPage.getContent();
         List<InboxDto> dto = content.stream()
                 .map(x -> inboxMapper.toInboxDto(x))
+                .sorted()
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
     }

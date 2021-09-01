@@ -7,9 +7,15 @@ import java.io.Serializable;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class InboxDto implements Serializable {
+public class InboxDto implements Serializable, Comparable<InboxDto> {
     private String id;
     private Object room;
     private MessageDto lastMessage;
     private long countNewMessage;
+
+    @Override
+    public int compareTo(InboxDto o) {
+        return o.getLastMessage().getCreateAt().compareTo(lastMessage.getCreateAt());
+    }
+
 }
