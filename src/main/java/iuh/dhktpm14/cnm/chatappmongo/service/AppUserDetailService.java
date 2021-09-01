@@ -4,9 +4,12 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.UserSignupDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,12 +35,12 @@ public class AppUserDetailService implements UserDetailsService {
     private PasswordEncoder encoder;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private MongoTemplate mongoTemplate;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("UsernameNotFoundException"));
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng có username " + username));
     }
 
     public boolean signup(UserSignupDto userDto) {
@@ -67,10 +70,10 @@ public class AppUserDetailService implements UserDetailsService {
         user.setVerificationCode(verificationCode + "");
         userRepository.save(user);
         String toAddress = user.getEmail();
-        String fromAddress = "chat_app_email";
-        String senderName = "chat_app_admin";
-        String subject = "Please verify your registration";
-        String content = "Hello " + user.getDisplayName() + ",<br>" + "This is verification code :<br>" + "Code :"
+        var fromAddress = "chat_app_email";
+        var senderName = "chat_app_admin";
+        var subject = "Please verify your registration";
+        var content = "Hello " + user.getDisplayName() + ",<br>" + "This is verification code :<br>" + "Code :"
                 + user.getVerificationCode() + "<br>" + "Welcome to our social network,<br>" + "Chat App -->>>>.";
 
         var message = mailSender.createMimeMessage();
@@ -81,6 +84,9 @@ public class AppUserDetailService implements UserDetailsService {
         helper.setSubject(subject);
         helper.setText(content, true);
 
+        /*
+        đưa vào thread khác để client không phải đợi
+         */
         new Thread(() -> mailSender.send(message)).start();
 
     }
@@ -98,7 +104,6 @@ public class AppUserDetailService implements UserDetailsService {
         }
         return false;
     }
-
 
     public boolean updateInformation(UserSignupDto dto) {
         Optional<User> optional = userRepository.findById(dto.getId());
@@ -124,15 +129,24 @@ public class AppUserDetailService implements UserDetailsService {
         return optional.orElse(null);
     }
 
-    
     public void save(User user) {
-    	userRepository.save(user);
+        userRepository.save(user);
     }
 
     public boolean regexEmail(String email) {
         var pattern = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
         var matcher = pattern.matcher(email);
         return matcher.find();
+    }
+
+    /**
+     * cập nhật refreshToken cho userId
+     */
+    public void setRefreshToken(String userId, String refreshToken) {
+        var criteria = Criteria.where("_id").is(userId);
+        var update = new Update();
+        update.set("refreshToken", refreshToken);
+        mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
     }
 
 }

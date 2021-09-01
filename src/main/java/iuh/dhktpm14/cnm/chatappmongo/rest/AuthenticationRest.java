@@ -4,6 +4,9 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.EmailDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserSignupDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.EmailExistException;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.PhoneNumberExistException;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.UserNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.payload.SiginRequest;
@@ -66,8 +69,7 @@ public class AuthenticationRest {
         var user = (User) authentication.getPrincipal();
         String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
         String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
-        user.setRefreshToken(jwtRefresh);
-        userRepository.save(user);
+        userService.setRefreshToken(user.getId(), jwtRefresh);
 
         var refreshTokenCookie = new Cookie("refresh_token", jwtRefresh);
         refreshTokenCookie.setHttpOnly(true);
@@ -82,17 +84,18 @@ public class AuthenticationRest {
     @GetMapping("/refreshtoken")
     public ResponseEntity<?> getRefreshToken(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
-            Optional<User> user = userRepository.findById(jwtUtils.getUserIdFromJwtToken(requestRefreshToken));
-            if (user.isPresent() && user.get().getRefreshToken().equals(requestRefreshToken)) {
-                String token = jwtUtils.generateJwtAccessTokenFromUserId(user.get().getId());
-                String newRefreshToken = jwtUtils.generateJwtRefreshTokenFromUserId(user.get().getId());
+            String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
+            Optional<User> userOptional = userRepository.findById(userId);
+            if (userOptional.isPresent() && requestRefreshToken.equals(userOptional.get().getRefreshToken())) {
+                var user = userOptional.get();
+                String token = jwtUtils.generateJwtAccessTokenFromUserId(user.getId());
+                String newRefreshToken = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
                 var cookie = new Cookie("refresh_token", newRefreshToken);
                 cookie.setHttpOnly(true);
                 cookie.setComment(SAME_SITE_STRICT_COMMENT);
                 cookie.setPath("/");
                 response.addCookie(cookie);
-                user.get().setRefreshToken(newRefreshToken);
-                userRepository.save(user.get());
+                userService.setRefreshToken(userId, newRefreshToken);
                 return ResponseEntity.ok(token);
             }
         }
@@ -100,37 +103,37 @@ public class AuthenticationRest {
                 .body(new MessageResponse("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
     }
 
-    @PostMapping(path = "signup/save_information", consumes = "application/json")
+    @PostMapping(path = "/signup/save_information", consumes = "application/json")
     public ResponseEntity<?> signup(@Valid @RequestBody UserSignupDto user) {
         if (userService.signup(user)) {
-            Optional<User> optional = userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(user.getPhoneNumber());
+            Optional<User> optional = userRepository.findDistinctByPhoneNumber(user.getPhoneNumber());
             if (optional.isPresent()) {
                 user.setId(optional.get().getId());
                 return ResponseEntity.ok(user);
             }
         }
-        return ResponseEntity.badRequest().body(new MessageResponse("Số điện thoại đã tồn tại"));
+        throw new PhoneNumberExistException();
     }
 
     @PutMapping("/signup/save_information")
     public ResponseEntity<?> updateSignup(@Valid @RequestBody UserSignupDto user) {
         if (userService.updateInformation(user))
             return ResponseEntity.ok(user);
-        return ResponseEntity.badRequest().body(new MessageResponse("Số điện thoại đã tồn tại"));
+        throw new PhoneNumberExistException();
     }
 
     @PostMapping("/signup/check_phone_number")
     public ResponseEntity<?> checkPhoneNumber(@RequestBody UserSignupDto dto) {
         if (! userService.checkPhoneNumber(dto.getPhoneNumber()))
             return ResponseEntity.ok(new MessageResponse("Số điện thoại hợp lệ"));
-        return ResponseEntity.badRequest().body(new MessageResponse("Số điện thoại đã tồn tại"));
+        throw new PhoneNumberExistException();
     }
 
     @PostMapping("/signup/check_email")
     public ResponseEntity<?> checkEmail(@RequestBody EmailDto dto) {
         if (! userService.checkEmail(dto.getEmail()))
             return ResponseEntity.ok(new MessageResponse("Email hợp lệ"));
-        return ResponseEntity.badRequest().body(new MessageResponse("Email đã tồn tại"));
+        throw new EmailExistException();
     }
 
     @PutMapping("/signup/send_vetification_code")
@@ -143,14 +146,14 @@ public class AuthenticationRest {
         var userDB = userService.findById(user.getId());
         var userCheckEmail = userService.findByEmail(user.getEmail());
         if (userDB == null)
-            return ResponseEntity.badRequest().body(new MessageResponse("User không tồn tại."));
+            throw new UserNotFoundException();
         if (userCheckEmail != null && ! (userDB.getId().equals(userCheckEmail.getId())))
-            return ResponseEntity.badRequest().body(new MessageResponse("Email đã tồn tại."));
+            throw new EmailExistException();
 
         userDB.setEmail(user.getEmail());
         userService.sendVerificationEmail(userDB);
-        return ResponseEntity.ok(new MessageResponse("Gửi mã xác thực thành công."));
 
+        return ResponseEntity.ok(new MessageResponse("Gửi mã xác thực thành công."));
     }
 
     @PostMapping("/signup/verify")
@@ -164,9 +167,7 @@ public class AuthenticationRest {
     public ResponseEntity<?> signout(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
-            var user = userService.findById(userId);
-            user.setRefreshToken(null);
-            userService.save(user);
+            userService.setRefreshToken(userId, null);
             var cookie = new Cookie("refresh_token", "");
             cookie.setMaxAge(0);
             cookie.setHttpOnly(true);
@@ -203,8 +204,7 @@ public class AuthenticationRest {
         var user = (User) authentication.getPrincipal();
         String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
         String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
-        user.setRefreshToken(jwtRefresh);
-        userRepository.save(user);
+        userService.setRefreshToken(user.getId(), jwtRefresh);
 
         var refreshTokenCookie = new Cookie("refresh_token", jwtRefresh);
         refreshTokenCookie.setHttpOnly(true);
@@ -225,7 +225,7 @@ public class AuthenticationRest {
                 return ResponseEntity.ok(user);
             }
         }
-        return ResponseEntity.badRequest().body(new MessageResponse("Số điện thoại đã tồn tại"));
+        throw new PhoneNumberExistException();
     }
 
 }

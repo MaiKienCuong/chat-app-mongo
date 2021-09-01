@@ -22,6 +22,8 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findDistinctByEmail(String email);
 
+    Optional<User> findDistinctByPhoneNumber(String phoneNumber);
+
     @Query("{$or: [{username: ?0}, {email: ?0}, {phoneNumber: ?0}]}")
     Optional<User> findDistinctByPhoneNumberOrUsernameOrEmail(String phoneNumber);
 
