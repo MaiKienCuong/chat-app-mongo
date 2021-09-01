@@ -5,6 +5,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
@@ -15,6 +16,11 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -53,6 +59,9 @@ public class ChatController {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageFromClient messageDto, UserPrincipal userPrincipal) {
 
@@ -70,12 +79,8 @@ public class ChatController {
             if (roomOptional.isPresent() && userOptional.isPresent()) {
                 var room = roomOptional.get();
                 Set<Member> members = room.getMembers();
-                message = Message
-                        .builder()
-                        .roomId(room.getId())
-                        .senderId(userId)
-                        .createAt(new Date())
-                        .type(messageDto.getType())
+                message = Message.builder().roomId(room.getId()).senderId(userId)
+                        .createAt(new Date()).type(messageDto.getType())
                         .content(messageDto.getContent())
                         .build();
                 for (Member m : members) {
@@ -88,7 +93,10 @@ public class ChatController {
                     // nếu có thì thêm vào danh sách
                     if (inboxRepository.existsByOfUserIdAndRoomId(m.getUserId(), room.getId())) {
                         var inbox = inboxRepository.findByOfUserIdAndRoomId(m.getUserId(), room.getId());
+                        if (inbox.isEmpty())
+                            inbox.setEmpty(false);
                         inboxes.add(inbox);
+                        inboxRepository.save(inbox);
                     } else {
                         // nếu member chưa có inbox thì tạo mới rồi thêm vào danh sách
                         var inbox = Inbox.builder().ofUserId(m.getUserId())
@@ -97,6 +105,7 @@ public class ChatController {
                         inboxes.add(inbox);
                     }
                 }
+                incrementUnReadMessage(room, userId);
             }
             if (message != null && ! inboxes.isEmpty()) {
                 messageRepository.save(message);
@@ -110,6 +119,25 @@ public class ChatController {
                 }
             }
         }
+    }
+
+    private void incrementUnReadMessage(Room room, String currentUserId) {
+        BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, ReadTracking.class);
+        var i = 0;
+        for (Member member : room.getMembers()) {
+            if (! currentUserId.equals(member.getUserId())) {
+                var criteria = Criteria.where("roomId").is(room.getId())
+                        .and("userId").is(member.getUserId());
+                var update = new Update();
+                update.inc("unReadMessage", 1);
+                ops.updateOne(Query.query(criteria), update);
+                i++;
+                if (i % 20 == 0)
+                    ops.execute();
+            }
+        }
+        if (i != 0)
+            ops.execute();
     }
 
 }
