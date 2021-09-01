@@ -29,6 +29,6 @@ public interface RoomRepository extends MongoRepository<Room, String> {
      * đếm số nhóm chung giữa hai người
      */
     @Query(value = "{$and: [{'members.userId': ?0}, {'members.userId': ?1}, {$expr: {$gt: [{$size: '$members'}, 2]}}, {type: 'GROUP'}]}", count = true)
-    Long countCommonGroupBetween(String firstUserId, String secondUserId);
+    long countCommonGroupBetween(String firstUserId, String secondUserId);
 
 }

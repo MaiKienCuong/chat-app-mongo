@@ -84,17 +84,14 @@ public class RoomRest {
         if (optional.isPresent()) {
             var room = optional.get();
             Set<Member> members = room.getMembers();
-            for (Member m : members) {
-                // nếu là thành viên trong room mới xem được thông tin
-                if (m.getUserId().equals(user.getId())) {
-                    Set<MemberDto> dto = members.stream()
-                            .map(x -> memberMapper.toMemberDto(x))
-                            .collect(Collectors.toSet());
-                    return ResponseEntity.ok(dto);
-                }
+            if (members.contains(Member.builder().userId(user.getId()).build())) {
+                Set<MemberDto> dto = members.stream()
+                        .map(x -> memberMapper.toMemberDto(x))
+                        .collect(Collectors.toSet());
+                return ResponseEntity.ok(dto);
             }
         }
-        return ResponseEntity.badRequest().build();
+        throw new RoomNotFoundException();
     }
 
     /**
@@ -109,11 +106,9 @@ public class RoomRest {
         Optional<Room> optional = roomRepository.findById(roomId);
         if (optional.isPresent()) {
             var room = optional.get();
-            for (Member m : room.getMembers()) {
-                // nếu là thành viên trong room mới xem được thông tin
-                if (m.getUserId().equals(user.getId())) {
-                    return ResponseEntity.ok(roomMapper.toRoomDetailDto(roomId));
-                }
+            Set<Member> members = room.getMembers();
+            if (members.contains(Member.builder().userId(user.getId()).build())) {
+                return ResponseEntity.ok(roomMapper.toRoomDetailDto(roomId));
             }
         }
 
@@ -150,7 +145,7 @@ public class RoomRest {
             }
         }
         // thêm người dùng hiện tại vào nhóm
-        room.getMembers().add(Member.builder().userId(user.getId()).build());
+        room.getMembers().add(Member.builder().userId(user.getId()).isAdmin(true).build());
         return ResponseEntity.ok(roomRepository.save(room));
     }
 
@@ -176,7 +171,8 @@ public class RoomRest {
             }
         }
         room.getMembers().addAll(members);
-        return ResponseEntity.ok(roomRepository.save(room));
+        roomRepository.save(room);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/common-group/count/{anotherUserId}")
@@ -199,7 +195,8 @@ public class RoomRest {
         if (anotherUserId == null)
             return ResponseEntity.badRequest().build();
         List<Room> commonGroups = roomRepository.findCommonGroupBetween(user.getId(), anotherUserId);
-        List<Object> roomSummaryList = commonGroups.stream().map(roomMapper::toRoomSummaryDto).collect(Collectors.toList());
+        List<Object> roomSummaryList = commonGroups.stream().map(roomMapper::toRoomSummaryDto)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(roomSummaryList);
     }
 
