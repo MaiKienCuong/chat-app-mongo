@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ReactionDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
@@ -18,14 +19,12 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,8 +40,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -73,10 +70,13 @@ public class MessageRest {
     private ReactionMapper reactionMapper;
 
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private ReadTrackingRepository readTrackingRepository;
 
     @Autowired
-    private ReadTrackingRepository readTrackingRepository;
+    private ReadTrackingService readTrackingService;
+
+    @Autowired
+    private MessageService messageService;
 
     /**
      * lấy tất cả tin nhắn của inboxId
@@ -94,7 +94,7 @@ public class MessageRest {
                 /*
                 cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
                  */
-                updateReadTracking(user.getId(), inbox.getRoomId());
+                readTrackingService.updateReadTracking(user.getId(), inbox.getRoomId());
                 /*
                  lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
                  sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
@@ -119,23 +119,6 @@ public class MessageRest {
             }
         }
         return ResponseEntity.badRequest().build();
-    }
-
-    /**
-     * lấy danh sách tin nhắn chưa đọc của userId trong roomId
-     * và cập nhật thành đã đọc
-     */
-    private void updateReadTracking(String userId, String roomId) {
-        var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, userId);
-        if (readTracking != null && readTracking.getUnReadMessage() != 0) {
-            var lastMessage = messageRepository.getLastMessageOfRoom(roomId);
-            var criteria = Criteria.where("roomId").is(roomId).and("userId").is(userId);
-            var update = new Update();
-            update.set("messageId", lastMessage.getId());
-            update.set("readAt", new Date());
-            update.set("unReadMessage", 0);
-            mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
-        }
     }
 
     /**
@@ -176,11 +159,7 @@ public class MessageRest {
         var message = messageOptional.get();
         // kiểm tra xem người gửi có phải người dùng hiện tại hay không mới cho xóa
         if (user.getId().equals(message.getSenderId())) {
-            var criteria = Criteria.where("_id").is(messageId);
-            var update = new Update();
-            update.set("content", "Đã xóa");
-            update.set("deleted", true);
-            mongoTemplate.updateFirst(Query.query(criteria), update, Message.class);
+            messageService.deleteMessage(messageId, user.getDisplayName() + " đã xóa nội dung này");
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Bạn không có quyền xóa tin nhắn này"));
@@ -197,10 +176,7 @@ public class MessageRest {
         if (user == null)
             throw new UnAuthenticateException();
         reaction.setReactByUserId(user.getId());
-        var criteria = Criteria.where("_id").is(messageId);
-        var update = new Update();
-        update.push("reactions", reaction);
-        mongoTemplate.updateFirst(Query.query(criteria), update, Message.class);
+        messageService.addReactToMessage(messageId, reaction);
         return ResponseEntity.ok().build();
     }
 
@@ -215,11 +191,10 @@ public class MessageRest {
             throw new UnAuthenticateException();
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty())
-            return ResponseEntity.badRequest().build();
+            throw new MessageNotFoundException();
         List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(messageId);
         Set<ReadByDto> dto = readTracking.stream().map(readByMapper::toReadByDto)
-                .sorted(Comparator.comparing(ReadByDto::getReadAt))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .sorted().collect(Collectors.toCollection(LinkedHashSet::new));
         return ResponseEntity.ok(dto);
     }
 
@@ -234,9 +209,11 @@ public class MessageRest {
             throw new UnAuthenticateException();
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty())
-            return ResponseEntity.badRequest().build();
+            throw new MessageNotFoundException();
         List<Reaction> reactions = optionalMessage.get().getReactions();
-        return ResponseEntity.ok(reactions.stream().map(x -> reactionMapper.toReactionDto(x)).collect(Collectors.toList()));
+        List<ReactionDto> dto = reactions.stream().map(x -> reactionMapper.toReactionDto(x))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dto);
     }
 
     /**
@@ -244,7 +221,8 @@ public class MessageRest {
      */
     private Page<?> toMessageDto(Page<Message> messagePage, Page<InboxMessage> inboxMessagePage) {
         List<Message> content = messagePage.getContent();
-        List<MessageDto> dto = content.stream().map(x -> messageMapper.toMessageDto(x.getId())).collect(Collectors.toList());
+        List<MessageDto> dto = content.stream().map(x -> messageMapper.toMessageDto(x.getId()))
+                .collect(Collectors.toList());
 
         /*
         tham số thứ 2 truyền vào là pageAble của truy vấn trước đó trong collection inboxMessage
