@@ -3,6 +3,7 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
+import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.InboxMapper;
@@ -83,6 +84,8 @@ public class InboxRest {
             mongoTemplate.updateFirst(Query.query(criteria), update, Inbox.class);
             // xóa tất cả message liên kết với inbox này, không xóa trong collection message
             inboxMessageRepository.deleteAllMessageOfInbox(inbox.getId());
+            // reset số tin nhắn chưa đọc thành 0
+            resetUnreadMessageToZero(inbox.getRoomId(), user.getId());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
@@ -97,6 +100,14 @@ public class InboxRest {
                 .map(x -> inboxMapper.toInboxDto(x))
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
+    }
+
+    private void resetUnreadMessageToZero(String roomId, String userId) {
+        var criteria = Criteria.where("roomId").is(roomId)
+                .and("userId").is(userId);
+        var update = new Update();
+        update.set("unReadMessage", 0);
+        mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
     }
 
 }
