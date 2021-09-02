@@ -31,4 +31,10 @@ public interface RoomRepository extends MongoRepository<Room, String> {
     @Query(value = "{$and: [{'members.userId': ?0}, {'members.userId': ?1}, {$expr: {$gt: [{$size: '$members'}, 2]}}, {type: 'GROUP'}]}", count = true)
     long countCommonGroupBetween(String firstUserId, String secondUserId);
 
+    /**
+     * kiểm tra xem có phải thành viên trong room này hay không
+     */
+    @Query(value = "{id: ?1, 'members.userId': ?0}", exists = true)
+    boolean isMemberOfRoom(String userId, String roomId);
+
 }
