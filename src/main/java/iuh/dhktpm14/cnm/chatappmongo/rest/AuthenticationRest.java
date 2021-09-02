@@ -6,13 +6,16 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.UserSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.EmailExistException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.PhoneNumberExistException;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UserNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.payload.SiginRequest;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,6 +36,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
@@ -54,15 +58,18 @@ public class AuthenticationRest {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private MessageSource messageSource;
+
     @PostMapping(path = "/signin", consumes = "application/json")
-    public ResponseEntity<?> signin(@RequestBody SiginRequest payload, HttpServletResponse response) {
+    public ResponseEntity<?> signin(@RequestBody SiginRequest payload, HttpServletResponse response, Locale locale) {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(payload.getUsername(), payload.getPassword()));
         } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Đăng nhập không thành công. Tài khoản hoặc mật khẩu không đúng"));
+            String loginFail = messageSource.getMessage("login_fail", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(loginFail));
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -71,18 +78,13 @@ public class AuthenticationRest {
         String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
         userService.setRefreshToken(user.getId(), jwtRefresh);
 
-        var refreshTokenCookie = new Cookie("refresh_token", jwtRefresh);
-        refreshTokenCookie.setHttpOnly(true);
-//        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setComment(SAME_SITE_STRICT_COMMENT);
-        refreshTokenCookie.setPath("/");
-        response.addCookie(refreshTokenCookie);
+        response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
 
         return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
     }
 
     @GetMapping("/refreshtoken")
-    public ResponseEntity<?> getRefreshToken(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
+    public ResponseEntity<?> getRefreshToken(@CookieValue(value = Utils.REFRESH_TOKEN) String requestRefreshToken, HttpServletResponse response) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
             Optional<User> userOptional = userRepository.findById(userId);
@@ -90,17 +92,12 @@ public class AuthenticationRest {
                 var user = userOptional.get();
                 String token = jwtUtils.generateJwtAccessTokenFromUserId(user.getId());
                 String newRefreshToken = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
-                var cookie = new Cookie("refresh_token", newRefreshToken);
-                cookie.setHttpOnly(true);
-                cookie.setComment(SAME_SITE_STRICT_COMMENT);
-                cookie.setPath("/");
-                response.addCookie(cookie);
+                response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, newRefreshToken));
                 userService.setRefreshToken(userId, newRefreshToken);
                 return ResponseEntity.ok(token);
             }
         }
-        return ResponseEntity.badRequest()
-                .body(new MessageResponse("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"));
+        throw new UnAuthenticateException();
     }
 
     @PostMapping(path = "/signup/save_information", consumes = "application/json")
@@ -123,26 +120,34 @@ public class AuthenticationRest {
     }
 
     @PostMapping("/signup/check_phone_number")
-    public ResponseEntity<?> checkPhoneNumber(@RequestBody UserSignupDto dto) {
-        if (! userService.checkPhoneNumber(dto.getPhoneNumber()))
-            return ResponseEntity.ok(new MessageResponse("Số điện thoại hợp lệ"));
+    public ResponseEntity<?> checkPhoneNumber(@RequestBody UserSignupDto dto, Locale locale) {
+        if (! userService.checkPhoneNumber(dto.getPhoneNumber())) {
+            String phoneValid = messageSource.getMessage("phone_valid", null, locale);
+            return ResponseEntity.ok(new MessageResponse(phoneValid));
+        }
         throw new PhoneNumberExistException();
     }
 
     @PostMapping("/signup/check_email")
-    public ResponseEntity<?> checkEmail(@RequestBody EmailDto dto) {
-        if (! userService.checkEmail(dto.getEmail()))
-            return ResponseEntity.ok(new MessageResponse("Email hợp lệ"));
+    public ResponseEntity<?> checkEmail(@RequestBody EmailDto dto, Locale locale) {
+        if (! userService.checkEmail(dto.getEmail())) {
+            String emailValid = messageSource.getMessage("email_valid", null, locale);
+            return ResponseEntity.ok(new MessageResponse(emailValid));
+        }
         throw new EmailExistException();
     }
 
-    @PutMapping("/signup/send_vetification_code")
-    public ResponseEntity<?> sendVerificationCode(@RequestBody User user)
+    @PutMapping("/signup/send_verification_code")
+    public ResponseEntity<?> sendVerificationCode(@RequestBody User user, Locale locale)
             throws UnsupportedEncodingException, MessagingException {
-        if (! userService.regexEmail(user.getEmail()))
-            return ResponseEntity.badRequest().body(new MessageResponse("Email không hợp lệ."));
-        if (user.getId() == null)
-            return ResponseEntity.badRequest().body(new MessageResponse("Dữ liệu gửi lên không hợp lệ - thiếu id."));
+        if (! userService.regexEmail(user.getEmail())) {
+            String emailInvalid = messageSource.getMessage("email_invalid", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(emailInvalid));
+        }
+        if (user.getId() == null) {
+            String dataInvalid = messageSource.getMessage("data_invalid", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(dataInvalid));
+        }
         var userDB = userService.findById(user.getId());
         var userCheckEmail = userService.findByEmail(user.getEmail());
         if (userDB == null)
@@ -153,79 +158,55 @@ public class AuthenticationRest {
         userDB.setEmail(user.getEmail());
         userService.sendVerificationEmail(userDB);
 
-        return ResponseEntity.ok(new MessageResponse("Gửi mã xác thực thành công."));
+        String success = messageSource.getMessage("send_code_success", null, locale);
+        return ResponseEntity.ok(new MessageResponse(success));
     }
 
     @PostMapping("/signup/verify")
-    public ResponseEntity<?> verify(@RequestBody User user) {
-        if (userService.verify(user))
-            return ResponseEntity.ok(new MessageResponse("Xác thực thành công"));
-        return ResponseEntity.badRequest().body(new MessageResponse("Mã xác nhận không chính xác"));
+    public ResponseEntity<?> verify(@RequestBody User user, Locale locale) {
+        if (userService.verify(user)) {
+            String success = messageSource.getMessage("verify_success", null, locale);
+            return ResponseEntity.ok(new MessageResponse(success));
+        }
+        String codeInvalid = messageSource.getMessage("verify_code_invalid", null, locale);
+        return ResponseEntity.badRequest().body(new MessageResponse(codeInvalid));
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<?> signout(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response) {
+    public ResponseEntity<?> signout(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response, Locale locale) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
             userService.setRefreshToken(userId, null);
-            var cookie = new Cookie("refresh_token", "");
+            var cookie = getHttpCookie(Utils.REFRESH_TOKEN, "");
             cookie.setMaxAge(0);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
             response.addCookie(cookie);
-            return ResponseEntity.ok(new MessageResponse("Đăng xuất thành công"));
+            String logoutSuccess = messageSource.getMessage("logout_success", null, locale);
+            return ResponseEntity.ok(new MessageResponse(logoutSuccess));
         }
-        return ResponseEntity.badRequest().body(new MessageResponse("Phiên đăng nhập đã hết hạn. . ."));
+        String sessionExpired = messageSource.getMessage("session_expired", null, locale);
+        return ResponseEntity.badRequest().body(new MessageResponse(sessionExpired));
 
     }
 
-    /*
-     * @PostMapping("/signup/password") public ResponseEntity<?>
-     * enterPassword(@RequestBody UserPasswordUpdateDTO user){
-     * if(userService.updatePassword(user)) return ResponseEntity.ok(new
-     * MessageResponse("update_password_susscess")); else return
-     * ResponseEntity.ok(new MessageResponse("update_password__fail")); }
-     */
+    private Cookie getHttpCookie(String name, String value) {
+        var cookie = new Cookie(name, value);
+        cookie.setHttpOnly(true);
+        // cookie.setSecure(true);
+        cookie.setComment(SAME_SITE_STRICT_COMMENT);
+        cookie.setPath("/");
+        return cookie;
+    }
 
     //// for mobile
 
     @PostMapping(path = "/signin", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> signinForMobile(SiginRequest payload, HttpServletResponse response) {
-        Authentication authentication;
-        try {
-            authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(payload.getUsername(), payload.getPassword()));
-        } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Đăng nhập không thành công. Tài khoản hoặc mật khẩu không đúng"));
-        }
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        var user = (User) authentication.getPrincipal();
-        String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
-        String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
-        userService.setRefreshToken(user.getId(), jwtRefresh);
-
-        var refreshTokenCookie = new Cookie("refresh_token", jwtRefresh);
-        refreshTokenCookie.setHttpOnly(true);
-//        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setComment(SAME_SITE_STRICT_COMMENT);
-        refreshTokenCookie.setPath("/");
-        response.addCookie(refreshTokenCookie);
-
-        return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
+    public ResponseEntity<?> signinForMobile(SiginRequest payload, HttpServletResponse response, Locale locale) {
+        return signin(payload, response, locale);
     }
 
     @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded")
     public ResponseEntity<?> signupForMoblie(UserSignupDto user) {
-        if (userService.signup(user)) {
-            Optional<User> optional = userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(user.getPhoneNumber());
-            if (optional.isPresent()) {
-                user.setId(optional.get().getId());
-                return ResponseEntity.ok(user);
-            }
-        }
-        throw new PhoneNumberExistException();
+        return signup(user);
     }
 
 }
