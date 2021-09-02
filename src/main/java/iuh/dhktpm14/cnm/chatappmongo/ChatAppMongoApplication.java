@@ -2,6 +2,8 @@ package iuh.dhktpm14.cnm.chatappmongo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.web.cors.CorsConfiguration;
@@ -16,7 +18,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableMongoAuditing
 @EnableSwagger2
-public class ChatAppMongoApplication {
+public class ChatAppMongoApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(ChatAppMongoApplication.class, args);
@@ -47,6 +49,11 @@ public class ChatAppMongoApplication {
                 .apis(RequestHandlerSelectors.basePackage("iuh.dhktpm14.cnm.chatappmongo"))
                 .paths(PathSelectors.any())
                 .build();
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(ChatAppMongoApplication.class);
     }
 
 }
