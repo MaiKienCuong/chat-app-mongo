@@ -89,7 +89,7 @@ public class MessageRest {
             throw new UnAuthenticateException();
         // kiểm tra xem inboxId có thuộc về user hiện tại hay không
         if (inboxRepository.existsByIdAndOfUserId(inboxId, user.getId())) {
-            var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
+            var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId()).get();
             if (! inbox.isEmpty()) {
                 /*
                 cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
@@ -124,18 +124,13 @@ public class MessageRest {
     /**
      * lấy tin nhắn theo id
      */
-    @GetMapping("/{messageId}/inbox/{inboxId}")
+    @GetMapping("/{messageId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy chi tiết tin nhắn theo id")
-    public ResponseEntity<?> getById(@PathVariable String messageId, @PathVariable String inboxId, @ApiIgnore @AuthenticationPrincipal User user) {
-        // kiểm tra xem tin nhắn này có trong messageIds của inbox của user hay không
-        // nếu tin nhắn có trong collection message nhưng không có trong messageIds của inbox của user thì không được xem
+    public ResponseEntity<?> getById(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
-        var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId());
-        if (inbox == null)
-            return ResponseEntity.badRequest().build();
-        if (inboxMessageRepository.existsByInboxIdAndMessageId(inbox.getId(), messageId)) {
+        if (messageService.checkPermissionToSeeMessage(messageId, user.getId())) {
             Optional<Message> messageOptional = messageRepository.findById(messageId);
             if (messageOptional.isEmpty())
                 throw new MessageNotFoundException();
@@ -156,11 +151,13 @@ public class MessageRest {
         Optional<Message> messageOptional = messageRepository.findById(messageId);
         if (messageOptional.isEmpty())
             throw new MessageNotFoundException();
-        var message = messageOptional.get();
-        // kiểm tra xem người gửi có phải người dùng hiện tại hay không mới cho xóa
-        if (user.getId().equals(message.getSenderId())) {
-            messageService.deleteMessage(messageId, user.getDisplayName() + " đã xóa nội dung này");
-            return ResponseEntity.ok().build();
+        if (messageService.checkPermissionToSeeMessage(messageId, user.getId())) {
+            var message = messageOptional.get();
+            // kiểm tra xem người gửi có phải người dùng hiện tại hay không mới cho xóa
+            if (user.getId().equals(message.getSenderId())) {
+                messageService.deleteMessage(messageId, user.getDisplayName() + " đã xóa nội dung này");
+                return ResponseEntity.ok().build();
+            }
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Bạn không có quyền xóa tin nhắn này"));
     }
@@ -183,7 +180,7 @@ public class MessageRest {
     /**
      * lấy danh sách những người đã xem tin nhắn
      */
-    @GetMapping("/readby/{messageId}")
+    @GetMapping("/reads/{messageId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Chi tiết tin nhắn: Lấy danh sách những người đã xem tin nhắn này")
     public ResponseEntity<?> getReadbyes(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
@@ -211,9 +208,12 @@ public class MessageRest {
         if (optionalMessage.isEmpty())
             throw new MessageNotFoundException();
         List<Reaction> reactions = optionalMessage.get().getReactions();
-        List<ReactionDto> dto = reactions.stream().map(x -> reactionMapper.toReactionDto(x))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dto);
+        if (reactions != null) {
+            List<ReactionDto> dto = reactions.stream().map(reactionMapper::toReactionDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dto);
+        }
+        return ResponseEntity.ok(new ArrayList<>());
     }
 
     /**

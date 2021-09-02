@@ -63,7 +63,6 @@ public class ChatController {
 
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageFromClient messageDto, UserPrincipal userPrincipal) {
-
         String userId = userPrincipal.getName();
         String accessToken = userPrincipal.getAccessToken();
         // kiểm tra userId và accessToken gửi lên từ header stomClient
@@ -72,51 +71,78 @@ public class ChatController {
                 && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
             Optional<Room> roomOptional = roomRepository.findById(messageDto.getRoomId());
             Optional<User> userOptional = userRepository.findById(userId);
-            List<Inbox> inboxes = new ArrayList<>();
-            Message message = null;
 
             if (roomOptional.isPresent() && userOptional.isPresent()) {
                 var room = roomOptional.get();
-                Set<Member> members = room.getMembers();
-                message = Message.builder().roomId(room.getId()).senderId(userId)
+                var message = Message.builder().roomId(room.getId()).senderId(userId)
                         .createAt(new Date()).type(messageDto.getType())
                         .content(messageDto.getContent())
                         .build();
-                for (Member m : members) {
-                    // gửi tin nhắn đến các user
-                    // if (! m.getUserId().equals(user.getId())) {
-                    messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
-                            messageMapper.toMessageToClient(message));
-                    // }
-                    // tìm danh sách inbox của tất cả các thành viên
-                    // nếu có thì thêm vào danh sách
-                    if (inboxRepository.existsByOfUserIdAndRoomId(m.getUserId(), room.getId())) {
-                        var inbox = inboxRepository.findByOfUserIdAndRoomId(m.getUserId(), room.getId());
-                        if (inbox.isEmpty())
-                            inboxService.updateEmptyStatusInbox(inbox.getId(), false);
-                        inboxes.add(inbox);
-                    } else {
-                        // nếu member chưa có inbox thì tạo mới rồi thêm vào danh sách
-                        var inbox = Inbox.builder().ofUserId(m.getUserId())
-                                .roomId(room.getId()).empty(false).build();
-                        inboxRepository.save(inbox);
-                        inboxes.add(inbox);
-                    }
-                }
-                readTrackingService.incrementUnReadMessage(room, userId);
-            }
-            if (message != null && ! inboxes.isEmpty()) {
-                messageRepository.save(message);
-                for (Inbox inbox : inboxes) {
-                    var inboxMessage = InboxMessage.builder()
-                            .inboxId(inbox.getId())
-                            .messageId(message.getId())
-                            .messageCreateAt(message.getCreateAt())
-                            .build();
-                    inboxMessageRepository.save(inboxMessage);
-                }
+                sendMessageToAllMemberOfRoom(message, room);
+                readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
+                saveMessageToDatabase(message, room);
             }
         }
+    }
+
+    /**
+     * gửi message tới tất cả các thành viên qua websocket, chưa lưu xuông db
+     */
+    private void sendMessageToAllMemberOfRoom(Message message, Room room) {
+        Set<Member> members = room.getMembers();
+        if (members != null && ! members.isEmpty()) {
+            for (Member m : members) {
+                // if (! m.getUserId().equals(user.getId())) {
+                messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
+                        messageMapper.toMessageToClient(message));
+                // }
+            }
+        }
+    }
+
+    /**
+     * lưu tin nhắn và liên kết danh sách inbox của tất cả thành viên với message này
+     */
+    private void saveMessageToDatabase(Message message, Room room) {
+        List<Inbox> inboxes = getAllInboxOfRoomToSaveMessage(room);
+        messageRepository.save(message);
+        if (! inboxes.isEmpty()) {
+            for (Inbox inbox : inboxes) {
+                var inboxMessage = InboxMessage.builder()
+                        .inboxId(inbox.getId())
+                        .messageId(message.getId())
+                        .messageCreateAt(message.getCreateAt())
+                        .build();
+                inboxMessageRepository.save(inboxMessage);
+            }
+        }
+    }
+
+    /**
+     * lấy danh sách inbox của tất cả thành viên trong room,
+     * nếu thành viên nào trong room chưa có inbox thì tạo inbox cho thành viên đó
+     */
+    private List<Inbox> getAllInboxOfRoomToSaveMessage(Room room) {
+        List<Inbox> inboxes = new ArrayList<>();
+        Set<Member> members = room.getMembers();
+        if (members != null && ! members.isEmpty())
+            for (Member m : members) {
+                // tìm danh sách inbox của tất cả các thành viên
+                // nếu có thì thêm vào danh sách
+                if (inboxRepository.existsByOfUserIdAndRoomId(m.getUserId(), room.getId())) {
+                    var inboxOptional = inboxRepository.findByOfUserIdAndRoomId(m.getUserId(), room.getId());
+                    var inbox = inboxOptional.get();
+                    inboxService.updateEmptyStatusInbox(inbox.getId(), false);
+                    inboxes.add(inbox);
+                } else {
+                    // nếu member chưa có inbox thì tạo mới rồi thêm vào danh sách
+                    var inbox = Inbox.builder().ofUserId(m.getUserId())
+                            .roomId(room.getId()).empty(false).build();
+                    inboxRepository.save(inbox);
+                    inboxes.add(inbox);
+                }
+            }
+        return inboxes;
     }
 
 }

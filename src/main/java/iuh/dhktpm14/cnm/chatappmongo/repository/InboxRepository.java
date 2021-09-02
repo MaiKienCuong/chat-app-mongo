@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
+import java.util.Optional;
+
 public interface InboxRepository extends MongoRepository<Inbox, String> {
 
     /**
@@ -22,7 +24,7 @@ public interface InboxRepository extends MongoRepository<Inbox, String> {
     /**
      * tìm inbox theo userId và roomId
      */
-    Inbox findByOfUserIdAndRoomId(String ofUserId, String roomId);
+    Optional<Inbox> findByOfUserIdAndRoomId(String ofUserId, String roomId);
 
     /**
      * kiểm tra xem inboxId có phải thuộc về người này hay không
@@ -32,6 +34,6 @@ public interface InboxRepository extends MongoRepository<Inbox, String> {
     /**
      *
      */
-    Inbox findByIdAndOfUserId(String id, String ofUserId);
+    Optional<Inbox> findByIdAndOfUserId(String id, String ofUserId);
 
 }

@@ -47,7 +47,7 @@ public class ReadTrackingService {
         }
     }
 
-    public void incrementUnReadMessage(Room room, String currentUserId) {
+    public void incrementUnReadMessageForMembersOfRoomExcludeUserId(Room room, String currentUserId) {
         BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, ReadTracking.class);
         var i = 0;
         for (Member member : room.getMembers()) {
