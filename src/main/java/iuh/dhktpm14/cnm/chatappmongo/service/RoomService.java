@@ -103,4 +103,18 @@ public class RoomService {
         return false;
     }
 
+    /**
+     * thêm thành viên làm admin room
+     */
+    public boolean setAdmin(String userId, String roomId, String currentUserId) {
+        if (roomRepository.isCreatorRoom(currentUserId, roomId) || isAdminOfRoom(currentUserId, roomId)) {
+            var criteria = Criteria.where("_id").is(roomId).and("members.userId").is(userId);
+            var update = new Update();
+            update.set("members.$.isAdmin", true);
+            mongoTemplate.updateFirst(Query.query(criteria), update, Room.class);
+            return true;
+        }
+        return false;
+    }
+
 }

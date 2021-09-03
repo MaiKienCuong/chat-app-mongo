@@ -16,6 +16,7 @@ public interface RoomRepository extends MongoRepository<Room, String> {
      */
     @Aggregation(pipeline = {
             "{$match: {$and: [{'members.userId': ?0}, {'members.userId': ?1}, {'members': {$size: 2}}, {type: 'ONE'}]}}",
+            "{$sort: {createAt: -1}}",
             "{$limit: 1}" })
     Room findCommonRoomBetween(String firstUserId, String secondUserId);
 
