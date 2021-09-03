@@ -37,4 +37,7 @@ public interface RoomRepository extends MongoRepository<Room, String> {
     @Query(value = "{id: ?1, 'members.userId': ?0}", exists = true)
     boolean isMemberOfRoom(String userId, String roomId);
 
+    @Query(value = "{id: ?1, createByUserId: ?0}", exists = true)
+    boolean isCreatorRoom(String userId, String roomId);
+
 }
