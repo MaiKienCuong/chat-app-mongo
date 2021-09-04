@@ -1,7 +1,9 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
+import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
@@ -9,11 +11,18 @@ import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.RoomNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.UserNotFoundException;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.InboxMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MemberMapper;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.RoomMapper;
+import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
+import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -21,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,10 +65,28 @@ public class RoomRest {
     @Autowired
     private ReadTrackingRepository readTrackingRepository;
 
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private MessageMapper messageMapper;
+
+    @Autowired
+    private RoomService roomService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private InboxRepository inboxRepository;
+
+    @Autowired
+    private InboxMapper inboxMapper;
+
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
      */
-    @GetMapping("/{roomId}/count-new-message")
+    @GetMapping("/unReadMessage/{roomId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy số tin nhắn mới, hiện tại chưa cần")
     public ResponseEntity<?> countNewMessage(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
@@ -74,7 +102,7 @@ public class RoomRest {
     /**
      * lấy tất cả thành viên trong room
      */
-    @GetMapping("/{roomId}/members")
+    @GetMapping("/members/{roomId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Chi tiết cuộc trò chuyện: Lấy danh sách thành viên")
     public ResponseEntity<?> getAllMembers(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
@@ -84,7 +112,8 @@ public class RoomRest {
         if (optional.isPresent()) {
             var room = optional.get();
             Set<Member> members = room.getMembers();
-            if (members.contains(Member.builder().userId(user.getId()).build())) {
+            // nếu là thành viên trong room mới được xem
+            if (members != null && members.contains(Member.builder().userId(user.getId()).build())) {
                 Set<MemberDto> dto = members.stream()
                         .map(x -> memberMapper.toMemberDto(x))
                         .collect(Collectors.toSet());
@@ -107,52 +136,111 @@ public class RoomRest {
         if (optional.isPresent()) {
             var room = optional.get();
             Set<Member> members = room.getMembers();
-            if (members.contains(Member.builder().userId(user.getId()).build())) {
-                return ResponseEntity.ok(roomMapper.toRoomDetailDto(roomId));
+            // nếu là thành viên trong room mới được xem
+            if (members != null && members.contains(Member.builder().userId(user.getId()).build())) {
+                return ResponseEntity.ok(roomMapper.toRoomDetailDto(room));
             }
         }
-
         return ResponseEntity.badRequest().build();
     }
 
     /**
      * endpoint lấy tin nhắn cuối theo roomId, nếu cần
      */
-    @GetMapping("/{roomId}/last-message")
+    @GetMapping("/lastMessage/{roomId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy tin nhắn cuối, hiện tại chưa cần")
-    public ResponseEntity<?> getLastMessage(@PathVariable String roomId) {
-        return ResponseEntity.ok(messageRepository.getLastMessageOfRoom(roomId));
+    public ResponseEntity<?> getLastMessage(@PathVariable String roomId, @AuthenticationPrincipal User user) {
+        var lastMessage = messageRepository.getLastMessageOfRoom(roomId);
+        if (lastMessage != null && messageService.checkPermissionToSeeMessage(lastMessage.getId(), user.getId())) {
+            return ResponseEntity.ok(messageMapper.toMessageDto(lastMessage));
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     /**
-     * tạo nhóm mới
+     * tạo room mới
      */
-    @PostMapping("/group")
+    @PostMapping
     @PreAuthorize("isAuthenticated()")
-    @ApiOperation("Tạo nhóm chat mới")
-    public ResponseEntity<?> createNewGroup(@RequestBody Room room, @ApiIgnore @AuthenticationPrincipal User user) {
+    @ApiOperation("Tạo room chat mới")
+    public ResponseEntity<?> createNewRoom(@RequestBody Room room, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
-        room.setCreateByUserId(user.getId());
-        room.setType(RoomType.GROUP);
         if (room.getMembers() == null || room.getMembers().isEmpty())
             throw new MyException("Chưa có thành viên");
-        for (Member m : room.getMembers()) {
-            if (! m.getUserId().equals(user.getId())) {
+        room.setId(null);
+        // xóa thành viên không tồn tại và user hiện tại nếu có
+        room.getMembers().removeIf(x -> x.getUserId().equals(user.getId()) || ! userRepository.existsById(x.getUserId()));
+        if (room.getType().equals(RoomType.ONE)) {
+            room.setName(null);
+            room.setImageUrl(null);
+            if (room.getMembers().size() != 1) {
+                throw new MyException("Danh sách thành viên không hợp lệ");
+            }
+            List<String> memberIds = room.getMembers().stream().map(Member::getUserId)
+                    .collect(Collectors.toList());
+            var existRoom = roomRepository.findCommonRoomBetween(user.getId(), memberIds.get(0));
+            if (existRoom != null) {
+                Optional<Inbox> inboxOptional = inboxRepository.findByOfUserIdAndRoomId(user.getId(), existRoom.getId());
+                if (inboxOptional.isPresent())
+                    return ResponseEntity.ok(inboxMapper.toInboxDto(inboxOptional.get()));
+                var inbox = Inbox.builder().ofUserId(user.getId()).roomId(existRoom.getId()).build();
+                inboxRepository.save(inbox);
+                return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
+            }
+            room.getMembers().add(Member.builder().userId(user.getId()).build());
+            roomRepository.save(room);
+            var inbox = Inbox.builder().ofUserId(user.getId()).roomId(room.getId()).build();
+            inboxRepository.save(inbox);
+            return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
+        }
+        if (room.getType().equals(RoomType.GROUP)) {
+            for (Member m : room.getMembers()) {
                 m.setAddByUserId(user.getId());
                 m.setAddTime(new Date());
+                m.setIsAdmin(false);
             }
+            room.setCreateByUserId(user.getId());
+            // thêm người dùng hiện tại vào nhóm
+            room.getMembers().add(Member.builder().userId(user.getId()).isAdmin(true).build());
+            roomRepository.save(room);
+            var inbox = Inbox.builder().ofUserId(user.getId()).roomId(room.getId()).build();
+            inboxRepository.save(inbox);
+            return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
         }
-        // thêm người dùng hiện tại vào nhóm
-        room.getMembers().add(Member.builder().userId(user.getId()).isAdmin(true).build());
-        return ResponseEntity.ok(roomRepository.save(room));
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping("/admin/{roomId}/{memberId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("set thành viên làm admin nhóm")
+    public ResponseEntity<?> setAdminForMember(@PathVariable String roomId, @PathVariable String memberId, @AuthenticationPrincipal User user) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        if (! userRepository.existsById(memberId))
+            throw new UserNotFoundException();
+        if (roomService.setAdmin(memberId, roomId, user.getId()))
+            return ResponseEntity.ok().build();
+        return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * Xóa thành viên khỏi nhóm
+     */
+    @DeleteMapping("/{roomId}/{memberId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("xóa thành viên")
+    public ResponseEntity<?> deleteMember(@PathVariable String roomId, @PathVariable String memberId, @AuthenticationPrincipal User user) {
+        if (roomService.deleteMember(memberId, roomId, user.getId()))
+            return ResponseEntity.ok().build();
+        return ResponseEntity.badRequest().build();
     }
 
     /**
      * thêm thành viên cho nhóm
      */
-    @PostMapping("/group/{roomId}")
+    @PostMapping("/members/{roomId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Thêm thành viên vào nhóm chat")
     public ResponseEntity<?> addMemberToRoom(@PathVariable String roomId, @RequestBody List<Member> members, @ApiIgnore @AuthenticationPrincipal User user) {
@@ -164,18 +252,17 @@ public class RoomRest {
         var room = roomOptional.get();
         if (room.getType().equals(RoomType.ONE))
             throw new MyException("Không thể thêm thành viên. Vui lòng tạo nhóm mới");
+        members.removeIf(x -> x.getUserId().equals(user.getId()) || ! userRepository.existsById(x.getUserId()));
         for (Member m : members) {
-            if (! m.getUserId().equals(user.getId())) {
-                m.setAddByUserId(user.getId());
-                m.setAddTime(new Date());
-            }
+            m.setAddByUserId(user.getId());
+            m.setAddTime(new Date());
+            m.setIsAdmin(false);
         }
-        room.getMembers().addAll(members);
-        roomRepository.save(room);
+        roomService.addMembersToRoom(members, roomId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/common-group/count/{anotherUserId}")
+    @GetMapping("/commonGroup/count/{anotherUserId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy số lượng nhóm chung giữa hai người")
     public ResponseEntity<?> countCommonGroup(@PathVariable String anotherUserId, @ApiIgnore @AuthenticationPrincipal User user) {
@@ -186,7 +273,7 @@ public class RoomRest {
         return ResponseEntity.ok(roomRepository.countCommonGroupBetween(user.getId(), anotherUserId));
     }
 
-    @GetMapping("/common-group/{anotherUserId}")
+    @GetMapping("/commonGroup/{anotherUserId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy danh sách nhóm chung giữa hai người")
     public ResponseEntity<?> getCommonGroup(@PathVariable String anotherUserId, @ApiIgnore @AuthenticationPrincipal User user) {
@@ -195,9 +282,14 @@ public class RoomRest {
         if (anotherUserId == null)
             return ResponseEntity.badRequest().build();
         List<Room> commonGroups = roomRepository.findCommonGroupBetween(user.getId(), anotherUserId);
-        List<Object> roomSummaryList = commonGroups.stream().map(roomMapper::toRoomSummaryDto)
+        List<Optional<Inbox>> inboxs = commonGroups.stream()
+                .map(x -> inboxRepository.findByOfUserIdAndRoomId(user.getId(), x.getId()))
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(roomSummaryList);
+        List<InboxSummaryDto> inboxDto = inboxs.stream()
+                .filter(Optional::isPresent)
+                .map(x -> inboxMapper.toInboxSummaryDto(x.get()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(inboxDto);
     }
 
     /**

@@ -1,6 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.mapper;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
@@ -59,6 +60,18 @@ public class InboxMapper {
             dto.setCountNewMessage(readTracking.getUnReadMessage());
         var lastMessage = messageRepository.getLastMessageOfRoom(inbox.getRoomId());
         dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
+        return dto;
+    }
+
+    public InboxSummaryDto toInboxSummaryDto(Inbox inbox) {
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user == null)
+            throw new UnAuthenticateException();
+        if (inbox == null)
+            return null;
+        var dto = new InboxSummaryDto();
+        dto.setId(inbox.getId());
+        dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
         return dto;
     }
 }
