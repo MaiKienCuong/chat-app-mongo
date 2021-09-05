@@ -49,21 +49,33 @@ public class WebSocketEventListener {
      */
     @EventListener
     public void handleSessionConnected(SessionConnectedEvent event) {
+        System.out.println("-----------------connected to websocket");
         var userPrincipal = (UserPrincipal) event.getUser();
         if (userPrincipal != null) {
             String userId = userPrincipal.getName();
             String accessToken = userPrincipal.getAccessToken();
+            if (userId == null)
+                System.out.println("-------------userId is null");
+            if (accessToken == null)
+                System.out.println("-------------access token is null");
+            if (! jwtUtils.validateJwtToken(accessToken))
+                System.out.println("-------------access token is expired");
             if (userId != null && accessToken != null) {
                 if (jwtUtils.validateJwtToken(accessToken) && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
                     if (userRepository.existsById(userId)) {
+                        System.out.println("userId = " + userId + " is connected");
+                        System.out.println("access_token: " + accessToken);
                         var criteria = Criteria.where("_id").is(userId);
                         var update = new Update();
                         update.set("onlineStatus", OnlineStatus.ONLINE)
                                 .unset("lastOnline");
                         mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
-                    }
+                    } else
+                        System.out.println("userId = " + userId + " not found");
                 }
             }
+        } else {
+            System.out.println("---------------user is null");
         }
     }
 
@@ -74,6 +86,7 @@ public class WebSocketEventListener {
      */
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
+        System.out.println("-----------------disconnect to websocket");
         var userPrincipal = (UserPrincipal) event.getUser();
         if (userPrincipal != null) {
             String userId = userPrincipal.getName();
