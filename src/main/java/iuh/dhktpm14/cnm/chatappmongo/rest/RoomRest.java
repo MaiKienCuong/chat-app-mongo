@@ -212,6 +212,9 @@ public class RoomRest {
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * set thành viên làm admin của room
+     */
     @PostMapping("/admin/{roomId}/{memberId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("set thành viên làm admin nhóm")

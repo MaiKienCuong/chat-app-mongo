@@ -94,9 +94,7 @@ public class RoomService {
             if (roomRepository.isCreatorRoom(currentUserId, roomId))
                 return true;
             if (isAdminOfRoom(currentUserId, roomId)) {
-                if (isAdminOfRoom(deleteId, roomId))
-                    return false;
-                return true;
+                return ! isAdminOfRoom(deleteId, roomId);
             }
             return currentUserId.equals(optionalMember.get().getAddByUserId());
         }

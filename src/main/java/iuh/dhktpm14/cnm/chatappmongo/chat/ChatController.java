@@ -63,6 +63,7 @@ public class ChatController {
 
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageFromClient messageDto, UserPrincipal userPrincipal) {
+        System.out.println(messageDto);
         String userId = userPrincipal.getName();
         String accessToken = userPrincipal.getAccessToken();
         // kiểm tra userId và accessToken gửi lên từ header stomClient

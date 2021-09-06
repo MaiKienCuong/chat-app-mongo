@@ -150,16 +150,12 @@ public class FriendRequestRest {
         if (! userRepository.existsById(deleteId))
             return ResponseEntity.badRequest().build();
         // chỉ xóa khi đã gửi lời mời đến người này
-        if (friendRequestRepository.isSent(user.getId(), deleteId)) {
+        if (friendRequestRepository.isSent(user.getId(), deleteId))
             friendRequestRepository.deleteFriendRequest(user.getId(), deleteId);
-            return ResponseEntity.ok().build();
-        }
         // xóa lời mời đã nhận được
-        if (friendRequestRepository.isReceived(user.getId(), deleteId)) {
+        if (friendRequestRepository.isReceived(user.getId(), deleteId))
             friendRequestRepository.deleteFriendRequest(deleteId, user.getId());
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok().build();
     }
 
     /**
