@@ -23,7 +23,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@CompoundIndexes(@CompoundIndex(def = "{roomId: 1, userId: 1}", background = true))
+@CompoundIndexes(@CompoundIndex(def = "{roomId: 1, userId: 1}", background = true, unique = true))
 public class ReadTracking implements Serializable {
     @Id
     private String id;
