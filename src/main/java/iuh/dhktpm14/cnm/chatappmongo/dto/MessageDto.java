@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageStatus;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -18,7 +19,7 @@ public class MessageDto implements Serializable {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date createAt;
-    private String type;
+    private MessageType type;
     private String content;
     private Boolean pin;
     private Boolean deleted;

@@ -3,6 +3,7 @@ package iuh.dhktpm14.cnm.chatappmongo.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageStatus;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,7 +37,7 @@ public class Message implements Serializable {
     @CreatedDate
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date createAt;
-    private String type;
+    private MessageType type;
     private String content;
     private Boolean pin;
     private List<Reaction> reactions;
