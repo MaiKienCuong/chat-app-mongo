@@ -15,7 +15,7 @@ public class InboxDto implements Serializable, Comparable<InboxDto> {
 
     @Override
     public int compareTo(InboxDto o) {
-        if (o != null && o.getLastMessage() != null)
+        if (o != null && o.getLastMessage() != null && lastMessage != null)
             return o.getLastMessage().getCreateAt().compareTo(lastMessage.getCreateAt());
         return 0;
     }

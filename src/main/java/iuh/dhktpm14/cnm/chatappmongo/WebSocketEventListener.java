@@ -41,6 +41,7 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleSessionConnect(SessionConnectEvent event) {
+        System.out.println("-------connecting");
     }
 
     /**

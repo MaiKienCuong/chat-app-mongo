@@ -75,6 +75,7 @@ public class ChatController {
 
             if (roomOptional.isPresent() && userOptional.isPresent()) {
                 var room = roomOptional.get();
+                System.out.println("room = " + room);
                 var message = Message.builder().roomId(room.getId()).senderId(userId)
                         .createAt(new Date()).type(messageDto.getType())
                         .content(messageDto.getContent())
@@ -94,6 +95,7 @@ public class ChatController {
         if (members != null && ! members.isEmpty()) {
             for (Member m : members) {
                 // if (! m.getUserId().equals(user.getId())) {
+                System.out.println("send to  = " + m.getUserId());
                 messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
                         messageMapper.toMessageToClient(message));
                 // }
