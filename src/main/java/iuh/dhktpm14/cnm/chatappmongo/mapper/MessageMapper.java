@@ -53,6 +53,7 @@ public class MessageMapper {
         dto.setDeleted(message.getDeleted());
         dto.setStatus(message.getStatus());
         dto.setReactions(message.getReactions());
+        dto.setRoomId(message.getRoomId());
         if (message.getReplyId() != null) {
             Optional<Message> optional = messageRepository.findById(message.getReplyId());
             optional.ifPresent(value -> dto.setReply(toMessageDto(value)));
@@ -78,6 +79,9 @@ public class MessageMapper {
         dto.setContent(message.getContent());
         dto.setStatus(message.getStatus());
         dto.setRoomId(message.getRoomId());
+        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
+        List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
+        dto.setReadbyes(readBy);
         return dto;
     }
 }
