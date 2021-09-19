@@ -94,7 +94,9 @@ public class MessageRest {
                 /*
                 cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
                  */
-                readTrackingService.updateReadTracking(user.getId(), inbox.getRoomId());
+                System.out.println("user.getId() = " + user.getId());
+                System.out.println("roomId = " + inbox.getRoomId());
+//                readTrackingService.updateReadTracking(user.getId(), inbox.getRoomId());
                 /*
                  lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
                  sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
