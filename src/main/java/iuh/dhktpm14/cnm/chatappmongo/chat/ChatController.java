@@ -80,9 +80,10 @@ public class ChatController {
                         .createAt(new Date()).type(messageDto.getType())
                         .content(messageDto.getContent())
                         .build();
-                sendMessageToAllMemberOfRoom(message, room);
-                readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
                 saveMessageToDatabase(message, room);
+                readTrackingService.updateReadTracking(userId, room.getId(), message.getId());
+                readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
+                sendMessageToAllMemberOfRoom(message, room);
             }
         }
     }
@@ -92,6 +93,7 @@ public class ChatController {
      */
     private void sendMessageToAllMemberOfRoom(Message message, Room room) {
         Set<Member> members = room.getMembers();
+        System.out.println("message = " + message);
         if (members != null && ! members.isEmpty()) {
             for (Member m : members) {
                 // if (! m.getUserId().equals(user.getId())) {
