@@ -4,7 +4,7 @@ public enum ReactionType {
     HAHA,
     SAD,
     LIKE,
-    DISLIKE,
+    ANGRY,
     LOVE,
     WOW
 }
