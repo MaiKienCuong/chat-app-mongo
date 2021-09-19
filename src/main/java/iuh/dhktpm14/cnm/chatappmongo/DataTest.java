@@ -1,6 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
+import iuh.dhktpm14.cnm.chatappmongo.entity.FriendRequest;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
@@ -9,10 +10,12 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.ReactionType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRequestRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
@@ -26,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -60,6 +64,9 @@ public class DataTest implements CommandLineRunner {
     @Autowired
     FriendRepository friendRepository;
 
+    @Autowired
+    FriendRequestRepository friendRequestRepository;
+
     private final Random random = new Random();
 
     private Long time = 1629451079000L;
@@ -77,7 +84,7 @@ public class DataTest implements CommandLineRunner {
             ReactionType.LIKE,
             ReactionType.LOVE,
             ReactionType.HAHA,
-            ReactionType.DISLIKE);
+            ReactionType.ANGRY);
 
     @Override
     public void run(String... args) {
@@ -171,7 +178,7 @@ public class DataTest implements CommandLineRunner {
                         .roomId(room.getId())
                         .senderId(senderId)
                         .createAt(new Date(time))
-                        .type("TEXT")
+                        .type(MessageType.TEXT)
                         .content(count + ". Lorem Ipsum is simply dummy text of the printing and typesetting industry."
                                 + UUID.randomUUID().toString()
                                 + " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s")
@@ -370,4 +377,139 @@ public class DataTest implements CommandLineRunner {
 
     AggregationResults<Message> results = mongoTemplate.aggregate(aggregation, "inbox_message", Message.class);
         System.out.println(results.getMappedResults());*/
+
+    public void insertFewRowData() {
+        Set<Member> members = new HashSet<>();
+        members.add(Member.builder().isAdmin(true).userId("1").build());
+        members.add(Member.builder().userId("2").addByUserId("1").addTime(new Date(time += 1000)).build());
+        members.add(Member.builder().userId("3").addByUserId("1").addTime(new Date(time += 1000)).build());
+        members.add(Member.builder().userId("4").addByUserId("1").addTime(new Date(time += 1000)).build());
+        members.add(Member.builder().userId("5").addByUserId("1").addTime(new Date(time += 1000)).build());
+        var room1 = Room.builder()
+                .type(RoomType.GROUP)
+                .imageUrl(images.get(randomInRange(0, 4)))
+                .createByUserId("1")
+                .name("Nhóm chat 1")
+                .members(members)
+                .build();
+        roomRepository.save(room1);
+
+        Set<Member> members2 = new HashSet<>();
+        members2.add(Member.builder().userId("1").build());
+        members2.add(Member.builder().userId("2").build());
+        var room2 = Room.builder()
+                .members(members2)
+                .type(RoomType.ONE)
+                .build();
+        roomRepository.save(room2);
+
+        for (Member m : room1.getMembers()) {
+            inboxRepository.save(Inbox.builder().roomId(room1.getId()).ofUserId(m.getUserId()).build());
+        }
+
+        for (Member m : room2.getMembers()) {
+            inboxRepository.save(Inbox.builder().roomId(room2.getId()).ofUserId(m.getUserId()).build());
+        }
+
+        messageRepository.save(Message.builder()
+                .roomId(room1.getId())
+                .content("Hai bạn giờ đã là bạn bè")
+                .type(MessageType.SYSTEM)
+                .build());
+        for (int i = 0; i < 5; i++) {
+            messageRepository.save(Message.builder()
+                    .content(room1.getId() + "_hello " + i + 1)
+                    .senderId("1")
+                    .type(MessageType.TEXT)
+                    .roomId(room1.getId())
+                    .build());
+        }
+
+        messageRepository.save(Message.builder()
+                .roomId(room2.getId())
+                .content("Hai bạn giờ đã là bạn bè")
+                .type(MessageType.SYSTEM)
+                .build());
+        for (int i = 0; i < 2; i++) {
+            messageRepository.save(Message.builder()
+                    .content(room2.getId() + "_hello " + i + 1)
+                    .senderId("1")
+                    .type(MessageType.TEXT)
+                    .roomId(room2.getId())
+                    .build());
+        }
+
+        List<Message> messages = messageRepository.findAll();
+        List<Inbox> inboxes = inboxRepository.findAll();
+        for (int i = 0; i < 7; i++) {
+            inboxMessageRepository.save(InboxMessage.builder()
+                    .messageCreateAt(messages.get(i).getCreateAt())
+                    .messageId(messages.get(i).getId())
+                    .inboxId(inboxes.get(i).getId())
+                    .build());
+
+        }
+
+        for (Room room : roomRepository.findAll()) {
+            for (Member member : room.getMembers()) {
+                readTrackingRepository.save(ReadTracking.builder()
+                        .roomId(room.getId())
+                        .userId(member.getUserId())
+                        .messageId(messageRepository.getLastMessageOfRoom(room.getId()).getId())
+                        .readAt(new Date(time += 1000))
+                        .unReadMessage(randomInRange(1, 10))
+                        .build());
+            }
+        }
+
+        friendRepository.save(Friend.builder().userId("1").friendId("2").build());
+        friendRepository.save(Friend.builder().userId("2").friendId("1").build());
+
+        Set<Member> members3 = new HashSet<>();
+        members3.add(Member.builder().userId("1").build());
+        members3.add(Member.builder().userId("3").build());
+        var room3 = Room.builder()
+                .members(members3)
+                .type(RoomType.ONE)
+                .build();
+        roomRepository.save(room3);
+
+        for (Member m : room3.getMembers()) {
+            inboxRepository.save(Inbox.builder().roomId(room3.getId()).ofUserId(m.getUserId()).build());
+        }
+        messageRepository.save(Message.builder()
+                .roomId(room3.getId())
+                .content("Hai bạn giờ đã là bạn bè")
+                .type(MessageType.SYSTEM)
+                .build());
+        friendRepository.save(Friend.builder().userId("1").friendId("3").build());
+        friendRepository.save(Friend.builder().userId("3").friendId("1").build());
+
+        Set<Member> members4 = new HashSet<>();
+        members4.add(Member.builder().userId("1").build());
+        members4.add(Member.builder().userId("4").build());
+        var room4 = Room.builder()
+                .members(members4)
+                .type(RoomType.ONE)
+                .build();
+        roomRepository.save(room4);
+
+        for (Member m : room4.getMembers()) {
+            inboxRepository.save(Inbox.builder().roomId(room4.getId()).ofUserId(m.getUserId()).build());
+        }
+        messageRepository.save(Message.builder()
+                .roomId(room4.getId())
+                .content("Hai bạn giờ đã là bạn bè")
+                .type(MessageType.SYSTEM)
+                .build());
+        friendRepository.save(Friend.builder().userId("1").friendId("4").build());
+        friendRepository.save(Friend.builder().userId("4").friendId("1").build());
+
+        friendRequestRepository.save(FriendRequest.builder().fromId("5").toId("1").build());
+
+        friendRequestRepository.save(FriendRequest.builder().fromId("4").toId("2").build());
+        friendRequestRepository.save(FriendRequest.builder().fromId("2").toId("3").build());
+
+        friendRequestRepository.save(FriendRequest.builder().fromId("5").toId("2").build());
+    }
 }
