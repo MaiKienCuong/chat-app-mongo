@@ -34,14 +34,15 @@ public class ReadTrackingService {
         mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
     }
 
-    public void updateReadTracking(String userId, String roomId) {
+    public void updateReadTracking(String userId, String roomId, String messageId) {
         var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, userId);
-        if (readTracking != null && readTracking.getUnReadMessage() != 0) {
-            var lastMessage = messageRepository.getLastMessageOfRoom(roomId);
+        if (readTracking != null) {
+            System.out.println("update read tracking");
             var criteria = Criteria.where("roomId").is(roomId).and("userId").is(userId);
             var update = new Update();
-            update.set("messageId", lastMessage.getId());
-            update.set("readAt", new Date());
+            update.set("messageId", messageId);
+            if (readTracking.getReadAt() == null)
+                update.set("readAt", new Date());
             update.set("unReadMessage", 0);
             mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
         }
