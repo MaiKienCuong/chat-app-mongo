@@ -25,7 +25,6 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,7 +35,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Component
+//@Component
 //chạy xong lần đầu có dữ liệu rồi thì comment @Component
 public class DataTest implements CommandLineRunner {
 
@@ -174,12 +173,12 @@ public class DataTest implements CommandLineRunner {
                 }
                 var message = Message
                         .builder()
-                        .id((count++) + "")
+                        .id((count) + "")
                         .roomId(room.getId())
                         .senderId(senderId)
                         .createAt(new Date(time))
                         .type(MessageType.TEXT)
-                        .content(count + ". Lorem Ipsum is simply dummy text of the printing and typesetting industry."
+                        .content((count++) + ". Lorem Ipsum is simply dummy text of the printing and typesetting industry."
                                 + UUID.randomUUID().toString()
                                 + " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s")
                         .reactions(reactions)

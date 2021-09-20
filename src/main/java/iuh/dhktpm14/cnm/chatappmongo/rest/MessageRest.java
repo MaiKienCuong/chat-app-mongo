@@ -40,6 +40,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -212,6 +213,7 @@ public class MessageRest {
         List<Reaction> reactions = optionalMessage.get().getReactions();
         if (reactions != null) {
             List<ReactionDto> dto = reactions.stream().map(reactionMapper::toReactionDto)
+                    .sorted(Comparator.comparing(x -> x.getReactByUser().getDisplayName()))
                     .collect(Collectors.toList());
             return ResponseEntity.ok(dto);
         }
