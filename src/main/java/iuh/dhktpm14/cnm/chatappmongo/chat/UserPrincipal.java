@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.chat;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.security.Principal;
 
@@ -11,6 +12,7 @@ import java.security.Principal;
  * getName() ở đây sẽ là id của người dùng hiện tại được truyền thông qua header
  * accessToken cũng sẽ được đọc từ header dùng để xác thực
  */
+@ToString
 public class UserPrincipal implements Principal {
 
     private final String userId;

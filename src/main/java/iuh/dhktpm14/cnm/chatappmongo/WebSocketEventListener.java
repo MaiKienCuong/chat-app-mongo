@@ -115,6 +115,8 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
+        System.out.println(event.getUser().getName());
+        System.out.println("---------------unsubscribe");
     }
 
 }

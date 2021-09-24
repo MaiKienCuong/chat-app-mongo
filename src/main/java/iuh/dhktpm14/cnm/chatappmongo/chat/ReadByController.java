@@ -39,6 +39,8 @@ public class ReadByController {
 
     @MessageMapping("/read")
     public void processMessage(@Payload ReadByFromClient readByFromClient, UserPrincipal userPrincipal) {
+        System.out.println("\n---------------------");
+        System.out.println("userPrincipal = " + userPrincipal);
         System.out.println("readByFromClient = " + readByFromClient);
 
         var readByToClient = new ReadByToClient();
@@ -53,9 +55,10 @@ public class ReadByController {
         }
 
         Optional<Room> roomOptional = roomRepository.findById(readByFromClient.getRoomId());
-        if (roomOptional.isPresent() && ! readByToClient.getMessageId().equals(readByToClient.getOldMessageId())) {
+        if (roomOptional.isPresent()) {
             var room = roomOptional.get();
             for (Member member : room.getMembers()) {
+                System.out.println("sending reaction of user " + userPrincipal.getName() + " to " + " member id " + member.getUserId());
                 messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/read", readByToClient);
             }
         }
