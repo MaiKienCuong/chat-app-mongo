@@ -25,6 +25,7 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,7 +36,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-//@Component
+@Component
 //chạy xong lần đầu có dữ liệu rồi thì comment @Component
 public class DataTest implements CommandLineRunner {
 
@@ -98,12 +99,52 @@ public class DataTest implements CommandLineRunner {
 
         insertInboxMessage();
 
-        insertReadTracking();
+//        insertReadTracking();
 
         insertFriend();
 
+        insertMoreUser();
+
+        insertFriendRequest();
+
         System.out.println("------insert ok------");
 
+    }
+
+    private void insertMoreUser() {
+        for (int i = 0; i < 20; i++) {
+            var username = UUID.randomUUID().toString();
+            userRepository.save(User.builder()
+                    .displayName("random user " + username)
+                    .username(username)
+                    .email("hoanghuuhuy@gmail.com")
+                    .phoneNumber("0961516945")
+                    .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                    .gender("Nam")
+                    .dateOfBirth(new Date())
+                    .block(false)
+                    .imageUrl(images.get(randomInRange(0, 4)))
+                    .roles("ROLE_USER")
+                    .enable(true)
+                    .verificationCode("123456")
+                    .refreshToken("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                    .onlineStatus(OnlineStatus.OFFLINE)
+                    .lastOnline(new Date())
+                    .build());
+        }
+    }
+
+    private void insertFriendRequest() {
+        List<User> users = userRepository.findAll();
+//        users.removeIf(x -> x.getId().length() <= "20000".length());
+        for (int i = 4; i < users.size() - 1; i++) {
+            for (int j = i; j < users.size(); j++) {
+                friendRequestRepository.save(FriendRequest.builder()
+                        .fromId(users.get(i).getId())
+                        .toId(users.get(randomInRange(0, 4)).getId())
+                        .build());
+            }
+        }
     }
 
     private void insertFriend() {
@@ -160,7 +201,7 @@ public class DataTest implements CommandLineRunner {
         long count = 1;
         for (Room room : roomRepository.findAll()) {
             ArrayList<Member> members = new ArrayList<>(room.getMembers());
-            for (var i = 0; i < 500; i++) {
+            for (var i = 0; i < 50; i++) {
                 int sizeMembers = members.size();
                 String senderId = members.get(randomInRange(0, sizeMembers - 1)).getUserId();
                 List<Reaction> reactions = new ArrayList<>();
@@ -188,6 +229,56 @@ public class DataTest implements CommandLineRunner {
                 messageRepository.save(message);
             }
         }
+        insertImageMessage();
+        insertVideoMessage();
+    }
+
+    void insertImageMessage() {
+        String senderId = randomInRange(1, 4) + "";
+        List<Reaction> reactions = new ArrayList<>();
+        for (var ii = 0; ii < randomInRange(0, 5); ii++) {
+            reactions.add(Reaction
+                    .builder()
+                    .type(reactionTypes.get(randomInRange(0, 4)))
+                    .reactByUserId(randomInRange(1, 4) + "")
+                    .build());
+        }
+        var message = Message
+                .builder()
+                .roomId("2")
+                .senderId(senderId)
+                .createAt(new Date(time))
+                .type(MessageType.IMAGE)
+                .content("https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1630819495838-20201226_055434.jpg")
+                .reactions(reactions)
+                .deleted(false)
+                .build();
+        time += 1000;
+        messageRepository.save(message);
+    }
+
+    void insertVideoMessage() {
+        String senderId = randomInRange(1, 4) + "";
+        List<Reaction> reactions = new ArrayList<>();
+        for (var ii = 0; ii < randomInRange(0, 5); ii++) {
+            reactions.add(Reaction
+                    .builder()
+                    .type(reactionTypes.get(randomInRange(0, 4)))
+                    .reactByUserId(randomInRange(1, 4) + "")
+                    .build());
+        }
+        var message = Message
+                .builder()
+                .roomId("2")
+                .senderId(senderId)
+                .createAt(new Date(time))
+                .type(MessageType.VIDEO)
+                .content("https://chatappmongo.s3.ap-southeast-1.amazonaws.com/Landscapes-+Volume+4K+(UHD)_Trim.mp4")
+                .reactions(reactions)
+                .deleted(false)
+                .build();
+        time += 1000;
+        messageRepository.save(message);
     }
 
     private void insertInbox() {
