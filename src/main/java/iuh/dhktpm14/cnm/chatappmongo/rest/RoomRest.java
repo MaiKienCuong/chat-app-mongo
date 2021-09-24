@@ -3,6 +3,7 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.RoomGroupSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
@@ -21,6 +22,7 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +38,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -82,6 +89,9 @@ public class RoomRest {
 
     @Autowired
     private InboxMapper inboxMapper;
+
+    @Autowired
+    private AmazonS3Service s3Service;
 
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
@@ -142,6 +152,79 @@ public class RoomRest {
             }
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * đổi tên nhóm cho web
+     */
+    @PostMapping("/rename/{roomId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Đổi tên nhóm")
+    public ResponseEntity<?> renameRoom(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, @RequestBody RoomGroupSummaryDto room) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        Optional<Room> optional = roomRepository.findById(roomId);
+        if (optional.isPresent()) {
+            roomService.renameRoom(roomId, room.getName());
+            return ResponseEntity.ok(room.getName());
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * đổi tên nhóm cho mobile
+     */
+    @PostMapping(value = "/rename/{roomId}", consumes = "application/x-www-form-urlencoded")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Đổi tên nhóm")
+    public ResponseEntity<?> renameRoomForMobile(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, RoomGroupSummaryDto room) {
+        return renameRoom(user, roomId, room);
+    }
+
+    /**
+     * đổi ảnh đại diện nhóm web
+     */
+    @PostMapping("/changeImage/{roomId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Đổi ảnh nhóm")
+    public ResponseEntity<?> changeImage(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, @RequestParam List<MultipartFile> files) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        System.out.println("user = " + user);
+        System.out.println("files = " + files);
+        for (MultipartFile file : files) {
+            System.out.println("original file nam = " + file.getOriginalFilename());
+            System.out.println("file name = " + file.getName());
+            System.out.println("content type = " + file.getContentType());
+            System.out.println("size = " + file.getSize());
+            try {
+                System.out.println("bytes = " + Arrays.toString(file.getBytes()));
+
+            } catch (IOException ignored) {
+
+            }
+            System.out.println("-----------------");
+        }
+        List<String> urls = new ArrayList<>();
+        Optional<Room> optional = roomRepository.findById(roomId);
+        if (optional.isPresent()) {
+            if (! files.isEmpty()) {
+                String url = s3Service.uploadFile(files.get(0));
+                urls.add(url);
+            }
+            return ResponseEntity.ok(urls);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * đổi ảnh đại diện nhóm mobile
+     */
+    @PostMapping(value = "/changeImage/{roomId}", consumes = "application/x-www-form-urlencoded")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Đổi ảnh nhóm")
+    public ResponseEntity<?> changeImageForMobile(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, @RequestParam List<MultipartFile> file) {
+        return changeImage(user, roomId, file);
     }
 
     /**
