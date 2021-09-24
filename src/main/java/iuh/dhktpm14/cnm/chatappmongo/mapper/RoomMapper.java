@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -111,7 +112,10 @@ public class RoomMapper {
             group.setCreateAt(room.getCreateAt());
             group.setCreateByUser(userMapper.toUserProfileDto(room.getCreateByUserId()));
             Set<Member> members = room.getMembers();
-            group.setMembers(members.stream().map(x -> memberMapper.toMemberDto(x)).collect(Collectors.toSet()));
+            if (members != null)
+                group.setMembers(members.stream().map(x -> memberMapper.toMemberDto(x)).collect(Collectors.toSet()));
+            else
+                group.setMembers(new HashSet<>(0));
             return group;
         }
     }

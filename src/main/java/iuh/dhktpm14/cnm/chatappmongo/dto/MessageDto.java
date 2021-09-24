@@ -22,8 +22,8 @@ public class MessageDto implements Serializable {
     private Date createAt;
     private MessageType type;
     private String content;
-    private Boolean pin;
-    private Boolean deleted;
+    private boolean pin;
+    private boolean deleted;
     private MessageStatus status;
     private List<Reaction> reactions;
     private List<ReadByDto> readbyes;

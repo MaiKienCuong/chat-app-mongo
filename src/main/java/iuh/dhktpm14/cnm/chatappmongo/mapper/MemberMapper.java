@@ -18,7 +18,7 @@ public class MemberMapper {
         dto.setUser(userMapper.toUserProfileDto(member.getUserId()));
         dto.setAddByUser(userMapper.toUserProfileDto(member.getAddByUserId()));
         dto.setAddTime(member.getAddTime());
-        dto.setIsAdmin(member.getIsAdmin());
+        dto.setAdmin(member.isAdmin());
         return dto;
     }
 

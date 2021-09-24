@@ -39,9 +39,9 @@ public class Message implements Serializable {
     private Date createAt;
     private MessageType type;
     private String content;
-    private Boolean pin;
+    private boolean pin;
     private List<Reaction> reactions;
     private MessageStatus status;
-    private Boolean deleted;
+    private boolean deleted;
     private String replyId;
 }

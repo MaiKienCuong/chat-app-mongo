@@ -63,9 +63,7 @@ public class RoomService {
      */
     public boolean isAdminOfRoom(String userId, String roomId) {
         Optional<Member> optionalMember = getMemberFromRoomById(userId, roomId);
-        if (optionalMember.isPresent() && optionalMember.get().getIsAdmin() != null)
-            return optionalMember.get().getIsAdmin();
-        return false;
+        return optionalMember.map(Member::isAdmin).orElse(false);
     }
 
     public boolean deleteMember(String deleteId, String roomId, String currentUserId) {

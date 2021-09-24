@@ -10,6 +10,7 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,10 +50,13 @@ public class MessageMapper {
         dto.setCreateAt(message.getCreateAt());
         dto.setType(message.getType());
         dto.setContent(message.getContent());
-        dto.setPin(message.getPin());
-        dto.setDeleted(message.getDeleted());
+        dto.setPin(message.isPin());
+        dto.setDeleted(message.isDeleted());
         dto.setStatus(message.getStatus());
-        dto.setReactions(message.getReactions());
+        if (message.getReactions() == null)
+            dto.setReactions(new ArrayList<>(0));
+        else
+            dto.setReactions(message.getReactions());
         dto.setRoomId(message.getRoomId());
         if (message.getReplyId() != null) {
             Optional<Message> optional = messageRepository.findById(message.getReplyId());

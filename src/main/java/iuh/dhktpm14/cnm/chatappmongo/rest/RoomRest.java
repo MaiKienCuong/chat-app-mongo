@@ -282,7 +282,7 @@ public class RoomRest {
             for (Member m : room.getMembers()) {
                 m.setAddByUserId(user.getId());
                 m.setAddTime(new Date());
-                m.setIsAdmin(false);
+                m.setAdmin(false);
             }
             room.setCreateByUserId(user.getId());
             // thêm người dùng hiện tại vào nhóm
@@ -342,7 +342,7 @@ public class RoomRest {
         for (Member m : members) {
             m.setAddByUserId(user.getId());
             m.setAddTime(new Date());
-            m.setIsAdmin(false);
+            m.setAdmin(false);
         }
         roomService.addMembersToRoom(members, roomId);
         return ResponseEntity.ok().build();
