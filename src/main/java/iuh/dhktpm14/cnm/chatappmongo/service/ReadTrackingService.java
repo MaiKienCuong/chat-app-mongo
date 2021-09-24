@@ -27,6 +27,9 @@ public class ReadTrackingService {
     @Autowired
     private MessageRepository messageRepository;
 
+    /**
+     * cập nhật số tin nhắn chưa đọc thành 0
+     */
     public void resetUnreadMessageToZero(String roomId, String userId) {
         var criteria = Criteria.where("roomId").is(roomId).and("userId").is(userId);
         var update = new Update();
@@ -34,20 +37,34 @@ public class ReadTrackingService {
         mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
     }
 
+    /**
+     * cập nhật tin nhắn đã đọc
+     */
     public void updateReadTracking(String userId, String roomId, String messageId) {
         var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, userId);
         if (readTracking != null) {
             System.out.println("update read tracking");
-            var criteria = Criteria.where("roomId").is(roomId).and("userId").is(userId);
-            var update = new Update();
-            update.set("messageId", messageId);
-            if (readTracking.getReadAt() == null)
+            if (! messageId.equals(readTracking.getMessageId())) {
+                var criteria = Criteria.where("roomId").is(roomId).and("userId").is(userId);
+                var update = new Update();
+                update.set("messageId", messageId);
                 update.set("readAt", new Date());
-            update.set("unReadMessage", 0);
-            mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
+                update.set("unReadMessage", 0);
+                mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
+            }
+        } else {
+            ReadTracking tracking = ReadTracking.builder()
+                    .roomId(roomId)
+                    .userId(userId)
+                    .messageId(messageId)
+                    .build();
+            readTrackingRepository.save(tracking);
         }
     }
 
+    /**
+     * set số tin nhắn mới chưa đọc tăng lên 1 khi có tin nhắn mới
+     */
     public void incrementUnReadMessageForMembersOfRoomExcludeUserId(Room room, String currentUserId) {
         BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, ReadTracking.class);
         var i = 0;
