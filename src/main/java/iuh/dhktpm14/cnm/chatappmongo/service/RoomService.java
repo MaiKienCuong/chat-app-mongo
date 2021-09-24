@@ -115,4 +115,13 @@ public class RoomService {
         return false;
     }
 
+    /**
+     * đổi tên cuộc trò chuyện nhóm
+     */
+    public void renameRoom(String roomId, String newName) {
+        var criteria = Criteria.where("_id").is(roomId);
+        var update = new Update();
+        update.set("name", newName);
+        mongoTemplate.updateFirst(Query.query(criteria), update, Room.class);
+    }
 }
