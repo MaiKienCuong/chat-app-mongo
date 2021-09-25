@@ -23,7 +23,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -77,13 +76,14 @@ public class ChatController {
                 var room = roomOptional.get();
                 System.out.println("room = " + room);
                 var message = Message.builder().roomId(room.getId()).senderId(userId)
-                        .createAt(new Date()).type(messageDto.getType())
+                        .type(messageDto.getType())
                         .content(messageDto.getContent())
                         .build();
+                messageRepository.save(message);
+                sendMessageToAllMemberOfRoom(message, room);
                 saveMessageToDatabase(message, room);
 //                readTrackingService.updateReadTracking(userId, room.getId(), message.getId());
                 readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
-                sendMessageToAllMemberOfRoom(message, room);
             }
         }
     }
@@ -110,7 +110,6 @@ public class ChatController {
      */
     private void saveMessageToDatabase(Message message, Room room) {
         List<Inbox> inboxes = getAllInboxOfRoomToSaveMessage(room);
-        messageRepository.save(message);
         if (! inboxes.isEmpty()) {
             for (Inbox inbox : inboxes) {
                 var inboxMessage = InboxMessage.builder()
@@ -134,18 +133,19 @@ public class ChatController {
             for (Member m : members) {
                 // tìm danh sách inbox của tất cả các thành viên
                 // nếu có thì thêm vào danh sách
-                if (inboxRepository.existsByOfUserIdAndRoomId(m.getUserId(), room.getId())) {
-                    var inboxOptional = inboxRepository.findByOfUserIdAndRoomId(m.getUserId(), room.getId());
-                    var inbox = inboxOptional.get();
-                    inboxService.updateEmptyStatusInbox(inbox.getId(), false);
-                    inboxes.add(inbox);
+                var inboxOptional = inboxRepository.findByOfUserIdAndRoomId(m.getUserId(), room.getId());
+                Inbox inbox;
+                if (inboxOptional.isPresent()) {
+                    inbox = inboxOptional.get();
+                    if (inbox.isEmpty())
+                        inboxService.updateEmptyStatusInbox(inbox.getId(), false);
                 } else {
                     // nếu member chưa có inbox thì tạo mới rồi thêm vào danh sách
-                    var inbox = Inbox.builder().ofUserId(m.getUserId())
+                    inbox = Inbox.builder().ofUserId(m.getUserId())
                             .roomId(room.getId()).empty(false).build();
                     inboxRepository.save(inbox);
-                    inboxes.add(inbox);
                 }
+                inboxes.add(inbox);
             }
         return inboxes;
     }
