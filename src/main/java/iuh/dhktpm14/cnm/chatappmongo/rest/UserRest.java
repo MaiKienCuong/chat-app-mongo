@@ -82,7 +82,7 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Cập nhật thông tin user")
     public ResponseEntity<?> updateInformationUserForMobile(@ApiIgnore @AuthenticationPrincipal User user,
-                                                            @Valid @RequestBody UserUpdateDto userUpdate) {
+                                                            @Valid UserUpdateDto userUpdate) {
         return updateInformationUser(user, userUpdate);
     }
 
@@ -113,7 +113,7 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi mật khẩu")
     public ResponseEntity<?> changePasswordForMobile(@ApiIgnore @AuthenticationPrincipal User user,
-                                                     @Valid @RequestBody ChangePasswordDto passwordDto,
+                                                     @Valid ChangePasswordDto passwordDto,
                                                      Locale locale) {
         return changePassword(user, passwordDto, locale);
     }
