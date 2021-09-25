@@ -82,6 +82,7 @@ public class ChatController {
                 messageRepository.save(message);
                 sendMessageToAllMemberOfRoom(message, room);
                 saveMessageToDatabase(message, room);
+                inboxService.updateLastTimeForAllInboxOfRoom(room);
 //                readTrackingService.updateReadTracking(userId, room.getId(), message.getId());
                 readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
             }

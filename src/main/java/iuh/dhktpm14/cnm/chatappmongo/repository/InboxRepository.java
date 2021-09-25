@@ -13,7 +13,7 @@ public interface InboxRepository extends MongoRepository<Inbox, String> {
     /**
      * lấy tất cả inbox của userId mà inbox đó không trống
      */
-    @Query(value = "{ofUserId: ?0, empty: false}")
+    @Query(value = "{ofUserId: ?0, empty: false}", sort = "{lastTime: -1}")
     Page<Inbox> getAllInboxOfUser(String ofUserId, Pageable pageable);
 
     /**

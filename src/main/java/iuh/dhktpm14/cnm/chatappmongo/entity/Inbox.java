@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Document
 @Data
@@ -25,4 +26,9 @@ public class Inbox implements Serializable {
     private String ofUserId;
     private String roomId;
     private boolean empty;
+    /*
+    thời gian inbox có hoạt động lần cuối
+    dùng để sắp xếp khi có nhiều trang
+     */
+    private Date lastTime;
 }

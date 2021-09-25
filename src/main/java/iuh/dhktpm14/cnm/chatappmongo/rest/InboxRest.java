@@ -17,6 +17,7 @@ import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,9 @@ public class InboxRest {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private UserRepository userRepository;
+
     /**
      * lấy tất cả inbox của người dùng hiện tại
      */
@@ -82,6 +86,18 @@ public class InboxRest {
             return ResponseEntity.ok(toInboxGroupDto(inboxPage));
         else
             return ResponseEntity.ok(toInboxDto(inboxPage));
+    }
+
+    @GetMapping("/ofRoomId/{roomId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Lấy inbox theo userId và roomId")
+    public ResponseEntity<?> getInboxByUserIdAndRoomId(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        Optional<Inbox> inboxOptional = inboxRepository.findByOfUserIdAndRoomId(user.getId(), roomId);
+        if (inboxOptional.isPresent())
+            return ResponseEntity.ok(inboxMapper.toInboxDto(inboxOptional.get()));
+        return ResponseEntity.badRequest().build();
     }
 
     /**
@@ -120,23 +136,43 @@ public class InboxRest {
             return ResponseEntity.badRequest().build();
         if (anotherUserId.equals(user.getId()))
             return ResponseEntity.badRequest().build();
+        if (! userRepository.existsById(anotherUserId))
+            return ResponseEntity.badRequest().build();
         var room = roomRepository.findCommonRoomBetween(user.getId(), anotherUserId);
+        /*
+        nếu 2 người này chưa có room chung thì trả về room và inbox với id là null
+        nhưng vẫn set thuộc tính "to" cho room để client hiện tên và ảnh của người kia
+         */
         if (room == null) {
             var r = new RoomOneSummaryDto();
             r.setId(null);
             r.setType(RoomType.ONE);
             r.setTo(userMapper.toUserProfileDto(anotherUserId));
+
             var dto = new InboxSummaryDto();
             dto.setId(null);
             dto.setRoom(r);
             return ResponseEntity.ok(dto);
         }
+        /*
+        nếu có room chung rồi thì trả về inbox của người dùng hiện tại trong room đó
+         */
         Optional<Inbox> inbox = inboxRepository.findByOfUserIdAndRoomId(user.getId(), room.getId());
         if (inbox.isPresent())
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(inbox.get()));
-        return ResponseEntity.badRequest().build();
+        /*
+        nếu room đã tồn tại mà người dùng hiện tại chưa có inbox thì trả về inbox với id là null
+         */
+        var dto = new InboxSummaryDto();
+        dto.setId(null);
+        dto.setRoom(room);
+        return ResponseEntity.ok(dto);
     }
 
+    /*
+    nếu hàm phía trên trả về inbox với id là null thì client sẽ gọi hàm này để tạo
+    room và inbox trước khi gửi tin nhắn đầu tiên
+     */
     @PostMapping("/with/{anotherUserId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Tạo room và inbox mới cho anotherUserId")
@@ -148,6 +184,9 @@ public class InboxRest {
         if (anotherUserId.equals(user.getId()))
             return ResponseEntity.badRequest().build();
         var room = roomRepository.findCommonRoomBetween(user.getId(), anotherUserId);
+        /*
+        nếu room == null thì tạo room và inbox cho 2 người rồi trả về cho client  inbox của người dùng hiện tại
+         */
         if (room == null) {
             Set<Member> members = new HashSet<>();
             members.add(Member.builder().userId(user.getId()).build());
@@ -157,33 +196,38 @@ public class InboxRest {
                     .type(RoomType.ONE)
                     .build();
             roomRepository.save(newRoom);
-            Inbox ib1 = Inbox.builder()
-                    .roomId(newRoom.getId())
-                    .ofUserId(user.getId())
-                    .build();
-            Inbox ib2 = Inbox.builder()
-                    .roomId(newRoom.getId())
-                    .ofUserId(anotherUserId)
-                    .build();
-            inboxRepository.save(ib1);
-            inboxRepository.save(ib2);
-            return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(ib1));
+            var myInbox = createAndSaveInboxForUserInRoom(user.getId(), newRoom.getId());
+            createAndSaveInboxForUserInRoom(anotherUserId, newRoom.getId());
+            return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(myInbox));
         } else {
-            Optional<Inbox> ib = inboxRepository.findByOfUserIdAndRoomId(user.getId(), room.getId());
-            if (ib.isPresent())
-                return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(ib.get()));
-            Inbox ib1 = Inbox.builder()
-                    .roomId(room.getId())
-                    .ofUserId(user.getId())
-                    .build();
-            Inbox ib2 = Inbox.builder()
-                    .roomId(room.getId())
-                    .ofUserId(anotherUserId)
-                    .build();
-            inboxRepository.save(ib1);
-            inboxRepository.save(ib2);
-            return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(ib1));
+            /*
+            nếu 2 người đã có room chung, kiểm tra xem người dùng hiện tại có inbox chưa
+            nếu có rồi thì kiểm tra tiếp xem người dùng thứ 2 kia đã có inbox của room hay chưa
+            nếu chưa có thì tạo inbox cho người dùng thứ 2
+             */
+            Optional<Inbox> myInbox = inboxRepository.findByOfUserIdAndRoomId(user.getId(), room.getId());
+            if (myInbox.isPresent()) {
+                Optional<Inbox> inboxOfAnotherUser = inboxRepository.findByOfUserIdAndRoomId(anotherUserId, room.getId());
+                if (inboxOfAnotherUser.isEmpty()) {
+                    createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
+                }
+                return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(myInbox.get()));
+            }
+            /*
+            hai người mới chỉ có room chung, chưa ai có inbox nên tạo inbox cho 2 người
+             */
+            var firstInbox = createAndSaveInboxForUserInRoom(user.getId(), room.getId());
+            createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
+            return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(firstInbox));
         }
+    }
+
+    private Inbox createAndSaveInboxForUserInRoom(String userId, String roomId) {
+        var inbox = Inbox.builder()
+                .roomId(roomId)
+                .ofUserId(userId)
+                .build();
+        return inboxRepository.save(inbox);
     }
 
     /**
