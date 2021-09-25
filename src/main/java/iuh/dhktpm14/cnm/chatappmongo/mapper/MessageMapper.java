@@ -4,6 +4,7 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.MessageDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.chat.MessageToClient;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,10 +55,13 @@ public class MessageMapper {
         dto.setPin(message.isPin());
         dto.setDeleted(message.isDeleted());
         dto.setStatus(message.getStatus());
-        if (message.getReactions() == null)
+        List<Reaction> reactions = message.getReactions();
+        if (reactions == null)
             dto.setReactions(new ArrayList<>(0));
-        else
-            dto.setReactions(message.getReactions());
+        else {
+            Collections.reverse(reactions);
+            dto.setReactions(reactions);
+        }
         dto.setRoomId(message.getRoomId());
         if (message.getReplyId() != null) {
             Optional<Message> optional = messageRepository.findById(message.getReplyId());
