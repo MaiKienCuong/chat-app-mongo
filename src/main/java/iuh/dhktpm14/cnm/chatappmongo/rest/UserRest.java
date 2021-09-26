@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ChangePasswordDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserUpdateDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
@@ -16,16 +17,21 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/user")
@@ -143,6 +149,27 @@ public class UserRest {
     @ApiOperation("Đổi ảnh đại diện")
     public ResponseEntity<?> changeImageForMobile(@ApiIgnore @AuthenticationPrincipal User user, MultipartFile file, Locale locale) {
         return changeImage(user, file, locale);
+    }
+
+    @PostMapping("/search")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Tìm kiếm user theo tên gần đúng")
+    public ResponseEntity<?> searchUser(@ApiIgnore @AuthenticationPrincipal User user, @RequestParam String textToSearch) {
+        List<User> result = userRepository.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch);
+        if (result == null) {
+            return ResponseEntity.ok(new ArrayList<>(0));
+        }
+        List<UserProfileDto> userProfiles = result.stream().filter(x -> ! x.getId().equals(user.getId()))
+                .map(userMapper::toUserProfileDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userProfiles);
+    }
+
+    @PostMapping(value = "/search", consumes = "application/x-www-form-urlencoded")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Tìm kiếm user theo tên gần đúng")
+    public ResponseEntity<?> searchUserForMobile(@ApiIgnore @AuthenticationPrincipal User user, String textToSearch) {
+        return searchUser(user, textToSearch);
     }
 
 }
