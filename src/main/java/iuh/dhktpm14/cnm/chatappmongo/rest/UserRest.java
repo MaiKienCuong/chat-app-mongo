@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -88,7 +89,12 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Cập nhật thông tin user")
     public ResponseEntity<?> updateInformationUserForMobile(@ApiIgnore @AuthenticationPrincipal User user,
-                                                            @Valid UserUpdateDto userUpdate) {
+                                                            @Valid UserUpdateDto userUpdate, BindingResult result) {
+    	if(result.hasErrors()) {
+       		
+       		return ResponseEntity.badRequest()
+                       .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), null)));
+       	}
         return updateInformationUser(user, userUpdate);
     }
 
@@ -120,8 +126,13 @@ public class UserRest {
     @ApiOperation("Đổi mật khẩu")
     public ResponseEntity<?> changePasswordForMobile(@ApiIgnore @AuthenticationPrincipal User user,
                                                      @Valid ChangePasswordDto passwordDto,
-                                                     Locale locale) {
-        return changePassword(user, passwordDto, locale);
+                                                     Locale locale, BindingResult result) {
+    	if(result.hasErrors()) {
+       		
+       		return ResponseEntity.badRequest()
+                       .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), null)));
+       	}
+    	return changePassword(user, passwordDto, locale);
     }
 
     @PutMapping(value = "/me/changeImage")
