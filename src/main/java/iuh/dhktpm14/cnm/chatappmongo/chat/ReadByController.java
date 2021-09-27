@@ -58,8 +58,10 @@ public class ReadByController {
         if (roomOptional.isPresent()) {
             var room = roomOptional.get();
             for (Member member : room.getMembers()) {
-                System.out.println("sending reaction of user " + userPrincipal.getName() + " to " + " member id " + member.getUserId());
-                messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/read", readByToClient);
+                if (! member.getUserId().equals(userPrincipal.getName())) {
+                    System.out.println("sending read message notification of user " + userPrincipal.getName() + " to " + " member id " + member.getUserId());
+                    messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/read", readByToClient);
+                }
             }
         }
 
