@@ -22,6 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -205,8 +206,27 @@ public class AuthenticationRest {
     }
 
     @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> signupForMoblie(UserSignupDto user) {
+    public ResponseEntity<?> signupForMoblie(UserSignupDto user, BindingResult result) {
+    	if(result.hasErrors()) {
+       		
+       		return ResponseEntity.badRequest()
+                       .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), null)));
+       	}
         return signup(user);
     }
+    
+    @PutMapping(path = "/signup/send_vetification_code", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<?> sendVerificationCodeForMobile(User user)
+            throws UnsupportedEncodingException, MessagingException {
+        return sendVerificationCode(user, null);
 
+    }
+    
+    
+    @PostMapping(path = "/signup/verify", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<?> verifyForMobile( User user) {
+        return verify(user, null);
+    }
+
+    
 }
