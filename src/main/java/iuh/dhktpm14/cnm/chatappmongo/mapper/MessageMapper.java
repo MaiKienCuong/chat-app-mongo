@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,16 +82,21 @@ public class MessageMapper {
             return null;
         var dto = new MessageToClient();
         dto.setId(message.getId());
-        if (message.getSenderId() != null)
-            dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
+        if (message.getSenderId() != null) {
+            var senderProfile = userMapper.toUserProfileDto(message.getSenderId());
+            dto.setSender(senderProfile);
+            List<ReadByDto> list = new ArrayList<>();
+            list.add(ReadByDto.builder().readAt(new Date()).readByUser(senderProfile).build());
+            dto.setReadbyes(list);
+        }
         dto.setCreateAt(message.getCreateAt());
         dto.setType(message.getType());
         dto.setContent(message.getContent());
         dto.setStatus(message.getStatus());
         dto.setRoomId(message.getRoomId());
-        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
-        List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
-        dto.setReadbyes(readBy);
+//        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
+//        List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
+//        dto.setReadbyes(readBy);
         return dto;
     }
 }
