@@ -196,8 +196,9 @@ public class InboxRest {
                     .type(RoomType.ONE)
                     .build();
             roomRepository.save(newRoom);
+            System.out.println("room is null, create new room");
             var myInbox = createAndSaveInboxForUserInRoom(user.getId(), newRoom.getId());
-            createAndSaveInboxForUserInRoom(anotherUserId, newRoom.getId());
+//            createAndSaveInboxForUserInRoom(anotherUserId, newRoom.getId());
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(myInbox));
         } else {
             /*
@@ -205,19 +206,23 @@ public class InboxRest {
             nếu có rồi thì kiểm tra tiếp xem người dùng thứ 2 kia đã có inbox của room hay chưa
             nếu chưa có thì tạo inbox cho người dùng thứ 2
              */
+            System.out.println("room not null, create inbox");
             Optional<Inbox> myInbox = inboxRepository.findByOfUserIdAndRoomId(user.getId(), room.getId());
             if (myInbox.isPresent()) {
-                Optional<Inbox> inboxOfAnotherUser = inboxRepository.findByOfUserIdAndRoomId(anotherUserId, room.getId());
-                if (inboxOfAnotherUser.isEmpty()) {
-                    createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
-                }
+                System.out.println("inbox of one user not null");
+//                Optional<Inbox> inboxOfAnotherUser = inboxRepository.findByOfUserIdAndRoomId(anotherUserId, room.getId());
+//                if (inboxOfAnotherUser.isEmpty()) {
+//                    System.out.println("inbox of two user empty, create new inbox for second user");
+//                    createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
+//                }
                 return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(myInbox.get()));
             }
             /*
             hai người mới chỉ có room chung, chưa ai có inbox nên tạo inbox cho 2 người
              */
+            System.out.println("create 2 inbox for 2 user");
             var firstInbox = createAndSaveInboxForUserInRoom(user.getId(), room.getId());
-            createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
+//            createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(firstInbox));
         }
     }
@@ -227,6 +232,7 @@ public class InboxRest {
                 .roomId(roomId)
                 .ofUserId(userId)
                 .build();
+        System.out.println("create in box for user " + userId);
         return inboxRepository.save(inbox);
     }
 
