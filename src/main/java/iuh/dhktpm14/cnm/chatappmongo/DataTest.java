@@ -227,9 +227,22 @@ public class DataTest implements CommandLineRunner {
                 time += 1000;
                 messageRepository.save(message);
             }
+            insertSystemMessage(room);
         }
         insertImageMessage();
         insertVideoMessage();
+    }
+
+    private void insertSystemMessage(Room room) {
+        var message = Message
+                .builder()
+                .roomId(room.getId())
+                .createAt(new Date(time))
+                .type(MessageType.SYSTEM)
+                .content("Các bạn giờ đã là bạn bè")
+                .build();
+        time += 1000;
+        messageRepository.save(message);
     }
 
     void insertImageMessage() {
