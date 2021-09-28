@@ -89,12 +89,13 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Cập nhật thông tin user")
     public ResponseEntity<?> updateInformationUserForMobile(@ApiIgnore @AuthenticationPrincipal User user,
-                                                            @Valid UserUpdateDto userUpdate, BindingResult result) {
-    	if(result.hasErrors()) {
-       		
-       		return ResponseEntity.badRequest()
-                       .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), null)));
-       	}
+                                                            @Valid UserUpdateDto userUpdate,
+                                                            BindingResult result,
+                                                            Locale locale) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), locale)));
+        }
         return updateInformationUser(user, userUpdate);
     }
 
@@ -126,20 +127,21 @@ public class UserRest {
     @ApiOperation("Đổi mật khẩu")
     public ResponseEntity<?> changePasswordForMobile(@ApiIgnore @AuthenticationPrincipal User user,
                                                      @Valid ChangePasswordDto passwordDto,
-                                                     Locale locale, BindingResult result) {
-    	if(result.hasErrors()) {
-       		
-       		return ResponseEntity.badRequest()
-                       .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), null)));
-       	}
-    	return changePassword(user, passwordDto, locale);
+                                                     Locale locale,
+                                                     BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), locale)));
+        }
+        return changePassword(user, passwordDto, locale);
     }
 
     @PutMapping(value = "/me/changeImage")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi ảnh đại diện")
     public ResponseEntity<?> changeImage(@ApiIgnore @AuthenticationPrincipal User user,
-                                         MultipartFile file, Locale locale) {
+                                         MultipartFile file,
+                                         Locale locale) {
         String message;
         if (file == null) {
             message = messageSource.getMessage("file_is_null", null, locale);
@@ -158,7 +160,9 @@ public class UserRest {
     @PutMapping(value = "/me/changeImage", consumes = "application/x-www-form-urlencoded")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi ảnh đại diện")
-    public ResponseEntity<?> changeImageForMobile(@ApiIgnore @AuthenticationPrincipal User user, MultipartFile file, Locale locale) {
+    public ResponseEntity<?> changeImageForMobile(@ApiIgnore @AuthenticationPrincipal User user,
+                                                  MultipartFile file,
+                                                  Locale locale) {
         return changeImage(user, file, locale);
     }
 

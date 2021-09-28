@@ -19,6 +19,21 @@ import java.util.List;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    /*@Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.setMessageSizeLimit(1024000); // default : 64 * 1024
+        registration.setSendTimeLimit(20 * 10000); // default : 10 * 10000
+        registration.setSendBufferSizeLimit(3 * 512 * 1024); // default : 512 * 1024
+    }
+
+    @Bean
+    public ServletServerContainerFactoryBean createWebSocketContainer() {
+        ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+        container.setMaxBinaryMessageBufferSize(1024000);
+        container.setMaxTextMessageBufferSize(1024000);
+        return container;
+    }*/
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/queue");

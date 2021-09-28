@@ -206,27 +206,25 @@ public class AuthenticationRest {
     }
 
     @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> signupForMoblie(UserSignupDto user, BindingResult result) {
-    	if(result.hasErrors()) {
-       		
-       		return ResponseEntity.badRequest()
-                       .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), null)));
-       	}
+    public ResponseEntity<?> signupForMoblie(UserSignupDto user, BindingResult result, Locale locale) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), locale)));
+        }
         return signup(user);
     }
-    
+
     @PutMapping(path = "/signup/send_vetification_code", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> sendVerificationCodeForMobile(User user)
+    public ResponseEntity<?> sendVerificationCodeForMobile(User user, Locale locale)
             throws UnsupportedEncodingException, MessagingException {
-        return sendVerificationCode(user, null);
+        return sendVerificationCode(user, locale);
 
     }
-    
-    
+
+
     @PostMapping(path = "/signup/verify", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> verifyForMobile( User user) {
-        return verify(user, null);
+    public ResponseEntity<?> verifyForMobile(User user, Locale locale) {
+        return verify(user, locale);
     }
 
-    
 }
