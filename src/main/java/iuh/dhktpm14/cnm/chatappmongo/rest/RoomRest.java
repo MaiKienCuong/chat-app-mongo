@@ -17,6 +17,7 @@ import iuh.dhktpm14.cnm.chatappmongo.mapper.InboxMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MemberMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.RoomMapper;
+import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
@@ -26,6 +27,7 @@ import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
@@ -43,11 +45,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,6 +92,9 @@ public class RoomRest {
 
     @Autowired
     private AmazonS3Service s3Service;
+
+    @Autowired
+    private MessageSource messageSource;
 
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
@@ -187,32 +190,31 @@ public class RoomRest {
     @PostMapping("/changeImage/{roomId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi ảnh nhóm")
-    public ResponseEntity<?> changeImage(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, @RequestParam List<MultipartFile> files) {
+    public ResponseEntity<?> changeImage(@ApiIgnore @AuthenticationPrincipal User user,
+                                         @PathVariable String roomId,
+                                         @RequestParam List<MultipartFile> files,
+                                         Locale locale) {
         if (user == null)
             throw new UnAuthenticateException();
-        System.out.println("user = " + user);
-        System.out.println("files = " + files);
-        for (MultipartFile file : files) {
-            System.out.println("original file nam = " + file.getOriginalFilename());
-            System.out.println("file name = " + file.getName());
-            System.out.println("content type = " + file.getContentType());
-            System.out.println("size = " + file.getSize());
-            try {
-                System.out.println("bytes = " + Arrays.toString(file.getBytes()));
-
-            } catch (IOException ignored) {
-
-            }
-            System.out.println("-----------------");
+        String message;
+        if (files == null) {
+            message = messageSource.getMessage("file_is_null", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
-        List<String> urls = new ArrayList<>();
+        if (files.isEmpty()) {
+            message = messageSource.getMessage("file_is_empty", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(message));
+        }
         Optional<Room> optional = roomRepository.findById(roomId);
         if (optional.isPresent()) {
+            var url = "";
             if (! files.isEmpty()) {
-                String url = s3Service.uploadFile(files.get(0));
-                urls.add(url);
+                var room = optional.get();
+                url = s3Service.uploadFile(files.get(0));
+                room.setImageUrl(url);
+                roomRepository.save(room);
             }
-            return ResponseEntity.ok(urls);
+            return ResponseEntity.ok(List.of(url));
         }
         return ResponseEntity.badRequest().build();
     }
@@ -223,8 +225,11 @@ public class RoomRest {
     @PostMapping(value = "/changeImage/{roomId}", consumes = "application/x-www-form-urlencoded")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi ảnh nhóm")
-    public ResponseEntity<?> changeImageForMobile(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, @RequestParam List<MultipartFile> file) {
-        return changeImage(user, roomId, file);
+    public ResponseEntity<?> changeImageForMobile(@ApiIgnore @AuthenticationPrincipal User user,
+                                                  @PathVariable String roomId,
+                                                  @RequestParam List<MultipartFile> file,
+                                                  Locale locale) {
+        return changeImage(user, roomId, file, locale);
     }
 
     /**

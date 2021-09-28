@@ -81,11 +81,16 @@ public class InboxRest {
     public ResponseEntity<?> getAllInboxOfCurrentUser(@RequestParam Optional<RoomType> type, @ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
-        Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), pageable);
-        if (type.isPresent() && type.get().equals(RoomType.GROUP))
+        /*
+        không phân trang khi lấy chat group
+         */
+        if (type.isPresent() && type.get().equals(RoomType.GROUP)) {
+            Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), Pageable.unpaged());
             return ResponseEntity.ok(toInboxGroupDto(inboxPage));
-        else
+        } else {
+            Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), pageable);
             return ResponseEntity.ok(toInboxDto(inboxPage));
+        }
     }
 
     @GetMapping("/ofRoomId/{roomId}")

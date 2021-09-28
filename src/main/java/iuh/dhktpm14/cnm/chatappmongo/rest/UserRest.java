@@ -140,18 +140,18 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi ảnh đại diện")
     public ResponseEntity<?> changeImage(@ApiIgnore @AuthenticationPrincipal User user,
-                                         MultipartFile file,
+                                         MultipartFile files,
                                          Locale locale) {
         String message;
-        if (file == null) {
+        if (files == null) {
             message = messageSource.getMessage("file_is_null", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
-        if (file.isEmpty()) {
+        if (files.isEmpty()) {
             message = messageSource.getMessage("file_is_empty", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
-        String newImageUrl = s3Service.uploadFile(file);
+        String newImageUrl = s3Service.uploadFile(files);
         user.setImageUrl(newImageUrl);
         userRepository.save(user);
         return ResponseEntity.ok(userMapper.toUserDetailDto(user));
@@ -161,9 +161,9 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi ảnh đại diện")
     public ResponseEntity<?> changeImageForMobile(@ApiIgnore @AuthenticationPrincipal User user,
-                                                  MultipartFile file,
+                                                  MultipartFile files,
                                                   Locale locale) {
-        return changeImage(user, file, locale);
+        return changeImage(user, files, locale);
     }
 
     @PostMapping("/search")
