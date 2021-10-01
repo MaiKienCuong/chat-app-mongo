@@ -1,6 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Room {
     @Id
     private String id;

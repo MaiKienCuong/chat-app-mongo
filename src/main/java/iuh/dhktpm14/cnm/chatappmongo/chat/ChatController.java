@@ -82,17 +82,29 @@ public class ChatController {
                 messageRepository.save(message);
                 sendMessageToAllMemberOfRoom(message, room);
                 saveMessageToDatabase(message, room);
-                inboxService.updateLastTimeForAllInboxOfRoom(room);
-                readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
-                readTrackingService.updateReadTracking(userId, room.getId(), message.getId());
+                updateLastTimeForAllInboxOfRoom(room);
+                incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
+                updateReadTracking(userId, room.getId(), message.getId());
             }
         }
+    }
+
+    public void updateLastTimeForAllInboxOfRoom(Room room) {
+        inboxService.updateLastTimeForAllInboxOfRoom(room);
+    }
+
+    public void incrementUnReadMessageForMembersOfRoomExcludeUserId(Room room, String userId) {
+        readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, userId);
+    }
+
+    public void updateReadTracking(String userId, String roomId, String messageId) {
+        readTrackingService.updateReadTracking(userId, roomId, messageId);
     }
 
     /**
      * gửi message tới tất cả các thành viên qua websocket, chưa lưu xuông db
      */
-    private void sendMessageToAllMemberOfRoom(Message message, Room room) {
+    public void sendMessageToAllMemberOfRoom(Message message, Room room) {
         Set<Member> members = room.getMembers();
         System.out.println("message = " + message);
         if (members != null && ! members.isEmpty()) {
@@ -109,7 +121,7 @@ public class ChatController {
     /**
      * lưu tin nhắn và liên kết danh sách inbox của tất cả thành viên với message này
      */
-    private void saveMessageToDatabase(Message message, Room room) {
+    public void saveMessageToDatabase(Message message, Room room) {
         List<Inbox> inboxes = getAllInboxOfRoomToSaveMessage(room);
         if (! inboxes.isEmpty()) {
             for (Inbox inbox : inboxes) {

@@ -1,13 +1,16 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
+import iuh.dhktpm14.cnm.chatappmongo.chat.ChatController;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.RoomGroupSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.RoomNotFoundException;
@@ -95,6 +98,9 @@ public class RoomRest {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private ChatController chatController;
 
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
@@ -252,11 +258,14 @@ public class RoomRest {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Tạo room chat mới")
-    public ResponseEntity<?> createNewRoom(@RequestBody Room room, @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> createNewRoom(@RequestBody Room room,
+                                           @ApiIgnore @AuthenticationPrincipal User user) {
+        System.out.println("room = " + room);
         if (user == null)
             throw new UnAuthenticateException();
         if (room.getMembers() == null || room.getMembers().isEmpty())
             throw new MyException("Chưa có thành viên");
+
         room.setId(null);
         // xóa thành viên không tồn tại và user hiện tại nếu có
         room.getMembers().removeIf(x -> x.getUserId().equals(user.getId()) || ! userRepository.existsById(x.getUserId()));
@@ -295,9 +304,31 @@ public class RoomRest {
             roomRepository.save(room);
             var inbox = Inbox.builder().ofUserId(user.getId()).roomId(room.getId()).build();
             inboxRepository.save(inbox);
+            sendMessageAfterCreateRoom(room, user);
             return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping(value = "/", consumes = "application/x-www-form-urlencoded")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Tạo room chat mới")
+    public ResponseEntity<?> createNewRoomForMobile(@RequestBody Room room,
+                                                    @ApiIgnore @AuthenticationPrincipal User user) {
+        return createNewRoom(room, user);
+    }
+
+    void sendMessageAfterCreateRoom(Room room, User user) {
+        var message = Message.builder().roomId(room.getId())
+                .type(MessageType.SYSTEM)
+                .content(user.getDisplayName() + " đã tạo nhóm. Hãy trò chuyện cùng nhau.")
+                .build();
+        messageRepository.save(message);
+        chatController.sendMessageToAllMemberOfRoom(message, room);
+        chatController.saveMessageToDatabase(message, room);
+        chatController.updateLastTimeForAllInboxOfRoom(room);
+        chatController.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, user.getId());
+        chatController.updateReadTracking(user.getId(), room.getId(), message.getId());
     }
 
     /**

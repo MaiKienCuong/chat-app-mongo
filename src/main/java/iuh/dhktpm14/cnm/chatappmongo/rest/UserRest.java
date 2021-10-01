@@ -75,11 +75,13 @@ public class UserRest {
     @ApiOperation("Cập nhật thông tin user")
     public ResponseEntity<?> updateInformationUser(@ApiIgnore @AuthenticationPrincipal User user,
                                                    @Valid @RequestBody UserUpdateDto userUpdate) {
+        System.out.println("userUpdate = " + userUpdate);
         user.setEmail(userUpdate.getEmail());
         user.setDisplayName(userUpdate.getDisplayName());
         user.setGender(userUpdate.getGender());
         user.setDateOfBirth(userUpdate.getDateOfBirth());
 
+        System.out.println("user = " + user);
         userRepository.save(user);
 
         return ResponseEntity.ok(userMapper.toUserDetailDto(user));
