@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MemberDto implements Serializable {
+public class MemberDto implements Serializable, Comparable<MemberDto> {
     private UserProfileDto user;
     private UserProfileDto addByUser;
 
@@ -19,4 +19,14 @@ public class MemberDto implements Serializable {
 
     @JsonProperty(value = "isAdmin")
     private boolean isAdmin;
+
+    @Override
+    public int compareTo(MemberDto o) {
+        if (user != null && o != null && o.getUser() != null) {
+            var nameOfFirstUser = user.getDisplayName().substring(user.getDisplayName().lastIndexOf(" ") + 1);
+            var nameOfSecondUser = o.getUser().getDisplayName().substring(o.getUser().getDisplayName().lastIndexOf(" ") + 1);
+            return nameOfFirstUser.compareTo(nameOfSecondUser);
+        }
+        return 0;
+    }
 }

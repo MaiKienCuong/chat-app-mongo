@@ -28,6 +28,8 @@ public class RoomService {
      * thêm một list member vào room
      */
     public void addMembersToRoom(List<Member> members, String toRoomId) {
+        System.out.println("adding member " + members.toString());
+        System.out.println("adding member to room " + toRoomId);
         BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Room.class);
         var i = 0;
         for (Member member : members) {

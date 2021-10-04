@@ -48,7 +48,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -135,7 +137,8 @@ public class RoomRest {
             if (members != null && members.contains(Member.builder().userId(user.getId()).build())) {
                 Set<MemberDto> dto = members.stream()
                         .map(x -> memberMapper.toMemberDto(x))
-                        .collect(Collectors.toSet());
+                        .sorted()
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
                 return ResponseEntity.ok(dto);
             }
         }
@@ -354,8 +357,10 @@ public class RoomRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("xóa thành viên")
     public ResponseEntity<?> deleteMember(@PathVariable String roomId, @PathVariable String memberId, @AuthenticationPrincipal User user) {
+        System.out.println("deleting");
         if (roomService.deleteMember(memberId, roomId, user.getId()))
             return ResponseEntity.ok().build();
+        System.out.println("delete error");
         return ResponseEntity.badRequest().build();
     }
 
@@ -371,6 +376,8 @@ public class RoomRest {
         Optional<Room> roomOptional = roomRepository.findById(roomId);
         if (roomOptional.isEmpty())
             throw new RoomNotFoundException();
+        if (! roomRepository.isMemberOfRoom(user.getId(), roomId))
+            return ResponseEntity.badRequest().build();
         var room = roomOptional.get();
         if (room.getType().equals(RoomType.ONE))
             throw new MyException("Không thể thêm thành viên. Vui lòng tạo nhóm mới");
@@ -381,7 +388,18 @@ public class RoomRest {
             m.setAdmin(false);
         }
         roomService.addMembersToRoom(members, roomId);
-        return ResponseEntity.ok().build();
+        room = roomRepository.findById(roomId).get();
+        return ResponseEntity.ok(room.getMembers() != null ? room.getMembers() : new ArrayList<>(0));
+    }
+
+    /**
+     * thêm thành viên cho nhóm cho mobile
+     */
+    @PostMapping(value = "/members/{roomId}", consumes = "application/x-www-form-urlencoded")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Thêm thành viên vào nhóm chat")
+    public ResponseEntity<?> addMemberToRoomForMobile(@PathVariable String roomId, @RequestBody List<Member> members, @ApiIgnore @AuthenticationPrincipal User user) {
+        return addMemberToRoom(roomId, members, user);
     }
 
     @GetMapping("/commonGroup/count/{anotherUserId}")

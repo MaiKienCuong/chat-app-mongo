@@ -66,8 +66,13 @@ public class RoomMapper {
             group.setName(room.getName());
             group.setImageUrl(room.getImageUrl());
             group.setType(room.getType());
-            if (room.getMembers() != null)
-                group.setNumOfMembers(room.getMembers().size());
+            group.setCreateAt(room.getCreateAt());
+            group.setCreateByUserId(room.getCreateByUserId());
+            Set<Member> members = room.getMembers();
+            if (members != null)
+                group.setMembers(members);
+            else
+                group.setMembers(new HashSet<>(0));
             return group;
         }
     }
