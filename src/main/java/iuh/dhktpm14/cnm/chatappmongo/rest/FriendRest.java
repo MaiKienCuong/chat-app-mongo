@@ -1,11 +1,14 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
+import iuh.dhktpm14.cnm.chatappmongo.dto.Contact;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ContactSync;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +22,15 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -39,6 +46,9 @@ public class FriendRest {
 
     @Autowired
     private FriendMapper friendMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * lấy danh sách bạn bè của người dùng hiện tại đã đăng nhập
@@ -75,6 +85,32 @@ public class FriendRest {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping(value = "/syncContact", consumes = "application/x-www-form-urlencoded")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Đồng bộ danh bạ")
+    public ResponseEntity<?> syncContactForMobile(@ApiIgnore @AuthenticationPrincipal User user, @RequestBody List<Contact> contacts) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        List<ContactSync> contactSyncs = new ArrayList<>();
+        if (contacts != null && ! contacts.isEmpty()) {
+            for (Contact contact : contacts) {
+                Optional<User> userOptional = userRepository.findDistinctByPhoneNumber(contact.getPhone());
+                if (userOptional.isPresent()) {
+                    var u = userOptional.get();
+                    var contactSync = ContactSync.builder()
+                            .user(userMapper.toUserProfileDto(u))
+                            .name(contact.getName())
+                            .phone(contact.getPhone())
+                            .isFriend(friendRepository.isFriend(user.getId(), u.getId()))
+                            .build();
+                    contactSyncs.add(contactSync);
+                }
+            }
+            contactSyncs.removeIf(x -> x.getUser().getId().equals(user.getId()));
+        }
+        return ResponseEntity.ok(contactSyncs);
     }
 
     /**
