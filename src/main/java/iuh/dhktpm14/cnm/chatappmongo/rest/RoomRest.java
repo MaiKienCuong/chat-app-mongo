@@ -1,7 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.chat.ChatController;
+import iuh.dhktpm14.cnm.chatappmongo.chat.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.RoomGroupSummaryDto;
@@ -12,7 +12,6 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.RoomNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UserNotFoundException;
@@ -102,7 +101,7 @@ public class RoomRest {
     private MessageSource messageSource;
 
     @Autowired
-    private ChatController chatController;
+    private ChatSocketService chatSocketService;
 
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
@@ -216,13 +215,10 @@ public class RoomRest {
         }
         Optional<Room> optional = roomRepository.findById(roomId);
         if (optional.isPresent()) {
-            var url = "";
-            if (! files.isEmpty()) {
-                var room = optional.get();
-                url = s3Service.uploadFile(files.get(0));
-                room.setImageUrl(url);
-                roomRepository.save(room);
-            }
+            var room = optional.get();
+            var url = s3Service.uploadFile(files.get(0));
+            room.setImageUrl(url);
+            roomRepository.save(room);
             return ResponseEntity.ok(List.of(url));
         }
         return ResponseEntity.badRequest().build();
@@ -262,12 +258,15 @@ public class RoomRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Tạo room chat mới")
     public ResponseEntity<?> createNewRoom(@RequestBody Room room,
-                                           @ApiIgnore @AuthenticationPrincipal User user) {
+                                           @ApiIgnore @AuthenticationPrincipal User user,
+                                           Locale locale) {
         System.out.println("room = " + room);
         if (user == null)
             throw new UnAuthenticateException();
-        if (room.getMembers() == null || room.getMembers().isEmpty())
-            throw new MyException("Chưa có thành viên");
+        if (room.getMembers() == null || room.getMembers().isEmpty()) {
+            String message = messageSource.getMessage("no_member", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(message));
+        }
 
         room.setId(null);
         // xóa thành viên không tồn tại và user hiện tại nếu có
@@ -276,7 +275,8 @@ public class RoomRest {
             room.setName(null);
             room.setImageUrl(null);
             if (room.getMembers().size() != 1) {
-                throw new MyException("Danh sách thành viên không hợp lệ");
+                String message = messageSource.getMessage("list_member_invalid", null, locale);
+                return ResponseEntity.badRequest().body(new MessageResponse(message));
             }
             List<String> memberIds = room.getMembers().stream().map(Member::getUserId)
                     .collect(Collectors.toList());
@@ -307,7 +307,7 @@ public class RoomRest {
             roomRepository.save(room);
             var inbox = Inbox.builder().ofUserId(user.getId()).roomId(room.getId()).build();
             inboxRepository.save(inbox);
-            sendMessageAfterCreateRoom(room, user);
+            sendMessageAfterCreateRoom(room, user, locale);
             return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
         }
         return ResponseEntity.badRequest().build();
@@ -317,21 +317,20 @@ public class RoomRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Tạo room chat mới")
     public ResponseEntity<?> createNewRoomForMobile(@RequestBody Room room,
-                                                    @ApiIgnore @AuthenticationPrincipal User user) {
-        return createNewRoom(room, user);
+                                                    @ApiIgnore @AuthenticationPrincipal User user,
+                                                    Locale locale) {
+        return createNewRoom(room, user, locale);
     }
 
-    void sendMessageAfterCreateRoom(Room room, User user) {
-        var message = Message.builder().roomId(room.getId())
+    private void sendMessageAfterCreateRoom(Room room, User user, Locale locale) {
+        String content = messageSource.getMessage("message_after_create_room",
+                new Object[]{ user.getDisplayName() }, locale);
+        var message = Message.builder()
+                .roomId(room.getId())
                 .type(MessageType.SYSTEM)
-                .content(user.getDisplayName() + " đã tạo nhóm. Hãy trò chuyện cùng nhau.")
+                .content(content)
                 .build();
-        messageRepository.save(message);
-        chatController.sendMessageToAllMemberOfRoom(message, room);
-        chatController.saveMessageToDatabase(message, room);
-        chatController.updateLastTimeForAllInboxOfRoom(room);
-        chatController.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, user.getId());
-        chatController.updateReadTracking(user.getId(), room.getId(), message.getId());
+        chatSocketService.sendSystemMessage(message, room, user.getId());
     }
 
     /**
@@ -356,10 +355,26 @@ public class RoomRest {
     @DeleteMapping("/{roomId}/{memberId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("xóa thành viên")
-    public ResponseEntity<?> deleteMember(@PathVariable String roomId, @PathVariable String memberId, @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> deleteMember(@PathVariable String roomId, @PathVariable String memberId, @AuthenticationPrincipal User user, Locale locale) {
         System.out.println("deleting");
-        if (roomService.deleteMember(memberId, roomId, user.getId()))
+        Optional<User> memberOptional = userRepository.findById(memberId);
+        Optional<Room> roomOptional = roomRepository.findById(roomId);
+        if (memberOptional.isPresent() && roomOptional.isPresent()) {
+            User memberToDelete = memberOptional.get();
+            String content = messageSource.getMessage("message_after_delete_member",
+                    new Object[]{ user.getDisplayName(), memberToDelete.getDisplayName() }, locale);
+            var message = Message.builder()
+                    .type(MessageType.SYSTEM)
+                    .content(content)
+                    .roomId(roomId)
+                    .build();
+            /*
+            phải gửi tin nhắn trước khi xóa vì khi xóa người đó không còn trong room nên không gửi được
+             */
+            chatSocketService.sendSystemMessage(message, roomOptional.get(), user.getId());
+            roomService.deleteMember(memberId, roomId, user.getId());
             return ResponseEntity.ok().build();
+        }
         System.out.println("delete error");
         return ResponseEntity.badRequest().build();
     }
@@ -370,7 +385,10 @@ public class RoomRest {
     @PostMapping("/members/{roomId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Thêm thành viên vào nhóm chat")
-    public ResponseEntity<?> addMemberToRoom(@PathVariable String roomId, @RequestBody List<Member> members, @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> addMemberToRoom(@PathVariable String roomId,
+                                             @RequestBody List<Member> members,
+                                             @ApiIgnore @AuthenticationPrincipal User user,
+                                             Locale locale) {
         if (user == null)
             throw new UnAuthenticateException();
         Optional<Room> roomOptional = roomRepository.findById(roomId);
@@ -379,8 +397,10 @@ public class RoomRest {
         if (! roomRepository.isMemberOfRoom(user.getId(), roomId))
             return ResponseEntity.badRequest().build();
         var room = roomOptional.get();
-        if (room.getType().equals(RoomType.ONE))
-            throw new MyException("Không thể thêm thành viên. Vui lòng tạo nhóm mới");
+        if (room.getType().equals(RoomType.ONE)) {
+            String message = messageSource.getMessage("cannot_add_member_please_create_new_group", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(message));
+        }
         members.removeIf(x -> x.getUserId().equals(user.getId()) || ! userRepository.existsById(x.getUserId()));
         for (Member m : members) {
             m.setAddByUserId(user.getId());
@@ -389,6 +409,22 @@ public class RoomRest {
         }
         roomService.addMembersToRoom(members, roomId);
         room = roomRepository.findById(roomId).get();
+        /*
+        gửi tin nhắn hệ thống thông báo thêm thành viên
+         */
+        for (Member m : members) {
+            Optional<User> userOptional = userRepository.findById(m.getUserId());
+            if (userOptional.isPresent()) {
+                String content = messageSource.getMessage("message_after_add_member",
+                        new Object[]{ userOptional.get().getDisplayName(), user.getDisplayName() }, locale);
+                var message = Message.builder()
+                        .type(MessageType.SYSTEM)
+                        .content(content)
+                        .roomId(roomId)
+                        .build();
+                chatSocketService.sendSystemMessage(message, room, user.getId());
+            }
+        }
         return ResponseEntity.ok(room.getMembers() != null ? room.getMembers() : new ArrayList<>(0));
     }
 
@@ -398,8 +434,11 @@ public class RoomRest {
     @PostMapping(value = "/members/{roomId}", consumes = "application/x-www-form-urlencoded")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Thêm thành viên vào nhóm chat")
-    public ResponseEntity<?> addMemberToRoomForMobile(@PathVariable String roomId, @RequestBody List<Member> members, @ApiIgnore @AuthenticationPrincipal User user) {
-        return addMemberToRoom(roomId, members, user);
+    public ResponseEntity<?> addMemberToRoomForMobile(@PathVariable String roomId,
+                                                      @RequestBody List<Member> members,
+                                                      @ApiIgnore @AuthenticationPrincipal User user,
+                                                      Locale locale) {
+        return addMemberToRoom(roomId, members, user, locale);
     }
 
     @GetMapping("/commonGroup/count/{anotherUserId}")

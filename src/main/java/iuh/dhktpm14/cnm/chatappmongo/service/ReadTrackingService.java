@@ -65,19 +65,29 @@ public class ReadTrackingService {
     /**
      * set số tin nhắn mới chưa đọc tăng lên 1 khi có tin nhắn mới
      */
-    public void incrementUnReadMessageForMembersOfRoomExcludeUserId(Room room, String currentUserId) {
+    public void incrementUnReadMessageForMembersOfRoomExcludeUserId(Room room, String currentUserId, String messageId) {
         BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, ReadTracking.class);
         var i = 0;
         for (Member member : room.getMembers()) {
-            if (! currentUserId.equals(member.getUserId())) {
-                var criteria = Criteria.where("roomId").is(room.getId())
-                        .and("userId").is(member.getUserId());
-                var update = new Update();
-                update.inc("unReadMessage", 1);
-                ops.updateOne(Query.query(criteria), update);
-                i++;
-                if (i % 20 == 0)
-                    ops.execute();
+            if (readTrackingRepository.findByRoomIdAndUserId(room.getId(), member.getUserId()) != null) {
+                if (! currentUserId.equals(member.getUserId())) {
+                    var criteria = Criteria.where("roomId").is(room.getId())
+                            .and("userId").is(member.getUserId());
+                    var update = new Update();
+                    update.inc("unReadMessage", 1);
+                    ops.updateOne(Query.query(criteria), update);
+                    i++;
+                    if (i % 20 == 0)
+                        ops.execute();
+                }
+            } else {
+                var readTracking = ReadTracking.builder()
+                        .messageId(messageId)
+                        .unReadMessage(1)
+                        .roomId(room.getId())
+                        .userId(member.getUserId())
+                        .build();
+                readTrackingRepository.save(readTracking);
             }
         }
         if (i != 0)

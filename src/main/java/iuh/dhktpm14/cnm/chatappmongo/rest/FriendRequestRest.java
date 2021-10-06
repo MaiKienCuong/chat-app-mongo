@@ -1,17 +1,25 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
+import iuh.dhktpm14.cnm.chatappmongo.chat.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestReceivedDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestSentDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.FriendRequest;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
 import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRequestRepository;
+import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +36,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,6 +59,15 @@ public class FriendRequestRest {
 
     @Autowired
     private FriendMapper friendMapper;
+
+    @Autowired
+    private ChatSocketService chatSocketService;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private RoomRepository roomRepository;
 
     /**
      * lấy tất cả lời mời kết bạn đã nhận được
@@ -113,7 +134,9 @@ public class FriendRequestRest {
     @PutMapping("/{idToAccept}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Chấp nhận lời mời kết bạn")
-    public ResponseEntity<?> acceptFriendRequest(@PathVariable String idToAccept, @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> acceptFriendRequest(@PathVariable String idToAccept,
+                                                 @ApiIgnore @AuthenticationPrincipal User user,
+                                                 Locale locale) {
         if (user == null)
             throw new UnAuthenticateException();
         // hai người đã là bạn bè
@@ -129,6 +152,27 @@ public class FriendRequestRest {
             friendRepository.save(Friend.builder().userId(user.getId()).friendId(idToAccept).build());
             friendRepository.save(Friend.builder().userId(idToAccept).friendId(user.getId()).build());
 
+            /*
+            gửi tin nhắn hệ thống thông báo sau khi kết bạn
+             */
+            new Thread(() -> {
+                Set<Member> members = new HashSet<>();
+                members.add(Member.builder().userId(user.getId()).build());
+                members.add(Member.builder().userId(idToAccept).build());
+                var room = Room.builder()
+                        .type(RoomType.ONE)
+                        .members(members)
+                        .build();
+                roomRepository.save(room);
+                String content = messageSource.getMessage("message_after_accept_friend", null, locale);
+                var message = Message.builder()
+                        .type(MessageType.SYSTEM)
+                        .content(content)
+                        .roomId(room.getId())
+                        .createAt(new Date())
+                        .build();
+                chatSocketService.sendSystemMessage(message, room, user.getId());
+            }).start();
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();

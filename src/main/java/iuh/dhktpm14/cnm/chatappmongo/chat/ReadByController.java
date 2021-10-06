@@ -16,6 +16,8 @@ import org.springframework.stereotype.Controller;
 
 import java.text.SimpleDateFormat;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Controller
 public class ReadByController {
@@ -35,13 +37,14 @@ public class ReadByController {
     @Autowired
     private ReadTrackingService readTrackingService;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private static final Logger logger = Logger.getLogger(ReadByController.class.getName());
 
     @MessageMapping("/read")
     public void processMessage(@Payload ReadByFromClient readByFromClient, UserPrincipal userPrincipal) {
-        System.out.println("\n---------------------");
-        System.out.println("userPrincipal = " + userPrincipal);
-        System.out.println("readByFromClient = " + readByFromClient);
+        logger.log(Level.INFO, "user principal: {0}", userPrincipal);
+        logger.log(Level.INFO, "read tracking from client: {0}", readByFromClient);
 
         var readByToClient = new ReadByToClient();
         readByToClient.setReadAt(dateFormat.format(readByFromClient.getReadAt()));
@@ -57,16 +60,16 @@ public class ReadByController {
         Optional<Room> roomOptional = roomRepository.findById(readByFromClient.getRoomId());
         if (roomOptional.isPresent()) {
             var room = roomOptional.get();
+            logger.log(Level.INFO, "updating read tracking to database");
+            readTrackingService.updateReadTracking(userPrincipal.getName(), readByFromClient.getRoomId(), readByFromClient.getMessageId());
+
             for (Member member : room.getMembers()) {
                 if (! member.getUserId().equals(userPrincipal.getName())) {
-                    System.out.println("sending read message notification of user " + userPrincipal.getName() + " to " + " member id " + member.getUserId());
+                    logger.log(Level.INFO, "sending read tracking of user id={0} to member id={1}", new Object[]{ userPrincipal.getName(), member.getUserId() });
                     messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/read", readByToClient);
                 }
             }
         }
-
-        System.out.println("before update read");
-        readTrackingService.updateReadTracking(userPrincipal.getName(), readByFromClient.getRoomId(), readByFromClient.getMessageId());
     }
 
 }
