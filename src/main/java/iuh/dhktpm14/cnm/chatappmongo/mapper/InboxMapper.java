@@ -6,8 +6,8 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import java.util.Optional;
 @Component
 public class InboxMapper {
     @Autowired
-    private MessageRepository messageRepository;
+    private MessageService messageService;
 
     @Autowired
     private MessageMapper messageMapper;
@@ -58,8 +58,8 @@ public class InboxMapper {
         var readTracking = readTrackingRepository.findByRoomIdAndUserId(inbox.getRoomId(), user.getId());
         if (readTracking != null)
             dto.setCountNewMessage(readTracking.getUnReadMessage());
-        var lastMessage = messageRepository.getLastMessageOfRoom(inbox.getRoomId());
-        dto.setLastMessage(messageMapper.toMessageDto(lastMessage));
+        var lastMessage = messageService.getLastMessageOfRoom(user.getId(), inbox.getRoomId());
+        lastMessage.ifPresent(message -> dto.setLastMessage(messageMapper.toMessageDto(message)));
         return dto;
     }
 

@@ -1,6 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.service;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
+import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
@@ -68,6 +69,20 @@ public class MessageService {
         if (inbox.isEmpty())
             return false;
         return inboxMessageRepository.existsByInboxIdAndMessageId(inbox.getId(), messageId);
+    }
+
+    public Optional<Message> getLastMessageOfRoom(String userId, String roomId) {
+        Optional<Inbox> inboxOptional = inboxRepository.findByOfUserIdAndRoomId(userId, roomId);
+        if (inboxOptional.isPresent()) {
+            var inbox = inboxOptional.get();
+            Optional<InboxMessage> inboxMessageOptional = inboxMessageRepository.getLastMessageByInbox(inbox.getId());
+            if (inboxMessageOptional.isPresent()) {
+                var inboxMessage = inboxMessageOptional.get();
+                if (inboxMessage.getMessageId() != null)
+                    return messageRepository.findById(inboxMessage.getMessageId());
+            }
+        }
+        return Optional.empty();
     }
 
 }

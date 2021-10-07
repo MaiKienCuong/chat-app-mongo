@@ -244,9 +244,9 @@ public class RoomRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy tin nhắn cuối, hiện tại chưa cần")
     public ResponseEntity<?> getLastMessage(@PathVariable String roomId, @AuthenticationPrincipal User user) {
-        var lastMessage = messageRepository.getLastMessageOfRoom(roomId);
-        if (lastMessage != null && messageService.checkPermissionToSeeMessage(lastMessage.getId(), user.getId())) {
-            return ResponseEntity.ok(messageMapper.toMessageDto(lastMessage));
+        var lastMessage = messageService.getLastMessageOfRoom(user.getId(), roomId);
+        if (lastMessage.isPresent() && messageService.checkPermissionToSeeMessage(lastMessage.get().getId(), user.getId())) {
+            return ResponseEntity.ok(messageMapper.toMessageDto(lastMessage.get()));
         }
         return ResponseEntity.badRequest().build();
     }

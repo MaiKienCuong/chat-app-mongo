@@ -11,7 +11,7 @@
     <groupId>iuh.dhktpm14.cnm.chatappmongo</groupId>
     <artifactId>chat-app-mongo</artifactId>
     <version>1.0.0</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>chat-app-mongo</name>
     <description>Demo project for Spring Boot</description>
     <properties>

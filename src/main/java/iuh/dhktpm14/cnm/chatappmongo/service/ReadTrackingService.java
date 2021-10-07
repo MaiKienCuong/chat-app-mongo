@@ -81,13 +81,15 @@ public class ReadTrackingService {
                         ops.execute();
                 }
             } else {
-                var readTracking = ReadTracking.builder()
-                        .messageId(messageId)
-                        .unReadMessage(1)
-                        .roomId(room.getId())
-                        .userId(member.getUserId())
-                        .build();
-                readTrackingRepository.save(readTracking);
+                if (! currentUserId.equals(member.getUserId())) {
+                    var readTracking = ReadTracking.builder()
+//                            .messageId(messageId)
+                            .unReadMessage(1)
+                            .roomId(room.getId())
+                            .userId(member.getUserId())
+                            .build();
+                    readTrackingRepository.save(readTracking);
+                }
             }
         }
         if (i != 0)

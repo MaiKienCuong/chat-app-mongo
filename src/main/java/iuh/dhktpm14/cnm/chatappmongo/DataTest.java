@@ -7,7 +7,6 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
-import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
@@ -90,13 +89,13 @@ public class DataTest implements CommandLineRunner {
 
         insertUser();
 
-        insertRoom();
+//        insertRoom();
 
-        insertInbox();
+//        insertInbox();
 
-        insertMessage();
+//        insertMessage();
 
-        insertInboxMessage();
+//        insertInboxMessage();
 
 //        insertReadTracking();
 
@@ -112,9 +111,9 @@ public class DataTest implements CommandLineRunner {
 
     private void insertMoreUser() {
         for (int i = 0; i < 20; i++) {
-            var username = UUID.randomUUID().toString();
+            var username = "user" + i + 1;
             userRepository.save(User.builder()
-                    .displayName("random user " + username)
+                    .displayName(username)
                     .username(username)
                     .email("hoanghuuhuy@gmail.com")
                     .phoneNumber("0961516945")
@@ -163,7 +162,7 @@ public class DataTest implements CommandLineRunner {
         }
     }
 
-    private void insertReadTracking() {
+   /* private void insertReadTracking() {
         List<Room> rooms = roomRepository.findAll();
         for (Room room : rooms) {
             var lastMessage = messageRepository.getLastMessageOfRoom(room.getId());
@@ -177,7 +176,7 @@ public class DataTest implements CommandLineRunner {
                 readTrackingRepository.save(tracking);
             }
         }
-    }
+    }*/
 
     private void insertInboxMessage() {
         var count = 1L;
@@ -552,7 +551,7 @@ public class DataTest implements CommandLineRunner {
 
         }
 
-        for (Room room : roomRepository.findAll()) {
+       /* for (Room room : roomRepository.findAll()) {
             for (Member member : room.getMembers()) {
                 readTrackingRepository.save(ReadTracking.builder()
                         .roomId(room.getId())
@@ -562,7 +561,7 @@ public class DataTest implements CommandLineRunner {
                         .unReadMessage(randomInRange(1, 10))
                         .build());
             }
-        }
+        }*/
 
         friendRepository.save(Friend.builder().userId("1").friendId("2").build());
         friendRepository.save(Friend.builder().userId("2").friendId("1").build());
