@@ -1,6 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.chat;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.chat.MessageFromClient;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
@@ -49,13 +50,16 @@ public class ChatController {
 
             if (roomOptional.isPresent() && userOptional.isPresent()) {
                 var room = roomOptional.get();
-                var message = Message.builder()
-                        .roomId(room.getId())
-                        .senderId(userId)
-                        .type(messageDto.getType())
-                        .content(messageDto.getContent())
-                        .build();
-                chatSocketService.sendMessage(message, room, userId);
+                var member = Member.builder().userId(userId).build();
+                if (room.getMembers().contains(member)) {
+                    var message = Message.builder()
+                            .roomId(room.getId())
+                            .senderId(userId)
+                            .type(messageDto.getType())
+                            .content(messageDto.getContent())
+                            .build();
+                    chatSocketService.sendMessage(message, room, userId);
+                }
             }
         }
     }
