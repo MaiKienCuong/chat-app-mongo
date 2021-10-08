@@ -3,7 +3,7 @@ package iuh.dhktpm14.cnm.chatappmongo.mapper;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserDetailDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +13,12 @@ import java.util.Optional;
 public class UserMapper {
 
     @Autowired
-    private UserRepository userRepository;
+    private AppUserDetailService userDetailService;
 
     public UserProfileDto toUserProfileDto(String userId) {
         if (userId == null)
             return null;
-        Optional<User> user = userRepository.findById(userId);
+        Optional<User> user = userDetailService.findById(userId);
         if (user.isEmpty()) return null;
 
         return toUserProfileDto(user.get());

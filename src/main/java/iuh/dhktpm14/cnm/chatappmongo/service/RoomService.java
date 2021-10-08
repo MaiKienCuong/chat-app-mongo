@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class RoomService {
@@ -24,12 +26,15 @@ public class RoomService {
     @Autowired
     private RoomRepository roomRepository;
 
+    private static final Logger logger = Logger.getLogger(RoomService.class.getName());
+
     /**
      * thêm một list member vào room
      */
     public void addMembersToRoom(List<Member> members, String toRoomId) {
-        System.out.println("adding member " + members.toString());
-        System.out.println("adding member to room " + toRoomId);
+        logger.log(Level.INFO, "adding list members = {0}, to roomId = {1}",
+                new Object[]{ members, toRoomId });
+
         BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Room.class);
         var i = 0;
         for (Member member : members) {
@@ -82,6 +87,9 @@ public class RoomService {
      * xóa trong database
      */
     private void delete(String deleteId, String roomId) {
+        logger.log(Level.INFO, "deleting member useId = {0}, in roomId = {1}",
+                new Object[]{ deleteId, roomId });
+
         var criteria = Criteria.where("_id").is(roomId);
         var update = new Update();
         update.pull("members", Query.query(Criteria.where("userId").is(deleteId)));
@@ -105,7 +113,12 @@ public class RoomService {
      * thêm thành viên làm admin room
      */
     public boolean setAdmin(String userId, String roomId, String currentUserId) {
+        logger.log(Level.INFO, "in function set admin for userId = {0}, in roomId = {1}",
+                new Object[]{ userId, roomId });
+
         if (roomRepository.isCreatorRoom(currentUserId, roomId) || isAdminOfRoom(currentUserId, roomId)) {
+            logger.log(Level.INFO, "setting admin ...");
+
             var criteria = Criteria.where("_id").is(roomId).and("members.userId").is(userId);
             var update = new Update();
             update.set("members.$.isAdmin", true);
@@ -119,9 +132,36 @@ public class RoomService {
      * đổi tên cuộc trò chuyện nhóm
      */
     public void renameRoom(String roomId, String newName) {
+        logger.log(Level.INFO, "rename roomId = {0}, new name = {1}",
+                new Object[]{ roomId, newName });
+
         var criteria = Criteria.where("_id").is(roomId);
         var update = new Update();
         update.set("name", newName);
         mongoTemplate.updateFirst(Query.query(criteria), update, Room.class);
+    }
+
+    public Optional<Room> findById(String roomId) {
+        return roomRepository.findById(roomId);
+    }
+
+    public Room save(Room room) {
+        return roomRepository.save(room);
+    }
+
+    public Room findCommonRoomBetween(String id, String anotherUserId) {
+        return roomRepository.findCommonRoomBetween(id, anotherUserId);
+    }
+
+    public boolean isMemberOfRoom(String userId, String roomId) {
+        return roomRepository.isMemberOfRoom(userId, roomId);
+    }
+
+    public long countCommonGroupBetween(String userId, String anotherUserId) {
+        return roomRepository.countCommonGroupBetween(userId, anotherUserId);
+    }
+
+    public List<Room> findCommonGroupBetween(String userId, String anotherUserId) {
+        return roomRepository.findCommonGroupBetween(userId, anotherUserId);
     }
 }

@@ -11,7 +11,6 @@ import iuh.dhktpm14.cnm.chatappmongo.exceptions.UserNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.payload.SiginRequest;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,10 +50,7 @@ public class AuthenticationRest {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private AppUserDetailService userService;
+    private AppUserDetailService userDetailService;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -77,7 +73,7 @@ public class AuthenticationRest {
         var user = (User) authentication.getPrincipal();
         String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
         String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
-        userService.setRefreshToken(user.getId(), jwtRefresh);
+        userDetailService.setRefreshToken(user.getId(), jwtRefresh);
 
         response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
 
@@ -88,13 +84,15 @@ public class AuthenticationRest {
     public ResponseEntity<?> getRefreshToken(@CookieValue(value = Utils.REFRESH_TOKEN) String requestRefreshToken, HttpServletResponse response) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
-            Optional<User> userOptional = userRepository.findById(userId);
+            Optional<User> userOptional = userDetailService.findById(userId);
+
             if (userOptional.isPresent() && requestRefreshToken.equals(userOptional.get().getRefreshToken())) {
                 var user = userOptional.get();
                 String token = jwtUtils.generateJwtAccessTokenFromUserId(user.getId());
                 String newRefreshToken = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
                 response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, newRefreshToken));
-                userService.setRefreshToken(userId, newRefreshToken);
+
+                userDetailService.setRefreshToken(userId, newRefreshToken);
                 return ResponseEntity.ok(token);
             }
         }
@@ -103,8 +101,8 @@ public class AuthenticationRest {
 
     @PostMapping(path = "/signup/save_information", consumes = "application/json")
     public ResponseEntity<?> signup(@Valid @RequestBody UserSignupDto user) {
-        if (userService.signup(user)) {
-            Optional<User> optional = userRepository.findDistinctByPhoneNumber(user.getPhoneNumber());
+        if (userDetailService.signup(user)) {
+            Optional<User> optional = userDetailService.findDistinctByPhoneNumber(user.getPhoneNumber());
             if (optional.isPresent()) {
                 user.setId(optional.get().getId());
                 return ResponseEntity.ok(user);
@@ -115,14 +113,14 @@ public class AuthenticationRest {
 
     @PutMapping("/signup/save_information")
     public ResponseEntity<?> updateSignup(@Valid @RequestBody UserSignupDto user) {
-        if (userService.updateInformation(user))
+        if (userDetailService.updateInformation(user))
             return ResponseEntity.ok(user);
         throw new PhoneNumberExistException();
     }
 
     @PostMapping("/signup/check_phone_number")
     public ResponseEntity<?> checkPhoneNumber(@RequestBody UserSignupDto dto, Locale locale) {
-        if (! userService.checkPhoneNumber(dto.getPhoneNumber())) {
+        if (! userDetailService.existsByPhoneNumber(dto.getPhoneNumber())) {
             String phoneValid = messageSource.getMessage("phone_valid", null, locale);
             return ResponseEntity.ok(new MessageResponse(phoneValid));
         }
@@ -131,7 +129,7 @@ public class AuthenticationRest {
 
     @PostMapping("/signup/check_email")
     public ResponseEntity<?> checkEmail(@RequestBody EmailDto dto, Locale locale) {
-        if (! userService.checkEmail(dto.getEmail())) {
+        if (! userDetailService.existsByEmail(dto.getEmail())) {
             String emailValid = messageSource.getMessage("email_valid", null, locale);
             return ResponseEntity.ok(new MessageResponse(emailValid));
         }
@@ -141,7 +139,7 @@ public class AuthenticationRest {
     @PutMapping("/signup/send_verification_code")
     public ResponseEntity<?> sendVerificationCode(@RequestBody User user, Locale locale)
             throws UnsupportedEncodingException, MessagingException {
-        if (! userService.regexEmail(user.getEmail())) {
+        if (! userDetailService.regexEmail(user.getEmail())) {
             String emailInvalid = messageSource.getMessage("email_invalid", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(emailInvalid));
         }
@@ -149,15 +147,16 @@ public class AuthenticationRest {
             String dataInvalid = messageSource.getMessage("data_invalid", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(dataInvalid));
         }
-        var userDB = userService.findById(user.getId());
-        var userCheckEmail = userService.findByEmail(user.getEmail());
-        if (userDB == null)
+        var userDBOptional = userDetailService.findById(user.getId());
+        var userCheckEmail = userDetailService.findByEmail(user.getEmail());
+        if (userDBOptional.isEmpty())
             throw new UserNotFoundException();
-        if (userCheckEmail != null && ! (userDB.getId().equals(userCheckEmail.getId())))
+        var userDB = userDBOptional.get();
+        if (userCheckEmail.isPresent() && ! (userDB.getId().equals(userCheckEmail.get().getId())))
             throw new EmailExistException();
 
         userDB.setEmail(user.getEmail());
-        userService.sendVerificationEmail(userDB);
+        userDetailService.sendVerificationEmail(userDB);
 
         String success = messageSource.getMessage("send_code_success", null, locale);
         return ResponseEntity.ok(new MessageResponse(success));
@@ -165,7 +164,7 @@ public class AuthenticationRest {
 
     @PostMapping("/signup/verify")
     public ResponseEntity<?> verify(@RequestBody User user, Locale locale) {
-        if (userService.verify(user)) {
+        if (userDetailService.verify(user)) {
             String success = messageSource.getMessage("verify_success", null, locale);
             return ResponseEntity.ok(new MessageResponse(success));
         }
@@ -177,7 +176,7 @@ public class AuthenticationRest {
     public ResponseEntity<?> signout(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response, Locale locale) {
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
-            userService.setRefreshToken(userId, null);
+            userDetailService.setRefreshToken(userId, null);
             var cookie = getHttpCookie(Utils.REFRESH_TOKEN, "");
             cookie.setMaxAge(0);
             response.addCookie(cookie);

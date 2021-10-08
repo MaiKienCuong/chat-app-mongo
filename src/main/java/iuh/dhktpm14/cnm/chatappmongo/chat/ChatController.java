@@ -6,8 +6,9 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
-import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
+import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -21,13 +22,13 @@ import java.util.logging.Logger;
 public class ChatController {
 
     @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private RoomService roomService;
+
+    @Autowired
+    private AppUserDetailService userDetailService;
 
     @Autowired
     private ChatSocketService chatSocketService;
@@ -36,7 +37,8 @@ public class ChatController {
 
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageFromClient messageDto, UserPrincipal userPrincipal) {
-        logger.log(Level.INFO, "message from client: {0}", messageDto);
+        logger.log(Level.INFO, "message from client = {0}", messageDto);
+
         String userId = userPrincipal.getName();
         String accessToken = userPrincipal.getAccessToken();
         /*
@@ -45,8 +47,8 @@ public class ChatController {
          */
         if (userId != null && accessToken != null && jwtUtils.validateJwtToken(accessToken)
                 && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
-            Optional<Room> roomOptional = roomRepository.findById(messageDto.getRoomId());
-            Optional<User> userOptional = userRepository.findById(userId);
+            Optional<Room> roomOptional = roomService.findById(messageDto.getRoomId());
+            Optional<User> userOptional = userDetailService.findById(userId);
 
             if (roomOptional.isPresent() && userOptional.isPresent()) {
                 var room = roomOptional.get();
@@ -58,6 +60,7 @@ public class ChatController {
                             .type(messageDto.getType())
                             .content(messageDto.getContent())
                             .build();
+                    logger.log(Level.INFO, "sending message = {0} to websocket", message);
                     chatSocketService.sendMessage(message, room, userId);
                 }
             }

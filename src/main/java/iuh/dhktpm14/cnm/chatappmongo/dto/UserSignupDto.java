@@ -20,13 +20,13 @@ public class UserSignupDto implements Serializable {
     private String id;
     private String displayName;
 
-    @NotBlank(message = "Mật khẩu không được để trống")
-    @Length(min = 8, message = "Mật khẩu phải từ 8 ký tự trở lên")
+    @NotBlank(message = "{password_not_empty}")
+    @Length(min = 8, message = "{password_must_be_8_character_or_more}")
     private String password;
 
-    @NotBlank(message = "Số điện thoại không được rỗng")
-    @Length(max = 11, min = 10, message = "Số điện thoại phải từ 10-11 số")
-    @Pattern(regexp = "[0-9]+", message = "Số điện thoại phải là số")
+    @NotBlank(message = "{phone_not_empty}")
+    @Length(max = 11, min = 10, message = "{phone_range_invalid}")
+    @Pattern(regexp = "[0-9]+", message = "{phone_must_be_number}")
     private String phoneNumber;
 
 }

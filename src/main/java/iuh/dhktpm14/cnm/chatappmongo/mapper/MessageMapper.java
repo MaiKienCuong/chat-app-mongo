@@ -6,8 +6,8 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.chat.MessageToClient;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
-import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class MessageMapper {
 
     @Autowired
-    private MessageRepository messageRepository;
+    private MessageService messageService;
 
     @Autowired
     private UserMapper userMapper;
@@ -31,12 +31,12 @@ public class MessageMapper {
     private ReadByMapper readByMapper;
 
     @Autowired
-    private ReadTrackingRepository readTrackingRepository;
+    private ReadTrackingService readTrackingService;
 
     public MessageDto toMessageDto(String messageId) {
         if (messageId == null)
             return null;
-        Optional<Message> messageOptional = messageRepository.findById(messageId);
+        Optional<Message> messageOptional = messageService.findById(messageId);
         if (messageOptional.isEmpty())
             return null;
 
@@ -65,13 +65,13 @@ public class MessageMapper {
         }
         dto.setRoomId(message.getRoomId());
         if (message.getReplyId() != null) {
-            Optional<Message> optional = messageRepository.findById(message.getReplyId());
+            Optional<Message> optional = messageService.findById(message.getReplyId());
             optional.ifPresent(value -> dto.setReply(toMessageDto(value)));
         }
         /*
         lấy danh sách người đã đọc tin nhắn này
          */
-        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
+        List<ReadTracking> readTracking = readTrackingService.findAllByMessageId(message.getId());
         List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
         dto.setReadbyes(readBy);
         return dto;

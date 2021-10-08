@@ -1,16 +1,10 @@
 package iuh.dhktpm14.cnm.chatappmongo;
 
 import iuh.dhktpm14.cnm.chatappmongo.chat.UserPrincipal;
-import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
@@ -18,7 +12,9 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
-import java.util.Date;
+import java.security.Principal;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * khi người dùng truy cập vào trang web thì sẽ dùng javascript để kết nối đến websocket để nhận tin nhắn realtime
@@ -31,17 +27,18 @@ public class WebSocketEventListener {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private UserRepository userRepository;
+    private AppUserDetailService userDetailService;
 
     /**
-     * khi cập nhật một thuộc tính, dùng mongoTemplate chắc nhanh hơn repository.save()
+     * khi cập nhật một thuộc tính, dùng mongoTemplate chắc nhanh hơn repository.save(),
+     * vì có những thuộc tính khi thay đổi thì phải cập nhật lại index
      */
-    @Autowired
-    private MongoTemplate mongoTemplate;
+
+    private static final Logger logger = Logger.getLogger(WebSocketEventListener.class.getName());
 
     @EventListener
     public void handleSessionConnect(SessionConnectEvent event) {
-        System.out.println("-------connecting");
+        logger.log(Level.INFO, "event connecting to websocket");
     }
 
     /**
@@ -50,33 +47,28 @@ public class WebSocketEventListener {
      */
     @EventListener
     public void handleSessionConnected(SessionConnectedEvent event) {
-        System.out.println("-----------------connected to websocket");
+        logger.log(Level.INFO, "event connected to websocket");
         var userPrincipal = (UserPrincipal) event.getUser();
         if (userPrincipal != null) {
             String userId = userPrincipal.getName();
             String accessToken = userPrincipal.getAccessToken();
             if (userId == null)
-                System.out.println("-------------userId is null");
+                logger.log(Level.INFO, "userId is null");
             if (accessToken == null)
-                System.out.println("-------------access token is null");
+                logger.log(Level.INFO, "access token is null");
             if (! jwtUtils.validateJwtToken(accessToken))
-                System.out.println("-------------access token is expired");
-            if (userId != null && accessToken != null) {
-                if (jwtUtils.validateJwtToken(accessToken) && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
-                    if (userRepository.existsById(userId)) {
-                        System.out.println("userId = " + userId + " is connected");
-                        System.out.println("access_token: " + accessToken);
-                        var criteria = Criteria.where("_id").is(userId);
-                        var update = new Update();
-                        update.set("onlineStatus", OnlineStatus.ONLINE)
-                                .unset("lastOnline");
-                        mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
-                    } else
-                        System.out.println("userId = " + userId + " not found");
-                }
+                logger.log(Level.INFO, "access token is expired");
+            if (userId != null && accessToken != null &&
+                    jwtUtils.validateJwtToken(accessToken) && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
+                if (userDetailService.existsById(userId)) {
+                    logger.log(Level.INFO, "userId = {0} is connected", userId);
+                    logger.log(Level.INFO, "access_token = {0}", accessToken);
+                    userDetailService.updateStatusOnline(userId);
+                } else
+                    logger.log(Level.INFO, "userId = {0} not found", userId);
             }
         } else {
-            System.out.println("---------------user is null");
+            logger.log(Level.INFO, "user is null");
         }
     }
 
@@ -87,20 +79,15 @@ public class WebSocketEventListener {
      */
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
-        System.out.println("-----------------disconnect to websocket");
+        logger.log(Level.INFO, "event disconnect to websocket");
         var userPrincipal = (UserPrincipal) event.getUser();
         if (userPrincipal != null) {
             String userId = userPrincipal.getName();
             String accessToken = userPrincipal.getAccessToken();
-            if (userId != null && accessToken != null) {
-                if (jwtUtils.validateJwtToken(accessToken) && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
-                    if (userRepository.existsById(userId)) {
-                        var criteria = Criteria.where("_id").is(userId);
-                        var update = new Update();
-                        update.set("onlineStatus", OnlineStatus.OFFLINE)
-                                .set("lastOnline", new Date());
-                        mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
-                    }
+            if (userId != null && accessToken != null &&
+                    jwtUtils.validateJwtToken(accessToken) && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
+                if (userDetailService.existsById(userId)) {
+                    userDetailService.updateStatusOffline(userId);
                 }
             }
         }
@@ -115,8 +102,11 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
-        System.out.println(event.getUser().getName());
-        System.out.println("---------------unsubscribe");
+        Principal user = event.getUser();
+        if (user != null) {
+            logger.log(Level.INFO, "userId = {0} is unsubscribing", user.getName());
+            logger.log(Level.INFO, "userId = {0} unsubscribed", user.getName());
+        }
     }
 
 }

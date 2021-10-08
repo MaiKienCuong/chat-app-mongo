@@ -7,8 +7,8 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.UserUpdateDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 public class UserRest {
 
     @Autowired
-    private UserRepository userRepository;
+    private AppUserDetailService userDetailService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -54,9 +56,11 @@ public class UserRest {
     @Autowired
     private AmazonS3Service s3Service;
 
+    private static final Logger logger = Logger.getLogger(UserRest.class.getName());
+
     @GetMapping("/email")
     public ResponseEntity<?> existEmail(@RequestBody String email, Locale locale) {
-        if (userRepository.existsByEmail(email)) {
+        if (userDetailService.existsByEmail(email)) {
             String message = messageSource.getMessage("email_exists", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
@@ -75,14 +79,15 @@ public class UserRest {
     @ApiOperation("Cập nhật thông tin user")
     public ResponseEntity<?> updateInformationUser(@ApiIgnore @AuthenticationPrincipal User user,
                                                    @Valid @RequestBody UserUpdateDto userUpdate) {
-        System.out.println("userUpdate = " + userUpdate);
+        logger.log(Level.INFO, "userUpdate from client = {0}", userUpdate);
+
         user.setEmail(userUpdate.getEmail());
         user.setDisplayName(userUpdate.getDisplayName());
         user.setGender(userUpdate.getGender());
         user.setDateOfBirth(userUpdate.getDateOfBirth());
 
-        System.out.println("user = " + user);
-        userRepository.save(user);
+        userDetailService.save(user);
+        logger.log(Level.INFO, "user data base after update = {0}", user);
 
         return ResponseEntity.ok(userMapper.toUserDetailDto(user));
     }
@@ -108,12 +113,12 @@ public class UserRest {
                                             @Valid @RequestBody ChangePasswordDto passwordDto,
                                             Locale locale) {
         String message;
-        Optional<User> userOptional = userRepository.findById(user.getId());
+        Optional<User> userOptional = userDetailService.findById(user.getId());
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (passwordEncoder.matches(passwordDto.getOldPass(), user.getPassword())) {
                 user.setPassword(passwordEncoder.encode(passwordDto.getNewPass()));
-                userRepository.save(user);
+                userDetailService.save(user);
                 message = messageSource.getMessage("changePass_success", null, locale);
                 return ResponseEntity.ok(new MessageResponse(message));
             }
@@ -155,7 +160,7 @@ public class UserRest {
         }
         String newImageUrl = s3Service.uploadFile(files);
         user.setImageUrl(newImageUrl);
-        userRepository.save(user);
+        userDetailService.save(user);
         return ResponseEntity.ok(userMapper.toUserDetailDto(user));
     }
 
@@ -172,7 +177,7 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Tìm kiếm user theo tên gần đúng")
     public ResponseEntity<?> searchUser(@ApiIgnore @AuthenticationPrincipal User user, @RequestParam String textToSearch) {
-        List<User> result = userRepository.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch);
+        List<User> result = userDetailService.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch);
         if (result == null) {
             return ResponseEntity.ok(new ArrayList<>(0));
         }

@@ -1,10 +1,9 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.chat.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.RoomGroupSummaryDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.RoomSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
@@ -20,13 +19,12 @@ import iuh.dhktpm14.cnm.chatappmongo.mapper.MemberMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.RoomMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
+import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -54,6 +52,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -62,10 +62,7 @@ import java.util.stream.Collectors;
 public class RoomRest {
 
     @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private MessageRepository messageRepository;
+    private RoomService roomService;
 
     @Autowired
     private RoomMapper roomMapper;
@@ -74,7 +71,7 @@ public class RoomRest {
     private MemberMapper memberMapper;
 
     @Autowired
-    private ReadTrackingRepository readTrackingRepository;
+    private ReadTrackingService readTrackingService;
 
     @Autowired
     private MessageService messageService;
@@ -83,13 +80,10 @@ public class RoomRest {
     private MessageMapper messageMapper;
 
     @Autowired
-    private RoomService roomService;
+    private AppUserDetailService userDetailService;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private InboxRepository inboxRepository;
+    private InboxService inboxService;
 
     @Autowired
     private InboxMapper inboxMapper;
@@ -103,6 +97,9 @@ public class RoomRest {
     @Autowired
     private ChatSocketService chatSocketService;
 
+    @Autowired
+    private static final Logger logger = Logger.getLogger(RoomRest.class.getName());
+
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
      */
@@ -112,7 +109,7 @@ public class RoomRest {
     public ResponseEntity<?> countNewMessage(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
         if (user == null)
             throw new UnAuthenticateException();
-        var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, user.getId());
+        var readTracking = readTrackingService.findByRoomIdAndUserId(roomId, user.getId());
         if (readTracking != null) {
             return ResponseEntity.ok(readTracking.getUnReadMessage());
         }
@@ -128,7 +125,7 @@ public class RoomRest {
     public ResponseEntity<?> getAllMembers(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Room> optional = roomRepository.findById(roomId);
+        Optional<Room> optional = roomService.findById(roomId);
         if (optional.isPresent()) {
             var room = optional.get();
             Set<Member> members = room.getMembers();
@@ -153,7 +150,7 @@ public class RoomRest {
     public ResponseEntity<?> getById(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Room> optional = roomRepository.findById(roomId);
+        Optional<Room> optional = roomService.findById(roomId);
         if (optional.isPresent()) {
             var room = optional.get();
             Set<Member> members = room.getMembers();
@@ -171,10 +168,10 @@ public class RoomRest {
     @PostMapping("/rename/{roomId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi tên nhóm")
-    public ResponseEntity<?> renameRoom(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, @RequestBody RoomGroupSummaryDto room) {
+    public ResponseEntity<?> renameRoom(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, @RequestBody RoomSummaryDto room) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Room> optional = roomRepository.findById(roomId);
+        Optional<Room> optional = roomService.findById(roomId);
         if (optional.isPresent()) {
             roomService.renameRoom(roomId, room.getName());
             return ResponseEntity.ok(room.getName());
@@ -188,7 +185,7 @@ public class RoomRest {
     @PostMapping(value = "/rename/{roomId}", consumes = "application/x-www-form-urlencoded")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đổi tên nhóm")
-    public ResponseEntity<?> renameRoomForMobile(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, RoomGroupSummaryDto room) {
+    public ResponseEntity<?> renameRoomForMobile(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId, RoomSummaryDto room) {
         return renameRoom(user, roomId, room);
     }
 
@@ -213,12 +210,12 @@ public class RoomRest {
             message = messageSource.getMessage("file_is_empty", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
-        Optional<Room> optional = roomRepository.findById(roomId);
+        Optional<Room> optional = roomService.findById(roomId);
         if (optional.isPresent()) {
             var room = optional.get();
             var url = s3Service.uploadFile(files.get(0));
             room.setImageUrl(url);
-            roomRepository.save(room);
+            roomService.save(room);
             return ResponseEntity.ok(List.of(url));
         }
         return ResponseEntity.badRequest().build();
@@ -260,7 +257,7 @@ public class RoomRest {
     public ResponseEntity<?> createNewRoom(@RequestBody Room room,
                                            @ApiIgnore @AuthenticationPrincipal User user,
                                            Locale locale) {
-        System.out.println("room = " + room);
+        logger.log(Level.INFO, "new room to create from client = {0}", room);
         if (user == null)
             throw new UnAuthenticateException();
         if (room.getMembers() == null || room.getMembers().isEmpty()) {
@@ -270,7 +267,7 @@ public class RoomRest {
 
         room.setId(null);
         // xóa thành viên không tồn tại và user hiện tại nếu có
-        room.getMembers().removeIf(x -> x.getUserId().equals(user.getId()) || ! userRepository.existsById(x.getUserId()));
+        room.getMembers().removeIf(x -> x.getUserId().equals(user.getId()) || ! userDetailService.existsById(x.getUserId()));
         if (room.getType().equals(RoomType.ONE)) {
             room.setName(null);
             room.setImageUrl(null);
@@ -280,19 +277,19 @@ public class RoomRest {
             }
             List<String> memberIds = room.getMembers().stream().map(Member::getUserId)
                     .collect(Collectors.toList());
-            var existRoom = roomRepository.findCommonRoomBetween(user.getId(), memberIds.get(0));
+            var existRoom = roomService.findCommonRoomBetween(user.getId(), memberIds.get(0));
             if (existRoom != null) {
-                Optional<Inbox> inboxOptional = inboxRepository.findByOfUserIdAndRoomId(user.getId(), existRoom.getId());
+                Optional<Inbox> inboxOptional = inboxService.findByOfUserIdAndRoomId(user.getId(), existRoom.getId());
                 if (inboxOptional.isPresent())
                     return ResponseEntity.ok(inboxMapper.toInboxDto(inboxOptional.get()));
                 var inbox = Inbox.builder().ofUserId(user.getId()).roomId(existRoom.getId()).build();
-                inboxRepository.save(inbox);
+                inboxService.save(inbox);
                 return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
             }
             room.getMembers().add(Member.builder().userId(user.getId()).build());
-            roomRepository.save(room);
+            roomService.save(room);
             var inbox = Inbox.builder().ofUserId(user.getId()).roomId(room.getId()).build();
-            inboxRepository.save(inbox);
+            inboxService.save(inbox);
             return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
         }
         if (room.getType().equals(RoomType.GROUP)) {
@@ -304,9 +301,9 @@ public class RoomRest {
             room.setCreateByUserId(user.getId());
             // thêm người dùng hiện tại vào nhóm
             room.getMembers().add(Member.builder().userId(user.getId()).isAdmin(true).build());
-            roomRepository.save(room);
+            roomService.save(room);
             var inbox = Inbox.builder().ofUserId(user.getId()).roomId(room.getId()).build();
-            inboxRepository.save(inbox);
+            inboxService.save(inbox);
             sendMessageAfterCreateRoom(room, user, locale);
             return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
         }
@@ -325,6 +322,7 @@ public class RoomRest {
     private void sendMessageAfterCreateRoom(Room room, User user, Locale locale) {
         String content = messageSource.getMessage("message_after_create_room",
                 new Object[]{ user.getDisplayName() }, locale);
+        logger.log(Level.INFO, "sending message after create room with content = {0}", content);
         var message = Message.builder()
                 .roomId(room.getId())
                 .type(MessageType.SYSTEM)
@@ -342,7 +340,7 @@ public class RoomRest {
     public ResponseEntity<?> setAdminForMember(@PathVariable String roomId, @PathVariable String memberId, @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
-        if (! userRepository.existsById(memberId))
+        if (! userDetailService.existsById(memberId))
             throw new UserNotFoundException();
         if (roomService.setAdmin(memberId, roomId, user.getId()))
             return ResponseEntity.ok().build();
@@ -355,19 +353,27 @@ public class RoomRest {
     @DeleteMapping("/{roomId}/{memberId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("xóa thành viên")
-    public ResponseEntity<?> deleteMember(@PathVariable String roomId, @PathVariable String memberId, @AuthenticationPrincipal User user, Locale locale) {
-        System.out.println("deleting");
-        Optional<User> memberOptional = userRepository.findById(memberId);
-        Optional<Room> roomOptional = roomRepository.findById(roomId);
+    public ResponseEntity<?> deleteMember(@PathVariable String roomId, @PathVariable String memberId,
+                                          @AuthenticationPrincipal User user, Locale locale) {
+        logger.log(Level.INFO, "delete member userId = {0} in roomId = {1}",
+                new Object[]{ memberId, roomId });
+        Optional<User> memberOptional = userDetailService.findById(memberId);
+        Optional<Room> roomOptional = roomService.findById(roomId);
         if (memberOptional.isPresent() && roomOptional.isPresent()) {
             User memberToDelete = memberOptional.get();
             String content = messageSource.getMessage("message_after_delete_member",
                     new Object[]{ user.getDisplayName(), memberToDelete.getDisplayName() }, locale);
+            logger.log(Level.INFO, "sending message after delete member with content = {0}",
+                    new Object[]{ content });
+
             var message = Message.builder()
                     .type(MessageType.SYSTEM)
                     .content(content)
                     .roomId(roomId)
                     .build();
+
+            logger.log(Level.INFO, "deleting member userId = {0} in roomId = {1}",
+                    new Object[]{ memberId, roomId });
             /*
             phải gửi tin nhắn trước khi xóa vì khi xóa người đó không còn trong room nên không gửi được
              */
@@ -375,7 +381,8 @@ public class RoomRest {
             roomService.deleteMember(memberId, roomId, user.getId());
             return ResponseEntity.ok().build();
         }
-        System.out.println("delete error");
+        logger.log(Level.WARNING, "error delete member userId = {0} in roomId = {1}",
+                new Object[]{ memberId, roomId });
         return ResponseEntity.badRequest().build();
     }
 
@@ -391,32 +398,37 @@ public class RoomRest {
                                              Locale locale) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Room> roomOptional = roomRepository.findById(roomId);
+        Optional<Room> roomOptional = roomService.findById(roomId);
         if (roomOptional.isEmpty())
             throw new RoomNotFoundException();
-        if (! roomRepository.isMemberOfRoom(user.getId(), roomId))
+        if (! roomService.isMemberOfRoom(user.getId(), roomId))
             return ResponseEntity.badRequest().build();
         var room = roomOptional.get();
         if (room.getType().equals(RoomType.ONE)) {
             String message = messageSource.getMessage("cannot_add_member_please_create_new_group", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
-        members.removeIf(x -> x.getUserId().equals(user.getId()) || ! userRepository.existsById(x.getUserId()));
+        var finalRoom = room;
+        members.removeIf(x -> x.getUserId().equals(user.getId())
+                || ! userDetailService.existsById(x.getUserId())
+                || finalRoom.getMembers().contains(x));
         for (Member m : members) {
             m.setAddByUserId(user.getId());
             m.setAddTime(new Date());
             m.setAdmin(false);
         }
         roomService.addMembersToRoom(members, roomId);
-        room = roomRepository.findById(roomId).get();
+        room = roomService.findById(roomId).get();
         /*
         gửi tin nhắn hệ thống thông báo thêm thành viên
          */
         for (Member m : members) {
-            Optional<User> userOptional = userRepository.findById(m.getUserId());
+            Optional<User> userOptional = userDetailService.findById(m.getUserId());
             if (userOptional.isPresent()) {
                 String content = messageSource.getMessage("message_after_add_member",
                         new Object[]{ userOptional.get().getDisplayName(), user.getDisplayName() }, locale);
+                logger.log(Level.INFO, "sending message after  add member with content = {0}", content);
+
                 var message = Message.builder()
                         .type(MessageType.SYSTEM)
                         .content(content)
@@ -449,7 +461,7 @@ public class RoomRest {
             throw new UnAuthenticateException();
         if (anotherUserId == null)
             return ResponseEntity.badRequest().build();
-        return ResponseEntity.ok(roomRepository.countCommonGroupBetween(user.getId(), anotherUserId));
+        return ResponseEntity.ok(roomService.countCommonGroupBetween(user.getId(), anotherUserId));
     }
 
     @GetMapping("/commonGroup/{anotherUserId}")
@@ -460,9 +472,9 @@ public class RoomRest {
             throw new UnAuthenticateException();
         if (anotherUserId == null)
             return ResponseEntity.badRequest().build();
-        List<Room> commonGroups = roomRepository.findCommonGroupBetween(user.getId(), anotherUserId);
+        List<Room> commonGroups = roomService.findCommonGroupBetween(user.getId(), anotherUserId);
         List<Optional<Inbox>> inboxs = commonGroups.stream()
-                .map(x -> inboxRepository.findByOfUserIdAndRoomId(user.getId(), x.getId()))
+                .map(x -> inboxService.findByOfUserIdAndRoomId(user.getId(), x.getId()))
                 .collect(Collectors.toList());
         List<InboxSummaryDto> inboxDto = inboxs.stream()
                 .filter(Optional::isPresent)

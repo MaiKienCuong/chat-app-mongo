@@ -1,4 +1,4 @@
-package iuh.dhktpm14.cnm.chatappmongo.chat;
+package iuh.dhktpm14.cnm.chatappmongo.service;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
@@ -6,11 +6,6 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
-import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -25,13 +20,10 @@ import java.util.logging.Logger;
 public class ChatSocketService {
 
     @Autowired
-    private MessageRepository messageRepository;
+    private MessageService messageService;
 
     @Autowired
-    private InboxMessageRepository inboxMessageRepository;
-
-    @Autowired
-    private InboxRepository inboxRepository;
+    private InboxMessageService inboxMessageService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -49,7 +41,7 @@ public class ChatSocketService {
 
     public void sendSystemMessage(Message message, Room room) {
         message.setSenderId(null);
-        messageRepository.save(message);
+        messageService.save(message);
         saveMessageToDatabase(message, room);
         inboxService.updateLastTimeForAllInboxOfRoom(room);
         readTrackingService.incrementUnReadMessageForAllMember(room);
@@ -57,7 +49,7 @@ public class ChatSocketService {
     }
 
     public void sendMessage(Message message, Room room, String senderId) {
-        messageRepository.save(message);
+        messageService.save(message);
         saveMessageToDatabase(message, room);
         inboxService.updateLastTimeForAllInboxOfRoom(room);
         readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, senderId);
@@ -72,7 +64,8 @@ public class ChatSocketService {
         Set<Member> members = room.getMembers();
         if (members != null && ! members.isEmpty()) {
             for (Member m : members) {
-                logger.log(Level.INFO, "sending message id={0} to userId={1}", new Object[]{ message.getId(), m.getUserId() });
+                logger.log(Level.INFO, "sending message id = {0} to userId = {1}",
+                        new Object[]{ message.getId(), m.getUserId() });
                 messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
                         messageMapper.toMessageToClient(message));
             }
@@ -91,7 +84,7 @@ public class ChatSocketService {
                         .messageId(message.getId())
                         .messageCreateAt(message.getCreateAt())
                         .build();
-                inboxMessageRepository.save(inboxMessage);
+                inboxMessageService.save(inboxMessage);
             }
         }
     }
@@ -107,7 +100,7 @@ public class ChatSocketService {
             for (Member m : members) {
                 // tìm danh sách inbox của tất cả các thành viên
                 // nếu có thì thêm vào danh sách
-                var inboxOptional = inboxRepository.findByOfUserIdAndRoomId(m.getUserId(), room.getId());
+                var inboxOptional = inboxService.findByOfUserIdAndRoomId(m.getUserId(), room.getId());
                 Inbox inbox;
                 if (inboxOptional.isPresent()) {
                     inbox = inboxOptional.get();
@@ -117,7 +110,7 @@ public class ChatSocketService {
                     // nếu member chưa có inbox thì tạo mới rồi thêm vào danh sách
                     inbox = Inbox.builder().ofUserId(m.getUserId())
                             .roomId(room.getId()).empty(false).build();
-                    inboxRepository.save(inbox);
+                    inboxService.save(inbox);
                 }
                 inboxes.add(inbox);
             }

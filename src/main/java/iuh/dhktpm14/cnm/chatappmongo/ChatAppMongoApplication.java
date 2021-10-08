@@ -42,6 +42,9 @@ public class ChatAppMongoApplication extends SpringBootServletInitializer {
         return new CorsFilter(source);
     }
 
+    /*
+    config swagger, generate document for api
+     */
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -51,6 +54,9 @@ public class ChatAppMongoApplication extends SpringBootServletInitializer {
                 .build();
     }
 
+    /*
+    config cho việc build file war
+     */
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(ChatAppMongoApplication.class);

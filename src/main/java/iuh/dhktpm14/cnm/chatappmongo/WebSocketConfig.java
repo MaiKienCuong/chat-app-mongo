@@ -60,6 +60,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return false;
     }
 
+    /*
+    config bộ đánh chặn để lấy thông tin user từ header của request
+     */
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new UserInterceptor());

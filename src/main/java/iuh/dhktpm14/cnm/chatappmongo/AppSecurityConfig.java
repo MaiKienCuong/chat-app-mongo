@@ -57,27 +57,28 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .cors()
+                .cors()
                 .and()
-            .csrf().disable()
-            .authorizeRequests()
-            .antMatchers("/").permitAll()
-            .antMatchers("/**").permitAll()
-            .antMatchers("/actuator/**").permitAll()
-            .antMatchers("/api/**").permitAll()
-            .antMatchers("/app/**").permitAll()
-            .antMatchers("/users/**").permitAll()
-            .antMatchers("/ws/**").permitAll()
-            .antMatchers("/h2-console/**").permitAll()
-            .anyRequest()
-            .authenticated()
+                .csrf().disable()
+                .authorizeRequests()
+                .antMatchers("/").permitAll()
+//                .antMatchers("/**").permitAll()
+                .antMatchers("/actuator/**").permitAll()
+                .antMatchers("/api/**").permitAll()
+                .antMatchers("/app/**").permitAll()
+                .antMatchers("/users/**").permitAll()
+                .antMatchers("/ws/**").permitAll()
+//                .antMatchers("/h2-console/**").permitAll()
+                .anyRequest()
+                .authenticated()
                 .and()
-            .exceptionHandling().accessDeniedHandler(appAccessDeniedHandler)
+                .exceptionHandling().accessDeniedHandler(appAccessDeniedHandler)
                 .and()
-            .exceptionHandling().authenticationEntryPoint(appAuthenticationEntryPoint)
+                .exceptionHandling().authenticationEntryPoint(appAuthenticationEntryPoint)
                 .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+        // to access /h2-console
         http.headers().frameOptions().disable();
 
         http.addFilterBefore(appAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);

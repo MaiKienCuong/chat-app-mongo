@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 //@Component
@@ -69,6 +71,8 @@ public class DataTest implements CommandLineRunner {
 
     private Long time = 1629451079000L;
 
+    private static final Logger logger = Logger.getLogger(DataTest.class.getName());
+
     private final List<String> images = List.of(
             "https://timesofindia.indiatimes.com/photo/67586673.cms",
             "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
@@ -97,15 +101,13 @@ public class DataTest implements CommandLineRunner {
 
 //        insertInboxMessage();
 
-//        insertReadTracking();
-
         insertFriend();
 
         insertMoreUser();
 
         insertFriendRequest();
 
-        System.out.println("------insert ok------");
+        logger.log(Level.INFO, "------insert ok------");
 
     }
 
@@ -134,7 +136,6 @@ public class DataTest implements CommandLineRunner {
 
     private void insertFriendRequest() {
         List<User> users = userRepository.findAll();
-//        users.removeIf(x -> x.getId().length() <= "20000".length());
         for (int i = 4; i < users.size() - 1; i++) {
             for (int j = i; j < users.size(); j++) {
                 friendRequestRepository.save(FriendRequest.builder()

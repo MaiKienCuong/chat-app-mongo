@@ -3,8 +3,7 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.RoomGroupSummaryDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.RoomOneSummaryDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.RoomSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
@@ -14,13 +13,13 @@ import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.InboxMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
+import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -39,8 +38,11 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -49,28 +51,30 @@ import java.util.stream.Collectors;
 public class InboxRest {
 
     @Autowired
-    private InboxRepository inboxRepository;
+    private InboxService inboxService;
 
     @Autowired
-    private InboxMessageRepository inboxMessageRepository;
+    private InboxMessageService inboxMessageService;
 
     @Autowired
     private InboxMapper inboxMapper;
 
     @Autowired
-    private InboxService inboxService;
-
-    @Autowired
     private ReadTrackingService readTrackingService;
 
     @Autowired
-    private RoomRepository roomRepository;
+    private RoomService roomService;
 
     @Autowired
     private UserMapper userMapper;
 
     @Autowired
-    private UserRepository userRepository;
+    private MessageSource messageSource;
+
+    @Autowired
+    private AppUserDetailService userDetailService;
+
+    private static final Logger logger = Logger.getLogger(InboxRest.class.getName());
 
     /**
      * lấy tất cả inbox của người dùng hiện tại
@@ -84,11 +88,13 @@ public class InboxRest {
         /*
         không phân trang khi lấy chat group
          */
+        logger.log(Level.INFO, "get all inbox of userId = {0}", user.getId());
+        logger.log(Level.INFO, "get all inbox page = {0}, size = {1}", new Object[]{ pageable.getPageNumber(), pageable.getPageSize() });
         if (type.isPresent() && type.get().equals(RoomType.GROUP)) {
-            Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), Pageable.unpaged());
+            Page<Inbox> inboxPage = inboxService.getAllInboxOfUser(user.getId(), Pageable.unpaged());
             return ResponseEntity.ok(toInboxGroupDto(inboxPage));
         } else {
-            Page<Inbox> inboxPage = inboxRepository.getAllInboxOfUser(user.getId(), pageable);
+            Page<Inbox> inboxPage = inboxService.getAllInboxOfUser(user.getId(), pageable);
             return ResponseEntity.ok(toInboxDto(inboxPage));
         }
     }
@@ -99,7 +105,7 @@ public class InboxRest {
     public ResponseEntity<?> getInboxByUserIdAndRoomId(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Inbox> inboxOptional = inboxRepository.findByOfUserIdAndRoomId(user.getId(), roomId);
+        Optional<Inbox> inboxOptional = inboxService.findByOfUserIdAndRoomId(user.getId(), roomId);
         if (inboxOptional.isPresent())
             return ResponseEntity.ok(inboxMapper.toInboxDto(inboxOptional.get()));
         return ResponseEntity.badRequest().build();
@@ -111,18 +117,22 @@ public class InboxRest {
     @DeleteMapping("/{inboxId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Xóa cuộc trò chuyện")
-    public ResponseEntity<?> deleteInbox(@PathVariable String inboxId, @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> deleteInbox(@PathVariable String inboxId,
+                                         @ApiIgnore @AuthenticationPrincipal User user,
+                                         Locale locale) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
-        if (inboxOptional.isEmpty())
-            return ResponseEntity.badRequest().body(new MessageResponse("Xóa không thành công. Thử lại sau"));
+        Optional<Inbox> inboxOptional = inboxService.findById(inboxId);
+        if (inboxOptional.isEmpty()) {
+            String message = messageSource.getMessage("delete_inbox_failed_try_again", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(message));
+        }
         var inbox = inboxOptional.get();
         if (user.getId().equals(inbox.getOfUserId())) {
             inboxService.updateEmptyStatusInbox(inboxId, true);
 
             // xóa tất cả message liên kết với inbox này, không xóa trong collection message
-            inboxMessageRepository.deleteAllMessageOfInbox(inboxId);
+            inboxMessageService.deleteAllMessageOfInbox(inboxId);
 
             // reset số tin nhắn chưa đọc thành 0
             readTrackingService.resetUnreadMessageToZero(inbox.getRoomId(), user.getId());
@@ -141,15 +151,15 @@ public class InboxRest {
             return ResponseEntity.badRequest().build();
         if (anotherUserId.equals(user.getId()))
             return ResponseEntity.badRequest().build();
-        if (! userRepository.existsById(anotherUserId))
+        if (! userDetailService.existsById(anotherUserId))
             return ResponseEntity.badRequest().build();
-        var room = roomRepository.findCommonRoomBetween(user.getId(), anotherUserId);
+        var room = roomService.findCommonRoomBetween(user.getId(), anotherUserId);
         /*
         nếu 2 người này chưa có room chung thì trả về room và inbox với id là null
         nhưng vẫn set thuộc tính "to" cho room để client hiện tên và ảnh của người kia
          */
         if (room == null) {
-            var r = new RoomOneSummaryDto();
+            var r = new RoomSummaryDto();
             r.setId(null);
             r.setType(RoomType.ONE);
             r.setTo(userMapper.toUserProfileDto(anotherUserId));
@@ -162,7 +172,7 @@ public class InboxRest {
         /*
         nếu có room chung rồi thì trả về inbox của người dùng hiện tại trong room đó
          */
-        Optional<Inbox> inbox = inboxRepository.findByOfUserIdAndRoomId(user.getId(), room.getId());
+        Optional<Inbox> inbox = inboxService.findByOfUserIdAndRoomId(user.getId(), room.getId());
         if (inbox.isPresent())
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(inbox.get()));
         /*
@@ -188,7 +198,7 @@ public class InboxRest {
             return ResponseEntity.badRequest().build();
         if (anotherUserId.equals(user.getId()))
             return ResponseEntity.badRequest().build();
-        var room = roomRepository.findCommonRoomBetween(user.getId(), anotherUserId);
+        var room = roomService.findCommonRoomBetween(user.getId(), anotherUserId);
         /*
         nếu room == null thì tạo room và inbox cho 2 người rồi trả về cho client  inbox của người dùng hiện tại
          */
@@ -200,8 +210,9 @@ public class InboxRest {
                     .members(members)
                     .type(RoomType.ONE)
                     .build();
-            roomRepository.save(newRoom);
-            System.out.println("room is null, create new room");
+            roomService.save(newRoom);
+            logger.log(Level.INFO, "room between userId = {0} and userId = {1} is null, creating new room",
+                    new Object[]{ user.getId(), anotherUserId });
             var myInbox = createAndSaveInboxForUserInRoom(user.getId(), newRoom.getId());
 //            createAndSaveInboxForUserInRoom(anotherUserId, newRoom.getId());
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(myInbox));
@@ -211,10 +222,12 @@ public class InboxRest {
             nếu có rồi thì kiểm tra tiếp xem người dùng thứ 2 kia đã có inbox của room hay chưa
             nếu chưa có thì tạo inbox cho người dùng thứ 2
              */
-            System.out.println("room not null, create inbox");
-            Optional<Inbox> myInbox = inboxRepository.findByOfUserIdAndRoomId(user.getId(), room.getId());
+            logger.log(Level.INFO, "room between userId = {0} and userId = {1} is not null, find exists inbox",
+                    new Object[]{ user.getId(), anotherUserId });
+            Optional<Inbox> myInbox = inboxService.findByOfUserIdAndRoomId(user.getId(), room.getId());
             if (myInbox.isPresent()) {
-                System.out.println("inbox of one user not null");
+                logger.log(Level.INFO, "inbox of userId = {0} in roomId = {1} is not run, returning...",
+                        new Object[]{ user.getId(), room.getId() });
 //                Optional<Inbox> inboxOfAnotherUser = inboxRepository.findByOfUserIdAndRoomId(anotherUserId, room.getId());
 //                if (inboxOfAnotherUser.isEmpty()) {
 //                    System.out.println("inbox of two user empty, create new inbox for second user");
@@ -225,7 +238,8 @@ public class InboxRest {
             /*
             hai người mới chỉ có room chung, chưa ai có inbox nên tạo inbox cho 2 người
              */
-            System.out.println("create 2 inbox for 2 user");
+            logger.log(Level.INFO, "inbox of userId = {0} and userId = {1} is null, creating new 2 inbox",
+                    new Object[]{ user.getId(), anotherUserId });
             var firstInbox = createAndSaveInboxForUserInRoom(user.getId(), room.getId());
 //            createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(firstInbox));
@@ -233,12 +247,13 @@ public class InboxRest {
     }
 
     private Inbox createAndSaveInboxForUserInRoom(String userId, String roomId) {
+        logger.log(Level.INFO, "creating new inbox of userId = {0} in roomId = {1}",
+                new Object[]{ userId, roomId });
         var inbox = Inbox.builder()
                 .roomId(roomId)
                 .ofUserId(userId)
                 .build();
-        System.out.println("create in box for user " + userId);
-        return inboxRepository.save(inbox);
+        return inboxService.save(inbox);
     }
 
     /**
@@ -258,15 +273,7 @@ public class InboxRest {
         List<InboxDto> dto = content.stream()
                 .map(x -> inboxMapper.toInboxDto(x))
                 .sorted()
-                .filter(x -> {
-                    try {
-                        RoomGroupSummaryDto r = (RoomGroupSummaryDto) x.getRoom();
-                        if (r.getType().equals(RoomType.GROUP))
-                            return true;
-                    } catch (Exception ignored) {
-                    }
-                    return false;
-                })
+                .filter(x -> x.getRoom().getType().equals(RoomType.GROUP))
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
     }

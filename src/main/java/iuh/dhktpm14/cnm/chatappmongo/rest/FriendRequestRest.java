@@ -1,7 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.chat.ChatSocketService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestReceivedDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestSentDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
@@ -14,10 +14,10 @@ import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
-import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRequestRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
+import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
+import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -49,13 +49,13 @@ import java.util.stream.Collectors;
 public class FriendRequestRest {
 
     @Autowired
-    private FriendRequestRepository friendRequestRepository;
+    private FriendRequestService friendRequestService;
 
     @Autowired
-    private FriendRepository friendRepository;
+    private FriendService friendService;
 
     @Autowired
-    private UserRepository userRepository;
+    private AppUserDetailService userDetailService;
 
     @Autowired
     private FriendMapper friendMapper;
@@ -67,7 +67,7 @@ public class FriendRequestRest {
     private MessageSource messageSource;
 
     @Autowired
-    private RoomRepository roomRepository;
+    private RoomService roomService;
 
     /**
      * lấy tất cả lời mời kết bạn đã nhận được
@@ -78,7 +78,7 @@ public class FriendRequestRest {
     public ResponseEntity<?> getAllFriendRequestReceived(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
-        Page<FriendRequest> friendRequestPage = friendRequestRepository.getAllFriendRequestReceived(user.getId(), pageable);
+        Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestReceived(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendRequestReceivedDto(friendRequestPage));
     }
@@ -92,7 +92,7 @@ public class FriendRequestRest {
     public ResponseEntity<?> getAllFriendRequestSent(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
-        Page<FriendRequest> friendRequestPage = friendRequestRepository.getAllFriendRequestSent(user.getId(), pageable);
+        Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestSent(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendRequestSentDto(friendRequestPage));
     }
@@ -110,18 +110,18 @@ public class FriendRequestRest {
         if (toId.equals(user.getId()))
             return ResponseEntity.badRequest().build();
         // gửi đến người không tồn tại trong database
-        if (! userRepository.existsById(toId))
+        if (! userDetailService.existsById(toId))
             return ResponseEntity.badRequest().build();
         // hai người đã là bạn bè
-        if (friendRepository.isFriend(user.getId(), toId))
+        if (friendService.isFriend(user.getId(), toId))
             return ResponseEntity.badRequest().build();
         // chưa có lời mời kết bạn nào trong database
-        if (! friendRequestRepository.isSent(user.getId(), toId) && ! friendRequestRepository.isReceived(user.getId(), toId)) {
+        if (! friendRequestService.isSent(user.getId(), toId) && ! friendRequestService.isReceived(user.getId(), toId)) {
             var friendRequest = FriendRequest.builder()
                     .fromId(user.getId())
                     .toId(toId)
                     .build();
-            friendRequestRepository.save(friendRequest);
+            friendRequestService.save(friendRequest);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
@@ -140,17 +140,17 @@ public class FriendRequestRest {
         if (user == null)
             throw new UnAuthenticateException();
         // hai người đã là bạn bè
-        if (friendRepository.isFriend(user.getId(), idToAccept))
+        if (friendService.isFriend(user.getId(), idToAccept))
             return ResponseEntity.badRequest().build();
         // người không tồn tại trong database
-        if (! userRepository.existsById(idToAccept))
+        if (! userDetailService.existsById(idToAccept))
             return ResponseEntity.badRequest().build();
         // có lời mời từ người đó trong database
-        if (friendRequestRepository.isReceived(user.getId(), idToAccept)) {
-            friendRequestRepository.deleteFriendRequest(idToAccept, user.getId());
+        if (friendRequestService.isReceived(user.getId(), idToAccept)) {
+            friendRequestService.deleteFriendRequest(idToAccept, user.getId());
             // lưu 2 record trong database
-            friendRepository.save(Friend.builder().userId(user.getId()).friendId(idToAccept).build());
-            friendRepository.save(Friend.builder().userId(idToAccept).friendId(user.getId()).build());
+            friendService.save(Friend.builder().userId(user.getId()).friendId(idToAccept).build());
+            friendService.save(Friend.builder().userId(idToAccept).friendId(user.getId()).build());
 
             /*
             gửi tin nhắn hệ thống thông báo sau khi kết bạn
@@ -163,7 +163,7 @@ public class FriendRequestRest {
                         .type(RoomType.ONE)
                         .members(members)
                         .build();
-                roomRepository.save(room);
+                roomService.save(room);
                 String content = messageSource.getMessage("message_after_accept_friend", null, locale);
                 var message = Message.builder()
                         .type(MessageType.SYSTEM)
@@ -191,14 +191,14 @@ public class FriendRequestRest {
         if (deleteId.equals(user.getId()))
             return ResponseEntity.badRequest().build();
         // người dùng không tồn tại trong database
-        if (! userRepository.existsById(deleteId))
+        if (! userDetailService.existsById(deleteId))
             return ResponseEntity.badRequest().build();
         // chỉ xóa khi đã gửi lời mời đến người này
-        if (friendRequestRepository.isSent(user.getId(), deleteId))
-            friendRequestRepository.deleteFriendRequest(user.getId(), deleteId);
+        if (friendRequestService.isSent(user.getId(), deleteId))
+            friendRequestService.deleteFriendRequest(user.getId(), deleteId);
         // xóa lời mời đã nhận được
-        if (friendRequestRepository.isReceived(user.getId(), deleteId))
-            friendRequestRepository.deleteFriendRequest(deleteId, user.getId());
+        if (friendRequestService.isReceived(user.getId(), deleteId))
+            friendRequestService.deleteFriendRequest(deleteId, user.getId());
         return ResponseEntity.ok().build();
     }
 

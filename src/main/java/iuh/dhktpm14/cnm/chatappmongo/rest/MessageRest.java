@@ -15,13 +15,12 @@ import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReactionMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReadByMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
+import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -43,8 +42,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -53,13 +55,13 @@ import java.util.stream.Collectors;
 public class MessageRest {
 
     @Autowired
-    private MessageRepository messageRepository;
+    private MessageService messageService;
 
     @Autowired
-    private InboxRepository inboxRepository;
+    private InboxService inboxService;
 
     @Autowired
-    private InboxMessageRepository inboxMessageRepository;
+    private InboxMessageService inboxMessageService;
 
     @Autowired
     private MessageMapper messageMapper;
@@ -71,13 +73,12 @@ public class MessageRest {
     private ReactionMapper reactionMapper;
 
     @Autowired
-    private ReadTrackingRepository readTrackingRepository;
-
-    @Autowired
     private ReadTrackingService readTrackingService;
 
     @Autowired
-    private MessageService messageService;
+    private MessageSource messageSource;
+
+    private static final Logger logger = Logger.getLogger(MessageRest.class.getName());
 
     /**
      * lấy tất cả tin nhắn của inboxId
@@ -89,21 +90,23 @@ public class MessageRest {
         if (user == null)
             throw new UnAuthenticateException();
         // kiểm tra xem inboxId có thuộc về user hiện tại hay không
-        if (inboxRepository.existsByIdAndOfUserId(inboxId, user.getId())) {
-            var inbox = inboxRepository.findByIdAndOfUserId(inboxId, user.getId()).get();
+        if (inboxService.existsByIdAndOfUserId(inboxId, user.getId())) {
+            var inbox = inboxService.findByIdAndOfUserId(inboxId, user.getId()).get();
             if (! inbox.isEmpty()) {
                 /*
                 cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
                  */
-                System.out.println("user.getId() = " + user.getId());
-                System.out.println("roomId = " + inbox.getRoomId());
+                logger.log(Level.INFO, "userid = {0} get all message of inboxId = {1}, in roomId = {2}",
+                        new Object[]{ user.getId(), inboxId, inbox.getRoomId() });
+                logger.log(Level.INFO, "page = {0}, size = {1}",
+                        new Object[]{ pageable.getPageNumber(), pageable.getPageSize() });
 //                readTrackingService.updateReadTracking(user.getId(), inbox.getRoomId());
                 /*
                  lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
                  sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
                  tức là số lượng document là đã bị giới hạn
                  */
-                Page<InboxMessage> inboxMessages = inboxMessageRepository.getAllInboxMessageOfInbox(inboxId, pageable);
+                Page<InboxMessage> inboxMessages = inboxMessageService.getAllInboxMessageOfInbox(inboxId, pageable);
                 if (inboxMessages.isEmpty())
                     return ResponseEntity.ok(new PageImpl<>(new ArrayList<>(), pageable, inboxMessages.getTotalElements()));
                 List<String> messageIds = inboxMessages.getContent().stream().map(InboxMessage::getMessageId)
@@ -114,7 +117,7 @@ public class MessageRest {
                 nên truy vấn này truyền vào Pageable.unpaged() (không phân trang) để lấy tất cả document khớp,
                 truy vấn trước trả về số bản ghi giới hạn không phải là getAll trong collection
                  */
-                Page<Message> messagePage = messageRepository.findAllByIdInMessageIdsPaged(messageIds, Pageable.unpaged());
+                Page<Message> messagePage = messageService.findAllByIdInMessageIdsPaged(messageIds, Pageable.unpaged());
                 /*
                 xem hàm toMessageDto
                  */
@@ -134,7 +137,7 @@ public class MessageRest {
         if (user == null)
             throw new UnAuthenticateException();
         if (messageService.checkPermissionToSeeMessage(messageId, user.getId())) {
-            Optional<Message> messageOptional = messageRepository.findById(messageId);
+            Optional<Message> messageOptional = messageService.findById(messageId);
             if (messageOptional.isEmpty())
                 throw new MessageNotFoundException();
             return ResponseEntity.ok(messageOptional.get());
@@ -148,21 +151,26 @@ public class MessageRest {
     @DeleteMapping("/{messageId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Gỡ một tin nhắn")
-    public ResponseEntity<?> deleteById(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> deleteById(@PathVariable String messageId,
+                                        @ApiIgnore @AuthenticationPrincipal User user,
+                                        Locale locale) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Message> messageOptional = messageRepository.findById(messageId);
+        Optional<Message> messageOptional = messageService.findById(messageId);
         if (messageOptional.isEmpty())
             throw new MessageNotFoundException();
         if (messageService.checkPermissionToSeeMessage(messageId, user.getId())) {
             var message = messageOptional.get();
             // kiểm tra xem người gửi có phải người dùng hiện tại hay không mới cho xóa
             if (user.getId().equals(message.getSenderId())) {
-                messageService.deleteMessage(messageId, user.getDisplayName() + " đã xóa nội dung này");
+                String contentOfMessageDeleted = messageSource.getMessage("content_of_message_be_deleted",
+                        new Object[]{ user.getDisplayName() }, locale);
+                messageService.deleteMessage(messageId, contentOfMessageDeleted);
                 return ResponseEntity.ok().build();
             }
         }
-        return ResponseEntity.badRequest().body(new MessageResponse("Bạn không có quyền xóa tin nhắn này"));
+        String response = messageSource.getMessage("not_permission_to_delete_message", null, locale);
+        return ResponseEntity.badRequest().body(new MessageResponse(response));
     }
 
     /**
@@ -189,10 +197,10 @@ public class MessageRest {
     public ResponseEntity<?> getReadbyes(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+        Optional<Message> optionalMessage = messageService.findById(messageId);
         if (optionalMessage.isEmpty())
             throw new MessageNotFoundException();
-        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(messageId);
+        List<ReadTracking> readTracking = readTrackingService.findAllByMessageId(messageId);
         Set<ReadByDto> dto = readTracking.stream().map(readByMapper::toReadByDto)
                 .sorted().collect(Collectors.toCollection(LinkedHashSet::new));
         return ResponseEntity.ok(dto);
@@ -207,7 +215,7 @@ public class MessageRest {
     public ResponseEntity<?> getReaction(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
         if (user == null)
             throw new UnAuthenticateException();
-        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+        Optional<Message> optionalMessage = messageService.findById(messageId);
         if (optionalMessage.isEmpty())
             throw new MessageNotFoundException();
         List<Reaction> reactions = optionalMessage.get().getReactions();

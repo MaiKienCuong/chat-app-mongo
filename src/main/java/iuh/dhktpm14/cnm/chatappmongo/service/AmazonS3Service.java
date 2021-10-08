@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class AmazonS3Service {
@@ -33,8 +35,12 @@ public class AmazonS3Service {
     @Value("${amazonProperties.secretKey}")
     private String secretKey;
 
+    private static final Logger logger = Logger.getLogger(AmazonS3Service.class.getName());
+
     @PostConstruct
     private void initializeAmazon() {
+        logger.log(Level.INFO, "initial amazon s3 service");
+
         AWSCredentials credentials = new BasicAWSCredentials(this.accessKey, this.secretKey);
         this.s3client = AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
@@ -58,8 +64,9 @@ public class AmazonS3Service {
      * đặt tên file ngẫu nhiêu
      */
     private String generateFileName(MultipartFile multiPart) {
-        if (multiPart.getOriginalFilename() != null)
-            return new Date().getTime() + "_" + multiPart.getOriginalFilename().replace(" ", "_");
+        String originalFilename = multiPart.getOriginalFilename();
+        if (originalFilename != null)
+            return new Date().getTime() + "_" + originalFilename.replace(" ", "_");
         return new Date().getTime() + "_" + UUID.randomUUID().toString().replace("-", "_");
     }
 
@@ -67,6 +74,9 @@ public class AmazonS3Service {
      * upload file lên S3
      */
     private void uploadFileTos3bucket(String fileName, File file) {
+        logger.log(Level.INFO, "uploading to s3 filename = {0}", fileName);
+        logger.log(Level.INFO, "uploading to s3 file = {0}", file);
+
         s3client.putObject(new PutObjectRequest(bucketName, fileName, file)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
     }
@@ -85,6 +95,7 @@ public class AmazonS3Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        logger.log(Level.INFO, "upload finish, fileUrl = {0}", fileUrl);
         return fileUrl;
     }
 }

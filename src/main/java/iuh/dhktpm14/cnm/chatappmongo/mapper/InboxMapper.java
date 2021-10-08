@@ -5,9 +5,9 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.ReadTrackingRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -26,10 +26,10 @@ public class InboxMapper {
     private RoomMapper roomMapper;
 
     @Autowired
-    private InboxRepository inboxRepository;
+    private InboxService inboxService;
 
     @Autowired
-    private ReadTrackingRepository readTrackingRepository;
+    private ReadTrackingService readTrackingService;
 
     public InboxDto toInboxDto(String inboxId) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -37,7 +37,7 @@ public class InboxMapper {
             throw new UnAuthenticateException();
         if (inboxId == null)
             return null;
-        Optional<Inbox> inboxOptional = inboxRepository.findById(inboxId);
+        Optional<Inbox> inboxOptional = inboxService.findById(inboxId);
         if (inboxOptional.isEmpty())
             return null;
         return toInboxDto(inboxOptional.get());
@@ -55,7 +55,7 @@ public class InboxMapper {
         /*
         lấy số tin nhắn chưa đọc theo roomId và userId
          */
-        var readTracking = readTrackingRepository.findByRoomIdAndUserId(inbox.getRoomId(), user.getId());
+        var readTracking = readTrackingService.findByRoomIdAndUserId(inbox.getRoomId(), user.getId());
         if (readTracking != null)
             dto.setCountNewMessage(readTracking.getUnReadMessage());
         var lastMessage = messageService.getLastMessageOfRoom(user.getId(), inbox.getRoomId());

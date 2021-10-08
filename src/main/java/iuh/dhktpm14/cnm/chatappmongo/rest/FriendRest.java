@@ -9,8 +9,8 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
-import iuh.dhktpm14.cnm.chatappmongo.repository.FriendRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -39,10 +39,10 @@ import java.util.stream.Collectors;
 public class FriendRest {
 
     @Autowired
-    private FriendRepository friendRepository;
+    private FriendService friendService;
 
     @Autowired
-    private UserRepository userRepository;
+    private AppUserDetailService userDetailService;
 
     @Autowired
     private FriendMapper friendMapper;
@@ -59,7 +59,7 @@ public class FriendRest {
     public ResponseEntity<?> getAllFriendOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
-        Page<Friend> friendPage = friendRepository.getAllFriendOfUser(user.getId(), pageable);
+        Page<Friend> friendPage = friendService.getAllFriendOfUser(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendDto(friendPage));
     }
@@ -77,11 +77,11 @@ public class FriendRest {
         if (deleteId.equals(user.getId()))
             return ResponseEntity.badRequest().build();
         // deleteId không tồn tại trong database
-        if (! userRepository.existsById(deleteId))
+        if (! userDetailService.existsById(deleteId))
             return ResponseEntity.badRequest().build();
         // chỉ xóa khi hai người là bạn bè
-        if (friendRepository.isFriend(user.getId(), deleteId)) {
-            friendRepository.deleteFriend(user.getId(), deleteId);
+        if (friendService.isFriend(user.getId(), deleteId)) {
+            friendService.deleteFriend(user.getId(), deleteId);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
@@ -96,14 +96,14 @@ public class FriendRest {
         List<ContactSync> contactSyncs = new ArrayList<>();
         if (contacts != null && ! contacts.isEmpty()) {
             for (Contact contact : contacts) {
-                Optional<User> userOptional = userRepository.findDistinctByPhoneNumber(contact.getPhone());
+                Optional<User> userOptional = userDetailService.findDistinctByPhoneNumber(contact.getPhone());
                 if (userOptional.isPresent()) {
                     var u = userOptional.get();
                     var contactSync = ContactSync.builder()
                             .user(userMapper.toUserProfileDto(u))
                             .name(contact.getName())
                             .phone(contact.getPhone())
-                            .isFriend(friendRepository.isFriend(user.getId(), u.getId()))
+                            .isFriend(friendService.isFriend(user.getId(), u.getId()))
                             .build();
                     contactSyncs.add(contactSync);
                 }

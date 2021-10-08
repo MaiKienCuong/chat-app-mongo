@@ -8,6 +8,6 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 public class TokenRefreshRequest {
-    @NotBlank(message = "Refresh token không được rỗng")
+    @NotBlank(message = "{refresh_token_invalid}")
     private String refreshToken;
 }
