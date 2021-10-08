@@ -171,7 +171,7 @@ public class FriendRequestRest {
                         .roomId(room.getId())
                         .createAt(new Date())
                         .build();
-                chatSocketService.sendSystemMessage(message, room, user.getId());
+                chatSocketService.sendSystemMessage(message, room);
             }).start();
             return ResponseEntity.ok().build();
         }

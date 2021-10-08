@@ -47,16 +47,20 @@ public class ChatSocketService {
 
     private static final Logger logger = Logger.getLogger(ChatSocketService.class.getName());
 
-    public void sendSystemMessage(Message message, Room room, String senderId) {
+    public void sendSystemMessage(Message message, Room room) {
         message.setSenderId(null);
-        sendMessage(message, room, senderId);
+        messageRepository.save(message);
+        saveMessageToDatabase(message, room);
+        inboxService.updateLastTimeForAllInboxOfRoom(room);
+        readTrackingService.incrementUnReadMessageForAllMember(room);
+        sendMessageToAllMemberOfRoom(message, room);
     }
 
     public void sendMessage(Message message, Room room, String senderId) {
         messageRepository.save(message);
         saveMessageToDatabase(message, room);
         inboxService.updateLastTimeForAllInboxOfRoom(room);
-        readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, senderId, message.getId());
+        readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, senderId);
         readTrackingService.updateReadTracking(senderId, room.getId(), message.getId());
         sendMessageToAllMemberOfRoom(message, room);
     }

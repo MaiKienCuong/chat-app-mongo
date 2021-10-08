@@ -87,7 +87,7 @@ public class FriendRest {
         return ResponseEntity.badRequest().build();
     }
 
-    @PostMapping(value = "/syncContact", consumes = "application/x-www-form-urlencoded")
+    @PostMapping(value = "/syncContact")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đồng bộ danh bạ")
     public ResponseEntity<?> syncContactForMobile(@ApiIgnore @AuthenticationPrincipal User user, @RequestBody List<Contact> contacts) {

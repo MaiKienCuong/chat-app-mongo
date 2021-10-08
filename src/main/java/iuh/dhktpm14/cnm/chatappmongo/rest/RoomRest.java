@@ -330,7 +330,7 @@ public class RoomRest {
                 .type(MessageType.SYSTEM)
                 .content(content)
                 .build();
-        chatSocketService.sendSystemMessage(message, room, user.getId());
+        chatSocketService.sendSystemMessage(message, room);
     }
 
     /**
@@ -371,7 +371,7 @@ public class RoomRest {
             /*
             phải gửi tin nhắn trước khi xóa vì khi xóa người đó không còn trong room nên không gửi được
              */
-            chatSocketService.sendSystemMessage(message, roomOptional.get(), user.getId());
+            chatSocketService.sendSystemMessage(message, roomOptional.get());
             roomService.deleteMember(memberId, roomId, user.getId());
             return ResponseEntity.ok().build();
         }
@@ -422,7 +422,7 @@ public class RoomRest {
                         .content(content)
                         .roomId(roomId)
                         .build();
-                chatSocketService.sendSystemMessage(message, room, user.getId());
+                chatSocketService.sendSystemMessage(message, room);
             }
         }
         return ResponseEntity.ok(room.getMembers() != null ? room.getMembers() : new ArrayList<>(0));
