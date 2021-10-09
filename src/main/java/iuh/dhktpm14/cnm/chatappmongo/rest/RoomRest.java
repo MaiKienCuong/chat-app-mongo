@@ -22,6 +22,7 @@ import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
+import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
@@ -96,6 +97,9 @@ public class RoomRest {
 
     @Autowired
     private ChatSocketService chatSocketService;
+
+    @Autowired
+    private InboxMessageService inboxMessageService;
 
     @Autowired
     private static final Logger logger = Logger.getLogger(RoomRest.class.getName());
@@ -304,7 +308,10 @@ public class RoomRest {
             roomService.save(room);
             var inbox = Inbox.builder().ofUserId(user.getId()).roomId(room.getId()).build();
             inboxService.save(inbox);
-            sendMessageAfterCreateRoom(room, user, locale);
+            String content = messageSource.getMessage("message_after_create_room",
+                    new Object[]{ user.getDisplayName() }, locale);
+            logger.log(Level.INFO, "sending message after create room with content = {0}", content);
+            sendSystemMessage(content, room);
             return ResponseEntity.ok(inboxMapper.toInboxDto(inbox));
         }
         return ResponseEntity.badRequest().build();
@@ -319,10 +326,7 @@ public class RoomRest {
         return createNewRoom(room, user, locale);
     }
 
-    private void sendMessageAfterCreateRoom(Room room, User user, Locale locale) {
-        String content = messageSource.getMessage("message_after_create_room",
-                new Object[]{ user.getDisplayName() }, locale);
-        logger.log(Level.INFO, "sending message after create room with content = {0}", content);
+    private void sendSystemMessage(String content, Room room) {
         var message = Message.builder()
                 .roomId(room.getId())
                 .type(MessageType.SYSTEM)
@@ -365,19 +369,12 @@ public class RoomRest {
                     new Object[]{ user.getDisplayName(), memberToDelete.getDisplayName() }, locale);
             logger.log(Level.INFO, "sending message after delete member with content = {0}",
                     new Object[]{ content });
-
-            var message = Message.builder()
-                    .type(MessageType.SYSTEM)
-                    .content(content)
-                    .roomId(roomId)
-                    .build();
-
-            logger.log(Level.INFO, "deleting member userId = {0} in roomId = {1}",
-                    new Object[]{ memberId, roomId });
             /*
             phải gửi tin nhắn trước khi xóa vì khi xóa người đó không còn trong room nên không gửi được
              */
-            chatSocketService.sendSystemMessage(message, roomOptional.get());
+            sendSystemMessage(content, roomOptional.get());
+            logger.log(Level.INFO, "deleting member userId = {0} in roomId = {1}",
+                    new Object[]{ memberId, roomId });
             roomService.deleteMember(memberId, roomId, user.getId());
             return ResponseEntity.ok().build();
         }
@@ -428,13 +425,7 @@ public class RoomRest {
                 String content = messageSource.getMessage("message_after_add_member",
                         new Object[]{ userOptional.get().getDisplayName(), user.getDisplayName() }, locale);
                 logger.log(Level.INFO, "sending message after  add member with content = {0}", content);
-
-                var message = Message.builder()
-                        .type(MessageType.SYSTEM)
-                        .content(content)
-                        .roomId(roomId)
-                        .build();
-                chatSocketService.sendSystemMessage(message, room);
+                sendSystemMessage(content, room);
             }
         }
         return ResponseEntity.ok(room.getMembers() != null ? room.getMembers() : new ArrayList<>(0));
@@ -481,6 +472,34 @@ public class RoomRest {
                 .map(x -> inboxMapper.toInboxSummaryDto(x.get()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(inboxDto);
+    }
+
+    @PostMapping("/leave/{roomId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Rời khỏi nhóm")
+    public ResponseEntity<?> leaveGroup(@PathVariable String roomId,
+                                        @ApiIgnore @AuthenticationPrincipal User user,
+                                        Locale locale) {
+        if (user == null)
+            throw new UnAuthenticateException();
+        if (roomId == null)
+            return ResponseEntity.badRequest().build();
+        Optional<Room> roomOptional = roomService.findById(roomId);
+        if (roomOptional.isPresent()) {
+            var room = roomOptional.get();
+            if (room.getType().equals(RoomType.GROUP) && room.isMemBerOfRoom(user.getId())) {
+                String content = messageSource.getMessage("message_leave_room",
+                        new Object[]{ user.getDisplayName() }, locale);
+                logger.log(Level.INFO, "sending message leave room with content = {0}", content);
+                room.getMembers().removeIf(x -> x.getUserId().equals(user.getId()));
+                sendSystemMessage(content, room);
+                roomService.leaveGroup(user.getId(), roomId);
+                inboxMessageService.deleteAllMessageOfUserInRoom(user.getId(), roomId);
+                inboxService.deleteInbox(user.getId(), roomId);
+                return ResponseEntity.ok().build();
+            }
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     /**

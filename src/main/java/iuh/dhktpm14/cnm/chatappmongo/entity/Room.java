@@ -34,4 +34,14 @@ public class Room {
     private Set<Member> members;
     private String createByUserId;
     private String imageUrl;
+
+    public boolean isMemBerOfRoom(String userId) {
+        if (members == null)
+            return false;
+        if (members.isEmpty())
+            return false;
+        var member = Member.builder().userId(userId).build();
+        return members.contains(member);
+    }
+
 }

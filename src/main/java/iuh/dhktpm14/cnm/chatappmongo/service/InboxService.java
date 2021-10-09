@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.service;
 
+import com.mongodb.client.result.DeleteResult;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
@@ -93,6 +94,14 @@ public class InboxService {
 
     public Optional<Inbox> findById(String inboxId) {
         return inboxRepository.findById(inboxId);
+    }
+
+    public void deleteInbox(String ofUserId, String roomId) {
+        logger.log(Level.INFO, "delete inbox of userId = {0} in roomId = {1}", new Object[]{ ofUserId, roomId });
+        var criteria = Criteria.where("ofUserId").is(ofUserId)
+                .and("roomId").is(roomId);
+        DeleteResult remove = mongoTemplate.remove(Query.query(criteria), Inbox.class);
+        logger.log(Level.INFO, "number of row deleted = {0}", remove.getDeletedCount());
     }
 
 }

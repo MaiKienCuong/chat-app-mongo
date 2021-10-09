@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.service;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
+import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.BulkOperations;
@@ -9,6 +10,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -81,6 +83,15 @@ public class RoomService {
             return true;
         }
         return false;
+    }
+
+    public void leaveGroup(String userId, String roomId) {
+        logger.log(Level.INFO, "[leave group] userId = {0} will leave roomId = {1}", new Object[]{ userId, roomId });
+        var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        logger.log(Level.INFO, "[leave group] currentUser = {0}", currentUser);
+        if (currentUser != null && currentUser.getId() != null && userId.equals(currentUser.getId())) {
+            delete(userId, roomId);
+        }
     }
 
     /**

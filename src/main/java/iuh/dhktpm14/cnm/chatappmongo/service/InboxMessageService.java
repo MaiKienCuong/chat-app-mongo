@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.service;
 
+import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,12 +9,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class InboxMessageService {
 
     @Autowired
     private InboxMessageRepository inboxMessageRepository;
+
+    @Autowired
+    private InboxService inboxService;
+
+    private static final Logger logger = Logger.getLogger(InboxMessageService.class.getName());
 
     /**
      * lấy ra tất cả InboxMessage theo inboxId, mục đích là để lấy ra danh sách messageId của inboxId này
@@ -47,6 +55,17 @@ public class InboxMessageService {
 
     public InboxMessage save(InboxMessage inboxMessage) {
         return inboxMessageRepository.save(inboxMessage);
+    }
+
+    public void deleteAllMessageOfUserInRoom(String ofUserId, String roomId) {
+        Optional<Inbox> inboxOptional = inboxService.findByOfUserIdAndRoomId(ofUserId, roomId);
+        if (inboxOptional.isPresent()) {
+            var inbox = inboxOptional.get();
+
+            logger.log(Level.INFO, "delete all message of inboxId = {0} in roomId = {1}",
+                    new Object[]{ inbox.getId(), roomId });
+            deleteAllMessageOfInbox(inbox.getId());
+        }
     }
 
 }
