@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,7 +38,26 @@ public class ChatSocketService {
     @Autowired
     private InboxService inboxService;
 
+    @Autowired
+    private RoomService roomService;
+
     private static final Logger logger = Logger.getLogger(ChatSocketService.class.getName());
+
+    public void sendDeletedMessage(Message message, String roomId) {
+        Optional<Room> roomOptional = roomService.findById(roomId);
+        if (roomOptional.isPresent()) {
+            var room = roomOptional.get();
+            Set<Member> members = room.getMembers();
+            if (members != null && ! members.isEmpty()) {
+                for (Member m : members) {
+                    logger.log(Level.INFO, "sending delete message id = {0} to userId = {1}",
+                            new Object[]{ message.getId(), m.getUserId() });
+                    messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages/delete",
+                            messageMapper.toMessageToClient(message));
+                }
+            }
+        }
+    }
 
     public void sendSystemMessage(Message message, Room room) {
         message.setSenderId(null);

@@ -25,4 +25,7 @@ public class MessageToClient implements Serializable {
     private String content;
     private MessageStatus status;
     private List<ReadByDto> readbyes;
+    private MessageToClient reply;
+    private boolean pin;
+    private boolean deleted;
 }

@@ -15,6 +15,7 @@ import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReactionMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReadByMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
+import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
@@ -77,6 +78,9 @@ public class MessageRest {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private ChatSocketService chatSocketService;
 
     private static final Logger logger = Logger.getLogger(MessageRest.class.getName());
 
@@ -165,7 +169,10 @@ public class MessageRest {
             if (user.getId().equals(message.getSenderId())) {
                 String contentOfMessageDeleted = messageSource.getMessage("content_of_message_be_deleted",
                         new Object[]{ user.getDisplayName() }, locale);
+                message.setDeleted(true);
+                message.setContent(contentOfMessageDeleted);
                 messageService.deleteMessage(messageId, contentOfMessageDeleted);
+                chatSocketService.sendDeletedMessage(message, message.getRoomId());
                 return ResponseEntity.ok().build();
             }
         }

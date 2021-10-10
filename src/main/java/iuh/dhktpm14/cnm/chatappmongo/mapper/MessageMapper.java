@@ -92,8 +92,14 @@ public class MessageMapper {
         dto.setCreateAt(message.getCreateAt());
         dto.setType(message.getType());
         dto.setContent(message.getContent());
+        dto.setPin(message.isPin());
+        dto.setDeleted(message.isDeleted());
         dto.setStatus(message.getStatus());
         dto.setRoomId(message.getRoomId());
+        if (message.getReplyId() != null) {
+            Optional<Message> optional = messageService.findById(message.getReplyId());
+            optional.ifPresent(value -> dto.setReply(toMessageToClient(value)));
+        }
 //        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
 //        List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
 //        dto.setReadbyes(readBy);
