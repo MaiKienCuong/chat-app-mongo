@@ -16,11 +16,23 @@ public interface FriendRequestRepository extends MongoRepository<FriendRequest, 
     @Query(value = "{toId: ?0}", sort = "{createAt: -1}")
     Page<FriendRequest> getAllFriendRequestReceived(String currentUserId, Pageable pageable);
 
+    /*
+    đếm số lời mời đã nhận được
+     */
+    @Query(value = "{toId: ?0}", count = true)
+    int countFriendRequestReceived(String currentUserId);
+
     /**
      * lấy danh sách lời mời kết bạn đã gửi đi, truyền vào id của người dùng hiện tại
      */
     @Query(value = "{fromId: ?0}", sort = "{createAt: -1}")
     Page<FriendRequest> getAllFriendRequestSent(String currentUserId, Pageable pageable);
+
+    /*
+    đếm số lời mời đã gửi đi
+     */
+    @Query(value = "{fromId: ?0}", count = true)
+    int countFriendRequestSent(String currentUserId);
 
     /**
      * kiểm tra xem mình đã gửi lời mời kết bạn đến người này hay chưa

@@ -58,4 +58,11 @@ public class FriendRequestService {
         return friendRequestRepository.save(friendRequest);
     }
 
+    public int countFriendRequestReceived(String currentUserId) {
+        return friendRequestRepository.countFriendRequestReceived(currentUserId);
+    }
+
+    public int countFriendRequestSent(String currentUserId) {
+        return friendRequestRepository.countFriendRequestSent(currentUserId);
+    }
 }

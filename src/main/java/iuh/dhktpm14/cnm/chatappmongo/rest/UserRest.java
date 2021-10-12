@@ -4,11 +4,15 @@ import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ChangePasswordDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserUpdateDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ViewProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
+import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,6 +60,12 @@ public class UserRest {
 
     @Autowired
     private AmazonS3Service s3Service;
+
+    @Autowired
+    private FriendService friendService;
+
+    @Autowired
+    private FriendRequestService friendRequestService;
 
     private static final Logger logger = Logger.getLogger(UserRest.class.getName());
 
@@ -192,6 +203,28 @@ public class UserRest {
     @ApiOperation("Tìm kiếm user theo tên gần đúng")
     public ResponseEntity<?> searchUserForMobile(@ApiIgnore @AuthenticationPrincipal User user, String textToSearch) {
         return searchUser(user, textToSearch);
+    }
+
+    @GetMapping("/viewProfile/{anotherUserId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Xem trang cá nhân của người khác")
+    public ResponseEntity<?> viewProfile(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String anotherUserId) {
+        Optional<User> userOptional = userDetailService.findById(anotherUserId);
+        if (userOptional.isPresent()) {
+            var friendStatus = FriendStatus.NONE;
+            if (friendService.isFriend(user.getId(), anotherUserId))
+                friendStatus = FriendStatus.FRIEND;
+            else if (friendRequestService.isSent(user.getId(), anotherUserId))
+                friendStatus = FriendStatus.SENT;
+            else if (friendRequestService.isReceived(user.getId(), anotherUserId))
+                friendStatus = FriendStatus.RECEIVED;
+            ViewProfileDto viewProfile = ViewProfileDto.builder()
+                    .user(userMapper.toUserProfileDto(userOptional.get()))
+                    .friendStatus(friendStatus)
+                    .build();
+            return ResponseEntity.ok(viewProfile);
+        }
+        return ResponseEntity.badRequest().build();
     }
 
 }

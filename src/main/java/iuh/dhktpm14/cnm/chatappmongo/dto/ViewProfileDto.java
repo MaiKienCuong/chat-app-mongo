@@ -7,12 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ContactSync {
-    private String name;
-    private String phone;
+public class ViewProfileDto {
     private UserProfileDto user;
     private FriendStatus friendStatus;
 }

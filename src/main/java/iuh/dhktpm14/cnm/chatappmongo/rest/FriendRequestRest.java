@@ -41,6 +41,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -69,6 +71,8 @@ public class FriendRequestRest {
     @Autowired
     private RoomService roomService;
 
+    private static final Logger logger = Logger.getLogger(FriendRequestRest.class.getName());
+
     /**
      * lấy tất cả lời mời kết bạn đã nhận được
      */
@@ -78,9 +82,25 @@ public class FriendRequestRest {
     public ResponseEntity<?> getAllFriendRequestReceived(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
+        logger.log(Level.INFO, "get all friend request: page = {0}, size = {1}",
+                new Object[]{ pageable.getPageNumber(), pageable.getPageSize() });
         Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestReceived(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendRequestReceivedDto(friendRequestPage));
+    }
+
+    @GetMapping("/count")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Đếm số lời mời kết bạn đã nhận được")
+    public ResponseEntity<?> countFriendRequestReceived(@ApiIgnore @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(friendRequestService.countFriendRequestReceived(user.getId()));
+    }
+
+    @GetMapping("/count/sent")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Đếm số lời mời kết bạn đã gửi")
+    public ResponseEntity<?> countFriendRequestSent(@ApiIgnore @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(friendRequestService.countFriendRequestSent(user.getId()));
     }
 
     /**
@@ -92,6 +112,8 @@ public class FriendRequestRest {
     public ResponseEntity<?> getAllFriendRequestSent(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         if (user == null)
             throw new UnAuthenticateException();
+        logger.log(Level.INFO, "get all friend request sent: page = {0}, size = {1}",
+                new Object[]{ pageable.getPageNumber(), pageable.getPageSize() });
         Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestSent(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendRequestSentDto(friendRequestPage));
