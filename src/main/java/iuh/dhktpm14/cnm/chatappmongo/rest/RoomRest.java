@@ -1,7 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.MemberDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.RoomSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
@@ -467,9 +467,9 @@ public class RoomRest {
         List<Optional<Inbox>> inboxs = commonGroups.stream()
                 .map(x -> inboxService.findByOfUserIdAndRoomId(user.getId(), x.getId()))
                 .collect(Collectors.toList());
-        List<InboxSummaryDto> inboxDto = inboxs.stream()
+        List<InboxDto> inboxDto = inboxs.stream()
                 .filter(Optional::isPresent)
-                .map(x -> inboxMapper.toInboxSummaryDto(x.get()))
+                .map(x -> inboxMapper.toInboxDto(x.get()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(inboxDto);
     }

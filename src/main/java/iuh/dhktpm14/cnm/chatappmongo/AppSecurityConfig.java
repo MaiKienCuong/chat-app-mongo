@@ -80,7 +80,7 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         // to access /h2-console
-        http.headers().frameOptions().disable();
+//        http.headers().frameOptions().disable();
 
         http.addFilterBefore(appAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
