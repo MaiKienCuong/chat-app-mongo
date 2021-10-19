@@ -11,6 +11,7 @@ import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -18,9 +19,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+@Slf4j
 @Controller
 public class ReactionController {
 
@@ -42,11 +42,9 @@ public class ReactionController {
     @Autowired
     private AppUserDetailService userDetailService;
 
-    private static final Logger logger = Logger.getLogger(ReactionController.class.getName());
-
     @MessageMapping("/reaction")
     public void processMessage(@Payload ReactionFromClient reaction, UserPrincipal userPrincipal) {
-        logger.log(Level.INFO, "reaction from client = {0}", reaction);
+        log.info("reaction from client = {}", reaction);
 
         String userId = userPrincipal.getName();
         String accessToken = userPrincipal.getAccessToken();
@@ -58,30 +56,34 @@ public class ReactionController {
 
             if (roomOptional.isPresent() && userOptional.isPresent()) {
                 var room = roomOptional.get();
-                var reactionToClient = ReactionToClient.builder()
-                        .messageId(reaction.getMessageId())
-                        .roomId(reaction.getRoomId())
-                        .type(reaction.getType())
-                        .reactByUser(userMapper.toUserProfileDto(reaction.getUserId()))
-                        .build();
+                if (room.isMemBerOfRoom(userId)) {
+                    var reactionToClient = ReactionToClient.builder()
+                            .messageId(reaction.getMessageId())
+                            .roomId(reaction.getRoomId())
+                            .type(reaction.getType())
+                            .reactByUser(userMapper.toUserProfileDto(reaction.getUserId()))
+                            .build();
 
-                var react = Reaction.builder()
-                        .type(reaction.getType())
-                        .reactByUserId(reaction.getUserId())
-                        .build();
+                    var react = Reaction.builder()
+                            .type(reaction.getType())
+                            .reactByUserId(reaction.getUserId())
+                            .build();
 
-                logger.log(Level.INFO, "adding reaction = {0}, to messageId = {1}, to database",
-                        new Object[]{ react, reaction.getMessageId() });
-                messageService.addReactToMessage(reaction.getMessageId(), react);
+                    log.info("adding reaction = {}, to messageId = {}, to database",
+                            react, reaction.getMessageId());
+                    messageService.addReactToMessage(reaction.getMessageId(), react);
 
-                for (Member member : room.getMembers()) {
-                    logger.log(Level.INFO, "send reaction type = {0}, from userId = {1}, to memberId = {2}",
-                            new Object[]{ reactionToClient.getType(), userId, member.getUserId() });
-                    messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/reaction", reactionToClient);
-                }
-            }
-        }
-
+                    for (Member member : room.getMembers()) {
+                        log.info("send reaction type = {}, from userId = {}, to memberId = {}",
+                                reactionToClient.getType(), userId, member.getUserId());
+                        messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/reaction", reactionToClient);
+                    }
+                } else
+                    log.error("userId = {} is not member of roomId = {}", userId, room.getId());
+            } else
+                log.error("roomId = {} is not exists", reaction.getRoomId());
+        } else
+            log.error("userId or access token is null");
     }
 
 }

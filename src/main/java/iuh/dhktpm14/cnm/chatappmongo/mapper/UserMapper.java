@@ -19,9 +19,7 @@ public class UserMapper {
         if (userId == null)
             return null;
         Optional<User> user = userDetailService.findById(userId);
-        if (user.isEmpty()) return null;
-
-        return toUserProfileDto(user.get());
+        return toUserProfileDto(user.orElse(null));
     }
 
     public UserProfileDto toUserProfileDto(User user) {

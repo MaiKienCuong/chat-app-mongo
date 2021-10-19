@@ -1,14 +1,17 @@
 package iuh.dhktpm14.cnm.chatappmongo.jwt;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.UserNotFoundException;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -17,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
+@Slf4j
 public class AppAuthenticationTokenFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -25,16 +29,23 @@ public class AppAuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MessageSource messageSource;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        log.info("in do filter internal");
         String jwt = parseJwt(request);
         if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
             String userId = jwtUtils.getUserIdFromJwtToken(jwt);
 
             Optional<User> findById = userRepository.findById(userId);
-            if (findById.isEmpty())
-                throw new UserNotFoundException();
+            if (findById.isEmpty()) {
+                String userNotFound = messageSource.getMessage("user_not_found", null, RequestContextUtils.getLocale(request));
+                log.error(userNotFound);
+                throw new UsernameNotFoundException(userNotFound);
+            }
             var userDetails = findById.get();
             var authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
                     userDetails.getAuthorities());
@@ -59,10 +70,12 @@ public class AppAuthenticationTokenFilter extends OncePerRequestFilter {
          */
 
         String headerAuth = request.getHeader("Authorization");
+        log.info("header auth = {}", headerAuth);
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer")) {
             headerAuth = headerAuth.replace("Bearer", "").trim();
             return headerAuth;
         }
+        log.error("Authorization header is null");
         return null;
     }
 }

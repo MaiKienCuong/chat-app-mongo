@@ -9,8 +9,6 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.MessageNotFoundException;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReactionMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReadByMapper;
@@ -20,6 +18,7 @@ import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -46,10 +45,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("api/messages")
 @CrossOrigin("${spring.security.cross_origin}")
@@ -82,8 +80,6 @@ public class MessageRest {
     @Autowired
     private ChatSocketService chatSocketService;
 
-    private static final Logger logger = Logger.getLogger(MessageRest.class.getName());
-
     /**
      * lấy tất cả tin nhắn của inboxId
      */
@@ -91,42 +87,36 @@ public class MessageRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy tất cả tin nhắn của một cuộc trò chuyện")
     public ResponseEntity<?> getAllMessageOfInbox(@PathVariable String inboxId, Pageable pageable, @ApiIgnore @AuthenticationPrincipal User user) {
-        if (user == null)
-            throw new UnAuthenticateException();
         // kiểm tra xem inboxId có thuộc về user hiện tại hay không
-        if (inboxService.existsByIdAndOfUserId(inboxId, user.getId())) {
-            var inbox = inboxService.findByIdAndOfUserId(inboxId, user.getId()).get();
-            if (! inbox.isEmpty()) {
-                /*
-                cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
-                 */
-                logger.log(Level.INFO, "userid = {0} get all message of inboxId = {1}, in roomId = {2}",
-                        new Object[]{ user.getId(), inboxId, inbox.getRoomId() });
-                logger.log(Level.INFO, "page = {0}, size = {1}",
-                        new Object[]{ pageable.getPageNumber(), pageable.getPageSize() });
-//                readTrackingService.updateReadTracking(user.getId(), inbox.getRoomId());
-                /*
-                 lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
-                 sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
-                 tức là số lượng document là đã bị giới hạn
-                 */
-                Page<InboxMessage> inboxMessages = inboxMessageService.getAllInboxMessageOfInbox(inboxId, pageable);
-                if (inboxMessages.isEmpty())
-                    return ResponseEntity.ok(new PageImpl<>(new ArrayList<>(), pageable, inboxMessages.getTotalElements()));
-                List<String> messageIds = inboxMessages.getContent().stream().map(InboxMessage::getMessageId)
-                        .collect(Collectors.toList());
-                /*
-                lấy ra danh sách message trong collection message mà có id nằm trong list messageIds,
-                do trước đó đã phân trang và sắp xếp theo messageCreateAt: -1
-                nên truy vấn này truyền vào Pageable.unpaged() (không phân trang) để lấy tất cả document khớp,
-                truy vấn trước trả về số bản ghi giới hạn không phải là getAll trong collection
-                 */
-                Page<Message> messagePage = messageService.findAllByIdInMessageIdsPaged(messageIds, Pageable.unpaged());
-                /*
-                xem hàm toMessageDto
-                 */
-                return ResponseEntity.ok(toMessageDto(messagePage, inboxMessages));
-            }
+        var inboxOptional = inboxService.findByIdAndOfUserId(inboxId, user.getId());
+        if (inboxOptional.isPresent() && ! inboxOptional.get().isEmpty()) {
+            var inbox = inboxOptional.get();
+            /*
+            cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
+             */
+            log.info("userid = {} get all message of inboxId = {}, in roomId = {}", user.getId(), inboxId, inbox.getRoomId());
+            log.info("page = {}, size = {}",  pageable.getPageNumber(), pageable.getPageSize());
+            /*
+             lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
+             sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
+             tức là số lượng document là đã bị giới hạn
+             */
+            Page<InboxMessage> inboxMessages = inboxMessageService.getAllInboxMessageOfInbox(inboxId, pageable);
+            if (inboxMessages.isEmpty())
+                return ResponseEntity.ok(new PageImpl<>(new ArrayList<>(), pageable, inboxMessages.getTotalElements()));
+            List<String> messageIds = inboxMessages.getContent().stream().map(InboxMessage::getMessageId)
+                    .collect(Collectors.toList());
+            /*
+            lấy ra danh sách message trong collection message mà có id nằm trong list messageIds,
+            do trước đó đã phân trang và sắp xếp theo messageCreateAt: -1
+            nên truy vấn này truyền vào Pageable.unpaged() (không phân trang) để lấy tất cả document khớp,
+            truy vấn trước trả về số bản ghi giới hạn không phải là getAll trong collection
+             */
+            Page<Message> messagePage = messageService.findAllByIdInMessageIdsPaged(messageIds, Pageable.unpaged());
+            /*
+            xem hàm toMessageDto
+             */
+            return ResponseEntity.ok(toMessageDto(messagePage, inboxMessages));
         }
         return ResponseEntity.badRequest().build();
     }
@@ -137,13 +127,13 @@ public class MessageRest {
     @GetMapping("/{messageId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy chi tiết tin nhắn theo id")
-    public ResponseEntity<?> getById(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
-        if (user == null)
-            throw new UnAuthenticateException();
+    public ResponseEntity<?> getById(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user, Locale locale) {
         if (messageService.checkPermissionToSeeMessage(messageId, user.getId())) {
             Optional<Message> messageOptional = messageService.findById(messageId);
-            if (messageOptional.isEmpty())
-                throw new MessageNotFoundException();
+            if (messageOptional.isEmpty()) {
+                String messageNotFound = messageSource.getMessage("message_not_found", null, locale);
+                return ResponseEntity.badRequest().body(new MessageResponse(messageNotFound));
+            }
             return ResponseEntity.ok(messageOptional.get());
         }
         return ResponseEntity.badRequest().build();
@@ -158,11 +148,11 @@ public class MessageRest {
     public ResponseEntity<?> deleteById(@PathVariable String messageId,
                                         @ApiIgnore @AuthenticationPrincipal User user,
                                         Locale locale) {
-        if (user == null)
-            throw new UnAuthenticateException();
         Optional<Message> messageOptional = messageService.findById(messageId);
-        if (messageOptional.isEmpty())
-            throw new MessageNotFoundException();
+        if (messageOptional.isEmpty()) {
+            String messageNotFound = messageSource.getMessage("message_not_found", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(messageNotFound));
+        }
         if (messageService.checkPermissionToSeeMessage(messageId, user.getId())) {
             var message = messageOptional.get();
             // kiểm tra xem người gửi có phải người dùng hiện tại hay không mới cho xóa
@@ -188,8 +178,6 @@ public class MessageRest {
     @ApiOperation("Bày tỏ cảm xúc về một tin nhắn")
     public ResponseEntity<?> addReactToMessage(@PathVariable String messageId, @RequestBody Reaction reaction,
                                                @ApiIgnore @AuthenticationPrincipal User user) {
-        if (user == null)
-            throw new UnAuthenticateException();
         reaction.setReactByUserId(user.getId());
         messageService.addReactToMessage(messageId, reaction);
         return ResponseEntity.ok().build();
@@ -200,13 +188,13 @@ public class MessageRest {
      */
     @GetMapping("/reads/{messageId}")
     @PreAuthorize("isAuthenticated()")
-    @ApiOperation("Chi tiết tin nhắn: Lấy danh sách những người đã xem tin nhắn này")
-    public ResponseEntity<?> getReadbyes(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
-        if (user == null)
-            throw new UnAuthenticateException();
+    @ApiOperation("Lấy danh sách những người đã xem tin nhắn này")
+    public ResponseEntity<?> getReadbyes(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user, Locale locale) {
         Optional<Message> optionalMessage = messageService.findById(messageId);
-        if (optionalMessage.isEmpty())
-            throw new MessageNotFoundException();
+        if (optionalMessage.isEmpty()) {
+            String messageNotFound = messageSource.getMessage("message_not_found", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(messageNotFound));
+        }
         List<ReadTracking> readTracking = readTrackingService.findAllByMessageId(messageId);
         Set<ReadByDto> dto = readTracking.stream().map(readByMapper::toReadByDto)
                 .sorted().collect(Collectors.toCollection(LinkedHashSet::new));
@@ -218,13 +206,13 @@ public class MessageRest {
      */
     @GetMapping("/react/{messageId}")
     @PreAuthorize("isAuthenticated()")
-    @ApiOperation("Chi tiết tin nhắn: Lấy danh sách những người đã bày tỏ cảm xúc về tin nhắn này")
-    public ResponseEntity<?> getReaction(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user) {
-        if (user == null)
-            throw new UnAuthenticateException();
+    @ApiOperation("Lấy danh sách những người đã bày tỏ cảm xúc về tin nhắn này")
+    public ResponseEntity<?> getReaction(@PathVariable String messageId, @ApiIgnore @AuthenticationPrincipal User user, Locale locale) {
         Optional<Message> optionalMessage = messageService.findById(messageId);
-        if (optionalMessage.isEmpty())
-            throw new MessageNotFoundException();
+        if (optionalMessage.isEmpty()) {
+            String messageNotFound = messageSource.getMessage("message_not_found", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(messageNotFound));
+        }
         List<Reaction> reactions = optionalMessage.get().getReactions();
         if (reactions != null) {
             List<ReactionDto> dto = reactions.stream().map(reactionMapper::toReactionDto)

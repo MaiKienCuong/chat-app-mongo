@@ -9,15 +9,15 @@ import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+@Slf4j
 @Controller
 public class ChatController {
 
@@ -33,11 +33,9 @@ public class ChatController {
     @Autowired
     private ChatSocketService chatSocketService;
 
-    private static final Logger logger = Logger.getLogger(ChatController.class.getName());
-
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageFromClient messageDto, UserPrincipal userPrincipal) {
-        logger.log(Level.INFO, "message from client = {0}", messageDto);
+        log.info("message from client = {}", messageDto);
 
         String userId = userPrincipal.getName();
         String accessToken = userPrincipal.getAccessToken();
@@ -61,11 +59,14 @@ public class ChatController {
                             .content(messageDto.getContent())
                             .replyId(messageDto.getReplyId())
                             .build();
-                    logger.log(Level.INFO, "sending message = {0} to websocket", message);
+                    log.info("sending message = {} to websocket", message);
                     chatSocketService.sendMessage(message, room, userId);
-                }
-            }
-        }
+                } else
+                    log.error("userId = {} is not member of roomId = {}", userId, room.getId());
+            } else
+                log.error("roomId = {} not exists", messageDto.getRoomId());
+        } else
+            log.error("userId or access token is null");
     }
 
 }

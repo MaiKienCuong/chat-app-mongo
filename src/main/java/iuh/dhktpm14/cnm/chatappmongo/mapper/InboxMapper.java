@@ -4,11 +4,13 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.InboxDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.InboxSummaryDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -31,22 +33,19 @@ public class InboxMapper {
     @Autowired
     private ReadTrackingService readTrackingService;
 
+    @Autowired
+    private MessageSource messageSource;
+
     public InboxDto toInboxDto(String inboxId) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (user == null)
-            throw new UnAuthenticateException();
+        authenticate();
         if (inboxId == null)
             return null;
         Optional<Inbox> inboxOptional = inboxService.findById(inboxId);
-        if (inboxOptional.isEmpty())
-            return null;
-        return toInboxDto(inboxOptional.get());
+        return toInboxDto(inboxOptional.orElse(null));
     }
 
     public InboxDto toInboxDto(Inbox inbox) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (user == null)
-            throw new UnAuthenticateException();
+        var user = authenticate();
         if (inbox == null)
             return null;
         var dto = new InboxDto();
@@ -64,14 +63,21 @@ public class InboxMapper {
     }
 
     public InboxSummaryDto toInboxSummaryDto(Inbox inbox) {
-        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (user == null)
-            throw new UnAuthenticateException();
+        authenticate();
         if (inbox == null)
             return null;
         var dto = new InboxSummaryDto();
         dto.setId(inbox.getId());
         dto.setRoom(roomMapper.toRoomSummaryDto(inbox.getRoomId()));
         return dto;
+    }
+
+    private User authenticate() {
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user == null) {
+            String message = messageSource.getMessage("unauthorized", null, LocaleContextHolder.getLocale());
+            throw new MyException(message);
+        }
+        return user;
     }
 }

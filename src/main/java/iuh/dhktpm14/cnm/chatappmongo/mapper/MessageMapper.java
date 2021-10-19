@@ -37,10 +37,7 @@ public class MessageMapper {
         if (messageId == null)
             return null;
         Optional<Message> messageOptional = messageService.findById(messageId);
-        if (messageOptional.isEmpty())
-            return null;
-
-        return toMessageDto(messageOptional.get());
+        return toMessageDto(messageOptional.orElse(null));
     }
 
     public MessageDto toMessageDto(Message message) {

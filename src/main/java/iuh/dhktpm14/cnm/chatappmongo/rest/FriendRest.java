@@ -7,13 +7,15 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.FriendDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
+import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -32,9 +34,11 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/friends")
 @CrossOrigin("${spring.security.cross_origin}")
@@ -55,6 +59,9 @@ public class FriendRest {
     @Autowired
     private FriendRequestService friendRequestService;
 
+    @Autowired
+    private MessageSource messageSource;
+
     /**
      * lấy danh sách bạn bè của người dùng hiện tại đã đăng nhập
      */
@@ -62,8 +69,7 @@ public class FriendRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy danh sách bạn bè")
     public ResponseEntity<?> getAllFriendOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
-        if (user == null)
-            throw new UnAuthenticateException();
+        log.info("get all friend of userId = {}, page = {}, size = {}", user.getId(), pageable.getPageNumber(), pageable.getPageSize());
         Page<Friend> friendPage = friendService.getAllFriendOfUser(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendDto(friendPage));
@@ -75,20 +81,28 @@ public class FriendRest {
     @DeleteMapping("/{deleteId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Xóa bạn bè")
-    public ResponseEntity<?> deleteFriend(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String deleteId) {
-        if (user == null)
-            throw new UnAuthenticateException();
+    public ResponseEntity<?> deleteFriend(@ApiIgnore @AuthenticationPrincipal User user,
+                                          @PathVariable String deleteId,
+                                          Locale locale) {
+        log.info("delete friend between userId = {} and userId = {}", user.getId(), deleteId);
         // xóa bạn bè với chính mình
-        if (deleteId.equals(user.getId()))
+        if (deleteId.equals(user.getId())) {
+            log.error("can not delete friend with myself");
             return ResponseEntity.badRequest().build();
+        }
         // deleteId không tồn tại trong database
-        if (! userDetailService.existsById(deleteId))
-            return ResponseEntity.badRequest().build();
+        if (! userDetailService.existsById(deleteId)) {
+            String message = messageSource.getMessage("user_not_found", null, locale);
+            log.error(message);
+            return ResponseEntity.badRequest().body(new MessageResponse(message));
+        }
         // chỉ xóa khi hai người là bạn bè
         if (friendService.isFriend(user.getId(), deleteId)) {
+            log.info("deleting friend in database");
             friendService.deleteFriend(user.getId(), deleteId);
             return ResponseEntity.ok().build();
         }
+        log.error("userId = {} and userId = {} are not friend", user.getId(), deleteId);
         return ResponseEntity.badRequest().build();
     }
 
@@ -96,8 +110,8 @@ public class FriendRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Đồng bộ danh bạ")
     public ResponseEntity<?> syncContactForMobile(@ApiIgnore @AuthenticationPrincipal User user, @RequestBody List<Contact> contacts) {
-        if (user == null)
-            throw new UnAuthenticateException();
+        log.info("sync contact of userId = {}", user.getId());
+        log.info("contacts = {}", contacts);
         List<ContactSync> contactSyncs = new ArrayList<>();
         if (contacts != null && ! contacts.isEmpty()) {
             for (Contact contact : contacts) {
@@ -105,12 +119,14 @@ public class FriendRest {
                 if (userOptional.isPresent()) {
                     var u = userOptional.get();
                     var friendStatus = FriendStatus.NONE;
+
                     if (friendService.isFriend(user.getId(), u.getId()))
                         friendStatus = FriendStatus.FRIEND;
                     else if (friendRequestService.isSent(user.getId(), u.getId()))
                         friendStatus = FriendStatus.SENT;
                     else if (friendRequestService.isReceived(user.getId(), u.getId()))
                         friendStatus = FriendStatus.RECEIVED;
+
                     var contactSync = ContactSync.builder()
                             .user(userMapper.toUserProfileDto(u))
                             .name(contact.getName())

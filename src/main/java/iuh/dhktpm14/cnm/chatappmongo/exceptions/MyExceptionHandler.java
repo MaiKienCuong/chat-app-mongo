@@ -1,8 +1,12 @@
 package iuh.dhktpm14.cnm.chatappmongo.exceptions;
 
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,8 +33,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class MyExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @Autowired
+    private MessageSource messageSource;
 
     /**
      * Handle method argument not valid.
@@ -39,12 +47,6 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
      * Phuong thuc nay se duoc goi neu phuong thuc trong controller nhan argument
      * khong hop le
      * </p>
-     *
-     * @param ex      the ex
-     * @param headers the headers
-     * @param status  the status
-     * @param request the request
-     * @return the response entity
      */
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -54,22 +56,21 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
             List<FieldError> errors = bindingResult.getFieldErrors();
             return ResponseEntity.badRequest().body(new MessageResponse(errors.get(0).getDefaultMessage()));
         }
-        return ResponseEntity.badRequest().body(new MessageResponse("Lỗi: Dữ liệu hoặc tham số không hợp lệ"));
+        String message = messageSource.getMessage("method_argument_not_valid", null, LocaleContextHolder.getLocale());
+        log.error(message);
+        return ResponseEntity.badRequest().body(new MessageResponse(message));
     }
 
     /**
      * Handle property reference exception.
      *
      * <p>
-     * Hanlde PropertyReferenceException
+     * Handle PropertyReferenceException
      * </p>
-     *
-     * @param ex      the ex
-     * @param request the request
-     * @return the response entity
      */
     @ExceptionHandler(PropertyReferenceException.class)
     public final ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
     }
 
@@ -79,16 +80,11 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
      * <p>
      * Hanlde Exception tu dinh nghia
      * </p>
-     *
-     * @param ex      the ex
-     * @param request the request
-     * @return the response entity
      */
-    @ExceptionHandler({ MyException.class, InboxNotFoundException.class, MessageNotFoundException.class,
-            PhoneNumberExistException.class, RoomNotFoundException.class, UnAuthenticateException.class,
-            UserNotFoundException.class })
+    @ExceptionHandler({ MyException.class })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public final ResponseEntity<Object> handleMyException(Throwable ex, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
     }
 
@@ -101,18 +97,22 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(NullPointerException.class)
     public final ResponseEntity<Object> handleNullPointerException(NullPointerException ex, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse("NullPointerException: " + ex.getMessage()));
     }
 
     @Override
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex,
                                                                          HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.badRequest().body(new MessageResponse("Lỗi: Phương thức không được hỗ trợ"));
+        String message = messageSource.getMessage("method_not_supported", null, LocaleContextHolder.getLocale());
+        log.error(message);
+        return ResponseEntity.badRequest().body(new MessageResponse(message));
     }
 
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
                                                                      HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(new MessageResponse("handleHttpMediaTypeNotSupported " + ex.getMessage()));
     }
@@ -120,6 +120,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex,
                                                                       HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(new MessageResponse("handleHttpMediaTypeNotAcceptable " + ex.getMessage()));
     }
@@ -127,12 +128,14 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers,
                                                                HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse("handleMissingPathVariable " + ex.getMessage()));
     }
 
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
                                                                           HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(new MessageResponse("handleMissingServletRequestParameter " + ex.getMessage()));
     }
@@ -140,6 +143,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex,
                                                                           HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(new MessageResponse("handleServletRequestBindingException " + ex.getMessage()));
     }
@@ -147,30 +151,37 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleConversionNotSupported(ConversionNotSupportedException ex,
                                                                   HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse("handleConversionNotSupported " + ex.getMessage()));
     }
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers,
                                                         HttpStatus status, WebRequest request) {
-        return ResponseEntity.badRequest().body(new MessageResponse("Lỗi: Kiểu dữ liệu không hợp lệ."));
+        String message = messageSource.getMessage("method_argument_not_valid", null, LocaleContextHolder.getLocale());
+        log.error(message);
+        return ResponseEntity.badRequest().body(new MessageResponse(message));
     }
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.badRequest().body(new MessageResponse("Lỗi: Dữ liệu không hợp lệ hoặc sai cú pháp."));
+        String message = messageSource.getMessage("method_argument_not_valid", null, LocaleContextHolder.getLocale());
+        log.error(message);
+        return ResponseEntity.badRequest().body(new MessageResponse(message));
     }
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex,
                                                                   HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse("handleHttpMessageNotWritable " + ex.getMessage()));
     }
 
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
                                                                      HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(new MessageResponse("handleMissingServletRequestPart " + ex.getMessage()));
     }
@@ -178,12 +189,14 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status,
                                                          WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse("handleBindException " + ex.getMessage()));
     }
 
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
                                                                    HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(new MessageResponse("handleNoHandlerFoundException " + ex.getMessage()));
     }
@@ -191,6 +204,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex,
                                                                         HttpHeaders headers, HttpStatus status, WebRequest webRequest) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(new MessageResponse("handleAsyncRequestTimeoutException " + ex.getMessage()));
     }
@@ -198,6 +212,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
                                                              HttpStatus status, WebRequest request) {
+        log.error(ex.getMessage());
         return ResponseEntity.badRequest().body(new MessageResponse("handleExceptionInternal " + ex.getMessage()));
     }
 

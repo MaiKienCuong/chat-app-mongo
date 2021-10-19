@@ -9,7 +9,6 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
-import iuh.dhktpm14.cnm.chatappmongo.exceptions.UnAuthenticateException;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.InboxMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
@@ -18,6 +17,7 @@ import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -41,10 +41,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/inboxs")
 @CrossOrigin("${spring.security.cross_origin}")
@@ -74,22 +73,20 @@ public class InboxRest {
     @Autowired
     private AppUserDetailService userDetailService;
 
-    private static final Logger logger = Logger.getLogger(InboxRest.class.getName());
-
     /**
      * lấy tất cả inbox của người dùng hiện tại
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy danh sách cuộc trò chuyện")
-    public ResponseEntity<?> getAllInboxOfCurrentUser(@RequestParam Optional<RoomType> type, @ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
-        if (user == null)
-            throw new UnAuthenticateException();
+    public ResponseEntity<?> getAllInboxOfCurrentUser(@RequestParam Optional<RoomType> type,
+                                                      @ApiIgnore @AuthenticationPrincipal User user,
+                                                      Pageable pageable) {
         /*
         không phân trang khi lấy chat group
          */
-        logger.log(Level.INFO, "get all inbox of userId = {0}", user.getId());
-        logger.log(Level.INFO, "get all inbox page = {0}, size = {1}", new Object[]{ pageable.getPageNumber(), pageable.getPageSize() });
+        log.info("get all inbox with type = {} of userId = {}, page = {}, size = {}",
+                type, user.getId(), pageable.getPageNumber(), pageable.getPageSize());
         if (type.isPresent() && type.get().equals(RoomType.GROUP)) {
             Page<Inbox> inboxPage = inboxService.getAllInboxOfUser(user.getId(), Pageable.unpaged());
             return ResponseEntity.ok(toInboxGroupDto(inboxPage));
@@ -103,11 +100,11 @@ public class InboxRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy inbox theo userId và roomId")
     public ResponseEntity<?> getInboxByUserIdAndRoomId(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String roomId) {
-        if (user == null)
-            throw new UnAuthenticateException();
+        log.info("get inbox of userId = {} in roomId = {}", user.getId(), roomId);
         Optional<Inbox> inboxOptional = inboxService.findByOfUserIdAndRoomId(user.getId(), roomId);
         if (inboxOptional.isPresent())
             return ResponseEntity.ok(inboxMapper.toInboxDto(inboxOptional.get()));
+        log.error("inbox is not exists");
         return ResponseEntity.badRequest().build();
     }
 
@@ -120,15 +117,16 @@ public class InboxRest {
     public ResponseEntity<?> deleteInbox(@PathVariable String inboxId,
                                          @ApiIgnore @AuthenticationPrincipal User user,
                                          Locale locale) {
-        if (user == null)
-            throw new UnAuthenticateException();
+        log.info("delete inbox with inboxId = {}", inboxId);
         Optional<Inbox> inboxOptional = inboxService.findById(inboxId);
         if (inboxOptional.isEmpty()) {
+            log.error("inbox is not exists");
             String message = messageSource.getMessage("delete_inbox_failed_try_again", null, locale);
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
         var inbox = inboxOptional.get();
         if (user.getId().equals(inbox.getOfUserId())) {
+            log.info("deleting in database");
             inboxService.updateEmptyStatusInbox(inboxId, true);
 
             // xóa tất cả message liên kết với inbox này, không xóa trong collection message
@@ -138,27 +136,37 @@ public class InboxRest {
             readTrackingService.resetUnreadMessageToZero(inbox.getRoomId(), user.getId());
             return ResponseEntity.ok().build();
         }
+        log.error("inbox is not exists");
         return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/with/{anotherUserId}")
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy inbox với người này nếu có")
-    public ResponseEntity<?> getAllInboxOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String anotherUserId) {
-        if (user == null)
-            throw new UnAuthenticateException();
-        if (anotherUserId == null)
+    public ResponseEntity<?> getInboxBetweenTwoUser(@ApiIgnore @AuthenticationPrincipal User user,
+                                                    @PathVariable String anotherUserId,
+                                                    Locale locale) {
+        log.info("getting inbox between userId = {} and userId = {}", user.getId(), anotherUserId);
+        if (anotherUserId == null) {
+            log.error("anotherUserId is null");
             return ResponseEntity.badRequest().build();
-        if (anotherUserId.equals(user.getId()))
+        }
+        if (anotherUserId.equals(user.getId())) {
+            log.error("can not get inbox with myself");
             return ResponseEntity.badRequest().build();
-        if (! userDetailService.existsById(anotherUserId))
-            return ResponseEntity.badRequest().build();
+        }
+        if (! userDetailService.existsById(anotherUserId)) {
+            String message = messageSource.getMessage("user_not_found", null, locale);
+            log.error(message);
+            return ResponseEntity.badRequest().body(new MessageResponse(message));
+        }
         var room = roomService.findCommonRoomBetween(user.getId(), anotherUserId);
         /*
         nếu 2 người này chưa có room chung thì trả về room và inbox với id là null
         nhưng vẫn set thuộc tính "to" cho room để client hiện tên và ảnh của người kia
          */
         if (room == null) {
+            log.info("room between userId = {} and userId = {} is null", user.getId(), anotherUserId);
             var r = new RoomSummaryDto();
             r.setId(null);
             r.setType(RoomType.ONE);
@@ -172,12 +180,16 @@ public class InboxRest {
         /*
         nếu có room chung rồi thì trả về inbox của người dùng hiện tại trong room đó
          */
+        log.info("room between userId = {} and userId = {} is exists in database", user.getId(), anotherUserId);
         Optional<Inbox> inbox = inboxService.findByOfUserIdAndRoomId(user.getId(), room.getId());
-        if (inbox.isPresent())
+        if (inbox.isPresent()) {
+            log.info("inbox of current user exists in database with id = {}", inbox.get().getId());
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(inbox.get()));
+        }
         /*
         nếu room đã tồn tại mà người dùng hiện tại chưa có inbox thì trả về inbox với id là null
          */
+        log.info("inbox of current user is null");
         var dto = new InboxSummaryDto();
         dto.setId(null);
         dto.setRoom(room);
@@ -192,12 +204,15 @@ public class InboxRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Tạo room và inbox mới cho anotherUserId")
     public ResponseEntity<?> createNewRoomAndNewInbox(@ApiIgnore @AuthenticationPrincipal User user, @PathVariable String anotherUserId) {
-        if (user == null)
-            throw new UnAuthenticateException();
-        if (anotherUserId == null)
+        log.info("create new room and new inbox for userId = {} and userId = {}", user.getId(), anotherUserId);
+        if (anotherUserId == null) {
+            log.error("anotherUserId is null");
             return ResponseEntity.badRequest().build();
-        if (anotherUserId.equals(user.getId()))
+        }
+        if (anotherUserId.equals(user.getId())) {
+            log.error("can not create inbox with myself");
             return ResponseEntity.badRequest().build();
+        }
         var room = roomService.findCommonRoomBetween(user.getId(), anotherUserId);
         /*
         nếu room == null thì tạo room và inbox cho 2 người rồi trả về cho client  inbox của người dùng hiện tại
@@ -211,10 +226,9 @@ public class InboxRest {
                     .type(RoomType.ONE)
                     .build();
             roomService.save(newRoom);
-            logger.log(Level.INFO, "room between userId = {0} and userId = {1} is null, creating new room",
-                    new Object[]{ user.getId(), anotherUserId });
+            log.info("room between userId = {} and userId = {} is null, creating new room",
+                    user.getId(), anotherUserId);
             var myInbox = createAndSaveInboxForUserInRoom(user.getId(), newRoom.getId());
-//            createAndSaveInboxForUserInRoom(anotherUserId, newRoom.getId());
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(myInbox));
         } else {
             /*
@@ -222,33 +236,26 @@ public class InboxRest {
             nếu có rồi thì kiểm tra tiếp xem người dùng thứ 2 kia đã có inbox của room hay chưa
             nếu chưa có thì tạo inbox cho người dùng thứ 2
              */
-            logger.log(Level.INFO, "room between userId = {0} and userId = {1} is not null, find exists inbox",
-                    new Object[]{ user.getId(), anotherUserId });
+            log.info("room between userId = {} and userId = {} is not null, find exists inbox",
+                    user.getId(), anotherUserId);
             Optional<Inbox> myInbox = inboxService.findByOfUserIdAndRoomId(user.getId(), room.getId());
             if (myInbox.isPresent()) {
-                logger.log(Level.INFO, "inbox of userId = {0} in roomId = {1} is not run, returning...",
-                        new Object[]{ user.getId(), room.getId() });
-//                Optional<Inbox> inboxOfAnotherUser = inboxRepository.findByOfUserIdAndRoomId(anotherUserId, room.getId());
-//                if (inboxOfAnotherUser.isEmpty()) {
-//                    System.out.println("inbox of two user empty, create new inbox for second user");
-//                    createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
-//                }
+                log.info("inbox of userId = {} in roomId = {} is not null, returning...",
+                        user.getId(), room.getId());
                 return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(myInbox.get()));
             }
             /*
             hai người mới chỉ có room chung, chưa ai có inbox nên tạo inbox cho 2 người
              */
-            logger.log(Level.INFO, "inbox of userId = {0} and userId = {1} is null, creating new 2 inbox",
-                    new Object[]{ user.getId(), anotherUserId });
+            log.info("inbox of userId = {} and userId = {} is null, creating new 2 inbox",
+                    user.getId(), anotherUserId);
             var firstInbox = createAndSaveInboxForUserInRoom(user.getId(), room.getId());
-//            createAndSaveInboxForUserInRoom(anotherUserId, room.getId());
             return ResponseEntity.ok(inboxMapper.toInboxSummaryDto(firstInbox));
         }
     }
 
     private Inbox createAndSaveInboxForUserInRoom(String userId, String roomId) {
-        logger.log(Level.INFO, "creating new inbox of userId = {0} in roomId = {1}",
-                new Object[]{ userId, roomId });
+        log.info("creating new inbox of userId = {} in roomId = {}", userId, roomId);
         var inbox = Inbox.builder()
                 .roomId(roomId)
                 .ofUserId(userId)
@@ -272,8 +279,8 @@ public class InboxRest {
         List<Inbox> content = inboxPage.getContent();
         List<InboxDto> dto = content.stream()
                 .map(x -> inboxMapper.toInboxDto(x))
-                .sorted()
                 .filter(x -> x.getRoom().getType().equals(RoomType.GROUP))
+                .sorted()
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
     }
