@@ -83,7 +83,7 @@ public class AuthenticationRest {
 
     @GetMapping("/refreshtoken")
     public ResponseEntity<?> getRefreshToken(@CookieValue(value = Utils.REFRESH_TOKEN) String requestRefreshToken, HttpServletResponse response, Locale locale) {
-        log.info("refreshing token");
+        log.info("refreshing token = {}", requestRefreshToken);
         if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
             String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
             Optional<User> userOptional = userDetailService.findById(userId);

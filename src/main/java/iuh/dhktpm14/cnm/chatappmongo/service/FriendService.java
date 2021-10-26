@@ -16,6 +16,10 @@ public class FriendService {
     @Autowired
     private FriendRepository friendRepository;
 
+    public List<Friend> findAllByDisplayNameOrPhoneLike(String currentUserId, String query) {
+        return friendRepository.findAllByDisplayNameOrPhoneLike(currentUserId, String.format(".*%s.*", query), query);
+    }
+
     /**
      * lấy danh sách bạn bè của người dùng hiện tại
      */

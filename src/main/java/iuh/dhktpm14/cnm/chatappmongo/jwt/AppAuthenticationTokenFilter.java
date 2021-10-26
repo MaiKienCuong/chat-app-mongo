@@ -75,7 +75,7 @@ public class AppAuthenticationTokenFilter extends OncePerRequestFilter {
             headerAuth = headerAuth.replace("Bearer", "").trim();
             return headerAuth;
         }
-        log.error("Authorization header is null");
+        log.error("Authorization header is null, path = {}", request.getRequestURI());
         return null;
     }
 }

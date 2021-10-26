@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -68,8 +69,18 @@ public class FriendRest {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Lấy danh sách bạn bè")
-    public ResponseEntity<?> getAllFriendOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
+    public ResponseEntity<?> getAllFriendOfCurrentUser(@ApiIgnore @AuthenticationPrincipal User user,
+                                                       Pageable pageable,
+                                                       @RequestParam Optional<String> query) {
         log.info("get all friend of userId = {}, page = {}, size = {}", user.getId(), pageable.getPageNumber(), pageable.getPageSize());
+        log.info("query = {}", query);
+        if (query.isPresent()) {
+            List<Friend> friends = friendService.findAllByDisplayNameOrPhoneLike(user.getId(), query.get());
+            List<FriendDto> friendDto = friends.stream()
+                    .map(x -> friendMapper.toFriendDto(x))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(friendDto);
+        }
         Page<Friend> friendPage = friendService.getAllFriendOfUser(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendDto(friendPage));
