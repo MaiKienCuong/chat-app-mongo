@@ -204,11 +204,14 @@ public class FriendRequestRest {
         Set<Member> members = new HashSet<>();
         members.add(Member.builder().userId(user.getId()).build());
         members.add(Member.builder().userId(idToAccept).build());
-        var room = Room.builder()
-                .type(RoomType.ONE)
-                .members(members)
-                .build();
-        roomService.save(room);
+        var room = roomService.findCommonRoomBetween(user.getId(), idToAccept);
+        if (room == null) {
+            room = Room.builder()
+                    .type(RoomType.ONE)
+                    .members(members)
+                    .build();
+            roomService.save(room);
+        }
         var message = Message.builder()
                 .type(MessageType.SYSTEM)
                 .content(content)

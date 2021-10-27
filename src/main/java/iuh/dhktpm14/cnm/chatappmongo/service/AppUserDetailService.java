@@ -8,6 +8,8 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -80,16 +82,18 @@ public class AppUserDetailService implements UserDetailsService {
 
     public void sendVerificationEmail(User user) throws UnsupportedEncodingException, MessagingException {
         int verificationCode = random.nextInt((999999 - 100000) + 1) + 100000;
-        setVerificationCode(user.getId(), verificationCode + "");
+//        setVerificationCode(user.getId(), verificationCode + "");
+        user.setVerificationCode(String.valueOf(verificationCode));
+        userRepository.save(user);
 
-        logger.log(Level.INFO, "email verification code = {0}", verificationCode);
+        logger.log(Level.INFO, "email verification code = {0}", String.valueOf(verificationCode));
 
         String toAddress = user.getEmail();
         var fromAddress = "chat_app_email";
         var senderName = messageSource.getMessage("verification_sender_name_in_mail", null, LocaleContextHolder.getLocale());
         var subject = messageSource.getMessage("verification_subject_in_mail", null, LocaleContextHolder.getLocale());
         var content = messageSource.getMessage("verification_content_in_mail",
-                new Object[]{ user.getDisplayName(), user.getVerificationCode() }, LocaleContextHolder.getLocale());
+                new Object[]{ user.getDisplayName(), String.valueOf(verificationCode) }, LocaleContextHolder.getLocale());
 
         var message = mailSender.createMimeMessage();
         var helper = new MimeMessageHelper(message);
@@ -237,4 +241,7 @@ public class AppUserDetailService implements UserDetailsService {
         return userRepository.existsByPhoneNumber(phoneNumber);
     }
 
+    public Page<User> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
 }

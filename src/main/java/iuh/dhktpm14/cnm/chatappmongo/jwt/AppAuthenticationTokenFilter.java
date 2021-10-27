@@ -1,13 +1,13 @@
 package iuh.dhktpm14.cnm.chatappmongo.jwt;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -44,7 +44,7 @@ public class AppAuthenticationTokenFilter extends OncePerRequestFilter {
             if (findById.isEmpty()) {
                 String userNotFound = messageSource.getMessage("user_not_found", null, RequestContextUtils.getLocale(request));
                 log.error(userNotFound);
-                throw new UsernameNotFoundException(userNotFound);
+                throw new MyException(userNotFound);
             }
             var userDetails = findById.get();
             var authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
