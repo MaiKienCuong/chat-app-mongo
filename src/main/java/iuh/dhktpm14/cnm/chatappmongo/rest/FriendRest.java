@@ -75,11 +75,13 @@ public class FriendRest {
         log.info("get all friend of userId = {}, page = {}, size = {}", user.getId(), pageable.getPageNumber(), pageable.getPageSize());
         log.info("query = {}", query);
         if (query.isPresent()) {
-            List<Friend> friends = friendService.findAllByDisplayNameOrPhoneLike(user.getId(), query.get());
-            List<FriendDto> friendDto = friends.stream()
-                    .map(x -> friendMapper.toFriendDto(x))
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(friendDto);
+            if (! query.get().trim().isEmpty()) {
+                List<Friend> friends = friendService.findAllByDisplayNameOrPhoneLike(user.getId(), query.get());
+                List<FriendDto> friendDto = friends.stream()
+                        .map(x -> friendMapper.toFriendDto(x))
+                        .collect(Collectors.toList());
+                return ResponseEntity.ok(friendDto);
+            }
         }
         Page<Friend> friendPage = friendService.getAllFriendOfUser(user.getId(), pageable);
 
