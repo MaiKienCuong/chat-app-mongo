@@ -74,14 +74,9 @@ public class FriendRest {
                                                        @RequestParam Optional<String> query) {
         log.info("get all friend of userId = {}, page = {}, size = {}", user.getId(), pageable.getPageNumber(), pageable.getPageSize());
         log.info("query = {}", query);
-        if (query.isPresent()) {
-            if (! query.get().trim().isEmpty()) {
-                List<Friend> friends = friendService.findAllByDisplayNameOrPhoneLike(user.getId(), query.get());
-                List<FriendDto> friendDto = friends.stream()
-                        .map(x -> friendMapper.toFriendDto(x))
-                        .collect(Collectors.toList());
-                return ResponseEntity.ok(friendDto);
-            }
+        if (query.isPresent() && ! query.get().trim().isEmpty()) {
+            Page<Friend> friendDtoPage = friendService.findByUsernameOrPhoneOrDisplayNameRegex(user.getId(), query.get(), pageable);
+            return ResponseEntity.ok(toFriendDto(friendDtoPage));
         }
         Page<Friend> friendPage = friendService.getAllFriendOfUser(user.getId(), pageable);
 
