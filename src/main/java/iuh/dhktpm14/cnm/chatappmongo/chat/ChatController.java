@@ -17,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Slf4j
@@ -58,6 +59,7 @@ public class ChatController {
                     var message = Message.builder()
                             .roomId(room.getId())
                             .senderId(userId)
+                            .createAt(new Date())
                             .type(messageDto.getType())
                             .content(messageDto.getContent())
                             .replyId(messageDto.getReplyId())

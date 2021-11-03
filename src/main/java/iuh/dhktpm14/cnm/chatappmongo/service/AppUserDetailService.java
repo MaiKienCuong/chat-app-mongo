@@ -6,6 +6,7 @@ import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoleType;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -190,6 +191,7 @@ public class AppUserDetailService implements UserDetailsService {
         mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
     }
 
+    @Cacheable("user")
     public Optional<User> findById(String id) {
         return userRepository.findById(id);
     }
