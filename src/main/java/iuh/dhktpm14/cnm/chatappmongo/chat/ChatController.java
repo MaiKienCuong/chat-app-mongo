@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
 import java.util.Optional;
@@ -49,6 +51,7 @@ public class ChatController {
             Optional<User> userOptional = userDetailService.findById(userId);
 
             if (roomOptional.isPresent() && userOptional.isPresent()) {
+                setAuthentication(userOptional.get());
                 var room = roomOptional.get();
                 var member = Member.builder().userId(userId).build();
                 if (room.getMembers().contains(member)) {
@@ -67,6 +70,14 @@ public class ChatController {
                 log.error("roomId = {} not exists", messageDto.getRoomId());
         } else
             log.error("userId or access token is null");
+    }
+
+    private void setAuthentication(User user) {
+        var authentication = new UsernamePasswordAuthenticationToken(user, null,
+                user.getAuthorities());
+        var context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
     }
 
 }
