@@ -81,18 +81,25 @@ public class InboxRest {
     @ApiOperation("Lấy danh sách cuộc trò chuyện")
     public ResponseEntity<?> getAllInboxOfCurrentUser(@RequestParam Optional<RoomType> type,
                                                       @ApiIgnore @AuthenticationPrincipal User user,
-                                                      Pageable pageable) {
+                                                      Pageable pageable,
+                                                      @RequestParam Optional<String> query) {
         /*
         không phân trang khi lấy chat group
          */
         log.info("get all inbox with type = {} of userId = {}, page = {}, size = {}",
                 type, user.getId(), pageable.getPageNumber(), pageable.getPageSize());
-        if (type.isPresent() && type.get().equals(RoomType.GROUP)) {
-            Page<Inbox> inboxPage = inboxService.getAllInboxOfUser(user.getId(), Pageable.unpaged());
-            return ResponseEntity.ok(toInboxGroupDto(inboxPage));
+        log.info("query = {}", query);
+        log.info("type = {}", type);
+        if (query.isPresent()) {
+            if (type.isPresent() && type.get().equals(RoomType.GROUP)) {
+                Page<Inbox> inboxPage = inboxService.searchInboxWithName(user.getId(), query.get(), type.get().toString(), pageable);
+                return ResponseEntity.ok(toInboxDto(inboxPage, true));
+            }
+            Page<Inbox> inboxPage = inboxService.searchInboxWithName(user.getId(), query.get(), "", pageable);
+            return ResponseEntity.ok(toInboxDto(inboxPage, false));
         } else {
             Page<Inbox> inboxPage = inboxService.getAllInboxOfUser(user.getId(), pageable);
-            return ResponseEntity.ok(toInboxDto(inboxPage));
+            return ResponseEntity.ok(toInboxDto(inboxPage, type.isPresent() && type.get().equals(RoomType.GROUP)));
         }
     }
 
@@ -266,20 +273,11 @@ public class InboxRest {
     /**
      * chuyển từ Page inbox sang page inboxDto
      */
-    private Page<?> toInboxDto(Page<Inbox> inboxPage) {
+    private Page<?> toInboxDto(Page<Inbox> inboxPage, boolean onlyChatGroup) {
         List<Inbox> content = inboxPage.getContent();
         List<InboxDto> dto = content.stream()
                 .map(x -> inboxMapper.toInboxDto(x))
-                .sorted()
-                .collect(Collectors.toList());
-        return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());
-    }
-
-    private Page<?> toInboxGroupDto(Page<Inbox> inboxPage) {
-        List<Inbox> content = inboxPage.getContent();
-        List<InboxDto> dto = content.stream()
-                .map(x -> inboxMapper.toInboxDto(x))
-                .filter(x -> x.getRoom().getType().equals(RoomType.GROUP))
+                .filter(x -> ! onlyChatGroup || x.getRoom().getType().equals(RoomType.GROUP))
                 .sorted()
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());

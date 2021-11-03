@@ -5,10 +5,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxMessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.InboxRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
-import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,13 +30,13 @@ public class MessageService {
     private MessageRepository messageRepository;
 
     @Autowired
-    private RoomRepository roomRepository;
+    private RoomService roomService;
 
     @Autowired
-    private InboxRepository inboxRepository;
+    private InboxService inboxService;
 
     @Autowired
-    private InboxMessageRepository inboxMessageRepository;
+    private InboxMessageService inboxMessageService;
 
     private static final Logger logger = Logger.getLogger(MessageService.class.getName());
 
@@ -77,15 +74,15 @@ public class MessageService {
             return false;
 
         var message = messageOptional.get();
-        Optional<Room> roomOptional = roomRepository.findById(message.getRoomId());
+        Optional<Room> roomOptional = roomService.findById(message.getRoomId());
         if (roomOptional.isEmpty())
             return false;
 
         var room = roomOptional.get();
-        if (! roomRepository.isMemberOfRoom(userId, room.getId()))
+        if (! roomService.isMemberOfRoom(userId, room.getId()))
             return false;
 
-        Optional<Inbox> inboxOptional = inboxRepository.findByOfUserIdAndRoomId(userId, room.getId());
+        Optional<Inbox> inboxOptional = inboxService.findByOfUserIdAndRoomId(userId, room.getId());
         if (inboxOptional.isEmpty())
             return false;
 
@@ -93,14 +90,14 @@ public class MessageService {
         if (inbox.isEmpty())
             return false;
 
-        return inboxMessageRepository.existsByInboxIdAndMessageId(inbox.getId(), messageId);
+        return inboxMessageService.existsByInboxIdAndMessageId(inbox.getId(), messageId);
     }
 
     public Optional<Message> getLastMessageOfRoom(String userId, String roomId) {
-        Optional<Inbox> inboxOptional = inboxRepository.findByOfUserIdAndRoomId(userId, roomId);
+        Optional<Inbox> inboxOptional = inboxService.findByOfUserIdAndRoomId(userId, roomId);
         if (inboxOptional.isPresent()) {
             var inbox = inboxOptional.get();
-            Optional<InboxMessage> inboxMessageOptional = inboxMessageRepository.getLastMessageByInbox(inbox.getId());
+            Optional<InboxMessage> inboxMessageOptional = inboxMessageService.getLastMessageByInbox(inbox.getId());
             if (inboxMessageOptional.isPresent()) {
                 var inboxMessage = inboxMessageOptional.get();
                 if (inboxMessage.getMessageId() != null)
@@ -128,5 +125,24 @@ public class MessageService {
     public Optional<Message> findById(String messageId) {
         return messageRepository.findById(messageId);
     }
+
+    /*public Optional<Message> getLastMessageOfRoom2(String userId, String roomId) {
+        var aggregation = Aggregation.newAggregation(
+                new CustomAggregationOperation("{$match: {$and: [{ofUserId: {$eq: '" + userId + "'}}, {roomId: {$eq: '" + roomId + "'}}]}}"),
+                new CustomAggregationOperation("{$lookup: {from: 'inboxMessage', let: {iId: {$toString: '$_id'}},  pipeline: [{$sort: {'messageCreateAt': -1}},{$match: {$expr: {$eq: ['$inboxId', '$$iId']}}}, {$limit:1}], as: 'inboxMessage'}}"),
+                new CustomAggregationOperation("{$unwind: '$inboxMessage'}"),
+                new CustomAggregationOperation("{$project: {inboxMessage:1, _id:0}}"),
+                new CustomAggregationOperation("{$replaceRoot: {newRoot: '$inboxMessage'}}"),
+                new CustomAggregationOperation("{$lookup: {from: 'message', let: {mId: '$messageId'}, pipeline: [{$match: {$expr: {$eq: [{$toString: '$_id'}, '$$mId']}}}], as: 'message'}}"),
+                new CustomAggregationOperation("{$project: {'message':1, _id:0}}"),
+                new CustomAggregationOperation("{$unwind: '$message'}"),
+                new CustomAggregationOperation("{$replaceRoot: {newRoot: '$message'}}")
+        );
+
+        AggregationResults<Message> results = mongoTemplate.aggregate(aggregation, "inbox", Message.class);
+        if (results.getMappedResults().isEmpty())
+            return Optional.empty();
+        return Optional.ofNullable(results.getMappedResults().get(0));
+    }*/
 
 }
