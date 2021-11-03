@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import lombok.Data;
 
@@ -18,4 +19,6 @@ public class UserProfileDto implements Serializable {
     private OnlineStatus onlineStatus;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date lastOnline;
+    private FriendStatus friendStatus;
+    private String phoneNumber;
 }
