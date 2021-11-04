@@ -13,12 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
@@ -38,13 +33,38 @@ public class AdminRest {
     private UserMapper userMapper;
 
     @GetMapping(value = "/users")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @ApiOperation("Lấy danh sách tất cả user")
     public ResponseEntity<?> getAllUser(@ApiIgnore @AuthenticationPrincipal User user, Pageable pageable) {
         log.info("admin with username = {} getting all user", user.getUsername());
         Page<User> findAll = userDetailService.findAll(pageable);
         return ResponseEntity.ok(toUserProfileDto(findAll));
     }
+
+
+
+    @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Cấp tài khoản quyền admin mới")
+    public ResponseEntity<?> createNewAdminAccount(@ApiIgnore @AuthenticationPrincipal User licensor, @RequestBody User licensee) {
+        log.info("licensor = {} , licensee = {}",licensee.getUsername(),licensee.toString());
+        licensee.setRoles("ROLE_ADMIN");
+        return ResponseEntity.ok(userDetailService.save(licensee));
+    }
+    
+    
+    
+    @PostMapping("/lock_account")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Khóa tài khoản user")
+    public ResponseEntity<?> lockAccount(@ApiIgnore @AuthenticationPrincipal User admin, @RequestParam String userId){
+    	User user = userDetailService.findById(userId).get();
+    	log.info("admin = {} , locked account = {}",admin.getDisplayName(),user.toString());
+    	user.setBlock(true);
+    	return ResponseEntity.ok(userDetailService.save(user));
+    	
+    }
+
 
     @PostMapping("/users/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")

@@ -9,6 +9,9 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
@@ -18,7 +21,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableMongoAuditing
 @EnableSwagger2
-public class ChatAppMongoApplication extends SpringBootServletInitializer {
+@EnableWebSocket
+public class ChatAppMongoApplication extends SpringBootServletInitializer{
 
     public static void main(String[] args) {
         SpringApplication.run(ChatAppMongoApplication.class, args);
