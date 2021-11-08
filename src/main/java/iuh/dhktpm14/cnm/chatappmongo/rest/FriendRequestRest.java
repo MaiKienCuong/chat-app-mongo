@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -146,6 +147,7 @@ public class FriendRequestRest {
         if (! friendRequestService.isSent(user.getId(), toId) && ! friendRequestService.isReceived(user.getId(), toId)) {
             var friendRequest = FriendRequest.builder()
                     .fromId(user.getId())
+                    .createAt(new Date())
                     .toId(toId)
                     .build();
             log.info("saving friend request to database");
@@ -185,8 +187,8 @@ public class FriendRequestRest {
             friendRequestService.deleteFriendRequest(idToAccept, user.getId());
             // lưu 2 record trong database
             log.info("save friend to database");
-            friendService.save(Friend.builder().userId(user.getId()).friendId(idToAccept).build());
-            friendService.save(Friend.builder().userId(idToAccept).friendId(user.getId()).build());
+            friendService.save(Friend.builder().userId(user.getId()).friendId(idToAccept).createAt(new Date()).build());
+            friendService.save(Friend.builder().userId(idToAccept).friendId(user.getId()).createAt(new Date()).build());
 
             /*
             gửi tin nhắn hệ thống thông báo sau khi kết bạn
@@ -215,6 +217,7 @@ public class FriendRequestRest {
         var message = Message.builder()
                 .type(MessageType.SYSTEM)
                 .content(content)
+                .createAt(new Date())
                 .roomId(room.getId())
                 .build();
         chatSocketService.sendSystemMessage(message, room);

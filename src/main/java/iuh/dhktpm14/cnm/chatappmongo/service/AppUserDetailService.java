@@ -75,6 +75,7 @@ public class AppUserDetailService implements UserDetailsService {
                 .password(encoder.encode(userDto.getPassword()))
                 .phoneNumber(userDto.getPhoneNumber())
                 .enable(false)
+                .createAt(new Date())
                 .roles(RoleType.ROLE_USER.toString())
                 .build();
         userRepository.save(user);

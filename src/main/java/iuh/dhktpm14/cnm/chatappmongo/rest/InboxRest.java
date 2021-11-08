@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -92,14 +93,18 @@ public class InboxRest {
         log.info("type = {}", type);
         if (query.isPresent()) {
             if (type.isPresent() && type.get().equals(RoomType.GROUP)) {
-                Page<Inbox> inboxPage = inboxService.searchInboxWithName(user.getId(), query.get(), type.get().toString(), pageable);
-                return ResponseEntity.ok(toInboxDto(inboxPage, true));
+                Page<Inbox> inboxPage = inboxService.searchOnlyInboxGroupByName(user.getId(), query.get(), pageable);
+                return ResponseEntity.ok(toInboxDto(inboxPage));
             }
-            Page<Inbox> inboxPage = inboxService.searchInboxWithName(user.getId(), query.get(), "", pageable);
-            return ResponseEntity.ok(toInboxDto(inboxPage, false));
+            Page<Inbox> inboxPage = inboxService.searchAllInboxByName(user.getId(), query.get(), "", pageable);
+            return ResponseEntity.ok(toInboxDto(inboxPage));
         } else {
+            if (type.isPresent() && type.get().equals(RoomType.GROUP)) {
+                Page<Inbox> inboxPage = inboxService.searchOnlyInboxGroupByName(user.getId(), "", pageable);
+                return ResponseEntity.ok(toInboxDto(inboxPage));
+            }
             Page<Inbox> inboxPage = inboxService.getAllInboxOfUser(user.getId(), pageable);
-            return ResponseEntity.ok(toInboxDto(inboxPage, type.isPresent() && type.get().equals(RoomType.GROUP)));
+            return ResponseEntity.ok(toInboxDto(inboxPage));
         }
     }
 
@@ -226,10 +231,11 @@ public class InboxRest {
          */
         if (room == null) {
             Set<Member> members = new HashSet<>();
-            members.add(Member.builder().userId(user.getId()).build());
-            members.add(Member.builder().userId(anotherUserId).build());
+            members.add(Member.builder().userId(user.getId()).addTime(new Date()).build());
+            members.add(Member.builder().userId(anotherUserId).addTime(new Date()).build());
             var newRoom = Room.builder()
                     .members(members)
+                    .createAt(new Date())
                     .type(RoomType.ONE)
                     .build();
             roomService.save(newRoom);
@@ -273,11 +279,11 @@ public class InboxRest {
     /**
      * chuyển từ Page inbox sang page inboxDto
      */
-    private Page<?> toInboxDto(Page<Inbox> inboxPage, boolean onlyChatGroup) {
+    private Page<?> toInboxDto(Page<Inbox> inboxPage) {
         List<Inbox> content = inboxPage.getContent();
         List<InboxDto> dto = content.stream()
                 .map(x -> inboxMapper.toInboxDto(x))
-                .filter(x -> ! onlyChatGroup || x.getRoom().getType().equals(RoomType.GROUP))
+//                .filter(x -> ! onlyChatGroup || x.getRoom().getType().equals(RoomType.GROUP))
                 .sorted()
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, inboxPage.getPageable(), inboxPage.getTotalElements());

@@ -286,6 +286,7 @@ public class RoomRest {
         }
 
         room.setId(null);
+        room.setCreateAt(new Date());
         // xóa thành viên không tồn tại và user hiện tại nếu có
         room.getMembers().removeIf(x -> x.getUserId().equals(user.getId()) || ! userDetailService.existsById(x.getUserId()));
 
@@ -356,6 +357,7 @@ public class RoomRest {
     private void sendSystemMessage(String content, Room room) {
         var message = Message.builder()
                 .roomId(room.getId())
+                .createAt(new Date())
                 .type(MessageType.SYSTEM)
                 .content(content)
                 .build();
