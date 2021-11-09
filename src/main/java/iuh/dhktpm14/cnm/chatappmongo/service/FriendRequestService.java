@@ -65,4 +65,8 @@ public class FriendRequestService {
     public int countFriendRequestSent(String currentUserId) {
         return friendRequestRepository.countFriendRequestSent(currentUserId);
     }
+
+    public Optional<FriendRequest> findByFromIdAndToId(String fromId, String toId) {
+        return friendRequestRepository.findByFromIdAndToId(fromId, toId);
+    }
 }

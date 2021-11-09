@@ -1,8 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.mapper;
 
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestReceivedDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestSentDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.FriendRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,21 +22,16 @@ public class FriendMapper {
         return dto;
     }
 
-    public FriendRequestReceivedDto toFriendRequestReceived(FriendRequest friendRequest) {
+    public FriendRequestDto toFriendRequestDto(FriendRequest friendRequest, boolean isSent) {
         if (friendRequest == null)
             return null;
-        var dto = new FriendRequestReceivedDto();
+        var dto = new FriendRequestDto();
+        dto.setId(friendRequest.getId());
         dto.setCreateAt(friendRequest.getCreateAt());
-        dto.setFrom(userMapper.toUserProfileDto(friendRequest.getFromId()));
-        return dto;
-    }
-
-    public FriendRequestSentDto toFriendRequestSent(FriendRequest friendRequest) {
-        if (friendRequest == null)
-            return null;
-        var dto = new FriendRequestSentDto();
-        dto.setCreateAt(friendRequest.getCreateAt());
-        dto.setTo(userMapper.toUserProfileDto(friendRequest.getToId()));
+        if (isSent)
+            dto.setTo(userMapper.toUserProfileDto(friendRequest.getToId()));
+        else
+            dto.setFrom(userMapper.toUserProfileDto(friendRequest.getFromId()));
         return dto;
     }
 

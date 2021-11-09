@@ -1,8 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestReceivedDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestSentDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.FriendRequestDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.FriendRequest;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
@@ -16,6 +15,7 @@ import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
+import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,9 @@ public class FriendRequestRest {
     @Autowired
     private RoomService roomService;
 
+    @Autowired
+    private FriendRequestSocketService friendRequestSocketService;
+
     /**
      * lấy tất cả lời mời kết bạn đã nhận được
      */
@@ -82,7 +86,7 @@ public class FriendRequestRest {
                 pageable.getPageNumber(), pageable.getPageSize());
         Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestReceived(user.getId(), pageable);
 
-        return ResponseEntity.ok(toFriendRequestReceivedDto(friendRequestPage));
+        return ResponseEntity.ok(toFriendRequestDto(friendRequestPage, false));
     }
 
     @GetMapping("/count")
@@ -114,7 +118,7 @@ public class FriendRequestRest {
                 pageable.getPageNumber(), pageable.getPageSize());
         Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestSent(user.getId(), pageable);
 
-        return ResponseEntity.ok(toFriendRequestSentDto(friendRequestPage));
+        return ResponseEntity.ok(toFriendRequestDto(friendRequestPage, true));
     }
 
     /**
@@ -152,6 +156,11 @@ public class FriendRequestRest {
                     .build();
             log.info("saving friend request to database");
             friendRequestService.save(friendRequest);
+            boolean received = friendRequestSocketService.sendFriendRequestReceived(friendRequest);
+            if (received)
+                log.info("send friend request received via socket successfully");
+            else
+                log.error("send friend request received via socket fail");
             return ResponseEntity.ok().build();
         }
         log.error("friend request is already in database");
@@ -184,7 +193,16 @@ public class FriendRequestRest {
         if (friendRequestService.isReceived(user.getId(), idToAccept)) {
             log.info("accepted friend request of userId = {} to me, deleting friend request in database",
                     idToAccept);
-            friendRequestService.deleteFriendRequest(idToAccept, user.getId());
+            Optional<FriendRequest> friendRequestOptional = friendRequestService.findByFromIdAndToId(idToAccept, user.getId());
+            if (friendRequestOptional.isPresent()) {
+                boolean accept = friendRequestSocketService.sendFriendRequestAccept(friendRequestOptional.get());
+                if (accept)
+                    log.info("send friend request accept via socket successfully");
+                else
+                    log.error("send friend request accept via socket fail");
+                friendRequestService.deleteFriendRequest(idToAccept, user.getId());
+            }
+
             // lưu 2 record trong database
             log.info("save friend to database");
             friendService.save(Friend.builder().userId(user.getId()).friendId(idToAccept).createAt(new Date()).build());
@@ -247,12 +265,28 @@ public class FriendRequestRest {
         // chỉ xóa khi đã gửi lời mời đến người này
         if (friendRequestService.isSent(user.getId(), deleteId)) {
             log.info("deleting sent request");
-            friendRequestService.deleteFriendRequest(user.getId(), deleteId);
+            Optional<FriendRequest> friendRequestOptional = friendRequestService.findByFromIdAndToId(user.getId(), deleteId);
+            if (friendRequestOptional.isPresent()) {
+                boolean recall = friendRequestSocketService.sendFriendRequestRecall(friendRequestOptional.get());
+                if (recall)
+                    log.info("recall friend request via socket successfully");
+                else
+                    log.error("recall friend request via socket fail");
+                friendRequestService.deleteFriendRequest(user.getId(), deleteId);
+            }
         }
         // xóa lời mời đã nhận được
         if (friendRequestService.isReceived(user.getId(), deleteId)) {
             log.info("deleting received request");
-            friendRequestService.deleteFriendRequest(deleteId, user.getId());
+            Optional<FriendRequest> friendRequestOptional = friendRequestService.findByFromIdAndToId(deleteId, user.getId());
+            if (friendRequestOptional.isPresent()) {
+                boolean delete = friendRequestSocketService.sendFriendRequestDelete(friendRequestOptional.get());
+                if (delete)
+                    log.info("delete friend request via socket successfully");
+                else
+                    log.error("delete friend request via socket fail");
+                friendRequestService.deleteFriendRequest(deleteId, user.getId());
+            }
         }
         return ResponseEntity.ok().build();
     }
@@ -260,21 +294,10 @@ public class FriendRequestRest {
     /**
      *
      */
-    private Page<?> toFriendRequestReceivedDto(Page<FriendRequest> friendRequestPage) {
+    private Page<?> toFriendRequestDto(Page<FriendRequest> friendRequestPage, boolean isSent) {
         List<FriendRequest> content = friendRequestPage.getContent();
-        List<FriendRequestReceivedDto> dto = content.stream()
-                .map(x -> friendMapper.toFriendRequestReceived(x))
-                .collect(Collectors.toList());
-        return new PageImpl<>(dto, friendRequestPage.getPageable(), friendRequestPage.getTotalElements());
-    }
-
-    /**
-     *
-     */
-    private Page<?> toFriendRequestSentDto(Page<FriendRequest> friendRequestPage) {
-        List<FriendRequest> content = friendRequestPage.getContent();
-        List<FriendRequestSentDto> dto = content.stream()
-                .map(x -> friendMapper.toFriendRequestSent(x))
+        List<FriendRequestDto> dto = content.stream()
+                .map(x -> friendMapper.toFriendRequestDto(x, isSent))
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, friendRequestPage.getPageable(), friendRequestPage.getTotalElements());
     }

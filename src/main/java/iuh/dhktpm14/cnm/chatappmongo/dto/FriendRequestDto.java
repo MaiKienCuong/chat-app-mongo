@@ -9,7 +9,9 @@ import java.util.Date;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class FriendRequestSentDto implements Serializable {
+public class FriendRequestDto implements Serializable {
+    private String id;
+    private UserProfileDto from;
     private UserProfileDto to;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
