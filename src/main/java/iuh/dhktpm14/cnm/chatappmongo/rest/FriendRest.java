@@ -6,7 +6,6 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.ContactSync;
 import iuh.dhktpm14.cnm.chatappmongo.dto.FriendDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Friend;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
@@ -126,20 +125,11 @@ public class FriendRest {
                 Optional<User> userOptional = userDetailService.findDistinctByPhoneNumber(contact.getPhone());
                 if (userOptional.isPresent()) {
                     var u = userOptional.get();
-                    var friendStatus = FriendStatus.NONE;
-
-                    if (friendService.isFriend(user.getId(), u.getId()))
-                        friendStatus = FriendStatus.FRIEND;
-                    else if (friendRequestService.isSent(user.getId(), u.getId()))
-                        friendStatus = FriendStatus.SENT;
-                    else if (friendRequestService.isReceived(user.getId(), u.getId()))
-                        friendStatus = FriendStatus.RECEIVED;
 
                     var contactSync = ContactSync.builder()
                             .user(userMapper.toUserProfileDto(u))
                             .name(contact.getName())
                             .phone(contact.getPhone())
-                            .friendStatus(friendStatus)
                             .build();
                     contactSyncs.add(contactSync);
                 }

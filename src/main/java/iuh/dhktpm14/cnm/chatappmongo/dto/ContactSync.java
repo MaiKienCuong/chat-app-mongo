@@ -1,6 +1,5 @@
 package iuh.dhktpm14.cnm.chatappmongo.dto;
 
-import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +13,4 @@ public class ContactSync {
     private String name;
     private String phone;
     private UserProfileDto user;
-    private FriendStatus friendStatus;
 }
