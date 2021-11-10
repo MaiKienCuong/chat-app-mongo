@@ -1,11 +1,14 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ChangePasswordDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.ResetPasswordDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserDetailDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.AdminLog;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
+import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AdminLogService;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -40,6 +44,9 @@ public class AdminRest {
     
     @Autowired
     private AdminLogService adminLogService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping(value = "/list")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -66,6 +73,22 @@ public class AdminRest {
     	log.info("admin = {} update information for user = {}",admin.getDisplayName(),user.getId());
     	writeLogToDatabase(admin, user,"update information for user");
     	return ResponseEntity.ok(userDetailService.save(user));
+    }
+
+
+
+    @PostMapping("/change_password")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Thay đổi mật khẩu cho người dùng")
+    public ResponseEntity<?> ChangePasswordUser(@ApiIgnore @AuthenticationPrincipal User admin, @RequestBody ResetPasswordDto dto){
+        User user = userDetailService.findById(dto.getUserId()).get();
+        if (user==null)
+            return ResponseEntity.badRequest().body(new MessageResponse("User does not exist"));
+
+        log.info("admin = {} change password for user = {}",admin.getDisplayName(),user.getId());
+        writeLogToDatabase(admin, user,"change password for user");
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        return ResponseEntity.ok(userDetailService.save(user));
     }
 
     
