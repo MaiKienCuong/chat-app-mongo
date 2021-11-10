@@ -59,6 +59,7 @@ public class InboxMapper {
             dto.setCountNewMessage(readTracking.getUnReadMessage());
         var lastMessage = messageService.getLastMessageOfRoom(user.getId(), inbox.getRoomId());
         lastMessage.ifPresent(message -> dto.setLastMessage(messageMapper.toMessageDto(message)));
+        dto.setLastTime(inbox.getLastTime());
         return dto;
     }
 
