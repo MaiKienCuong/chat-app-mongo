@@ -2,7 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Set;
 
 @Data
-//@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RoomSummaryDto implements Serializable {
     private String id;
     private String name;
@@ -22,6 +22,6 @@ public class RoomSummaryDto implements Serializable {
     private Date createAt;
 
     private UserProfileDto to;
-    private Set<Member> members;
+    private Set<MemberDto> members;
     private String createByUserId;
 }

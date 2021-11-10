@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -408,8 +407,12 @@ public class RoomRest {
              */
             sendSystemMessage(content, roomOptional.get());
             log.info("deleting member userId = {} in roomId = {}", memberId, roomId);
-            roomService.deleteMember(memberId, roomId, user.getId());
-            return ResponseEntity.ok().build();
+            boolean deleted = roomService.deleteMember(memberId, roomId, user.getId());
+            if (deleted) {
+                roomOptional = roomService.findById(roomId);
+                return ResponseEntity.ok(roomOptional.get().getMembers().stream().map(memberMapper::toMemberDto).collect(Collectors.toList()));
+            } else
+                return ResponseEntity.badRequest().build();
         }
         log.error("error delete member userId = {} in roomId = {}", memberId, roomId);
         return ResponseEntity.badRequest().build();
@@ -465,7 +468,7 @@ public class RoomRest {
                 sendSystemMessage(content, room);
             }
         }
-        return ResponseEntity.ok(room.getMembers() != null ? room.getMembers() : new ArrayList<>(0));
+        return ResponseEntity.ok(room.getMembers().stream().map(memberMapper::toMemberDto).collect(Collectors.toList()));
     }
 
     /**

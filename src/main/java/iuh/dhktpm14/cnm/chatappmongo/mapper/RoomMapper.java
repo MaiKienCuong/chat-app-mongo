@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,7 +64,7 @@ public class RoomMapper {
             result.setCreateByUserId(room.getCreateByUserId());
             Set<Member> members = room.getMembers();
             if (members != null)
-                result.setMembers(members);
+                result.setMembers(members.stream().map(x -> memberMapper.toMemberDto(x)).sorted().collect(Collectors.toCollection(LinkedHashSet::new)));
             else
                 result.setMembers(new HashSet<>(0));
         }
@@ -99,7 +100,7 @@ public class RoomMapper {
             result.setImageUrl(room.getImageUrl());
             Set<Member> members = room.getMembers();
             if (members != null)
-                result.setMembers(members.stream().map(x -> memberMapper.toMemberDto(x)).collect(Collectors.toSet()));
+                result.setMembers(members.stream().map(x -> memberMapper.toMemberDto(x)).sorted().collect(Collectors.toCollection(LinkedHashSet::new)));
             else
                 result.setMembers(new HashSet<>(0));
         }
