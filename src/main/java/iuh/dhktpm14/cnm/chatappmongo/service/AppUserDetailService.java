@@ -224,6 +224,10 @@ public class AppUserDetailService implements UserDetailsService {
     public Optional<User> findDistinctByPhoneNumberOrUsernameOrEmail(String phoneNumber) {
         return userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(phoneNumber);
     }
+    
+    public Page<User> findAllByRoles(String roles, Pageable pageable) {
+        return userRepository.findAllByRoles(roles, pageable);
+    }
 
     public boolean existsById(String userId) {
         return userRepository.existsById(userId);
@@ -244,4 +248,6 @@ public class AppUserDetailService implements UserDetailsService {
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
+    
+    
 }

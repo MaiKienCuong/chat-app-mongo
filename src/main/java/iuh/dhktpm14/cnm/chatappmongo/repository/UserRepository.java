@@ -1,6 +1,9 @@
 package iuh.dhktpm14.cnm.chatappmongo.repository;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,6 +22,7 @@ public interface UserRepository extends MongoRepository<User, String> {
     List<User> findByIdIn(List<String> ids);
 
     Optional<User> findDistinctByUsername(String userName);
+    Page<User> findAllByRoles(String roles, Pageable pageable);
 
     Optional<User> findDistinctByEmail(String email);
 

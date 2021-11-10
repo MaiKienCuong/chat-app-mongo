@@ -3,10 +3,12 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 import iuh.dhktpm14.cnm.chatappmongo.dto.EmailDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserSignupDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserSummaryDto;
+import iuh.dhktpm14.cnm.chatappmongo.entity.AdminLog;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.jwt.JwtUtils;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.payload.SiginRequest;
+import iuh.dhktpm14.cnm.chatappmongo.service.AdminLogService;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.util.Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -43,6 +46,9 @@ import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
 @RequestMapping("/api/auth")
 @CrossOrigin("${spring.security.cross_origin}")
 public class AuthenticationRest {
+	
+    @Autowired
+    private AdminLogService adminLogService;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -55,6 +61,39 @@ public class AuthenticationRest {
 
     @Autowired
     private MessageSource messageSource;
+
+    @PostMapping(path = "/admin/signin")
+    public ResponseEntity<?> signInForAdmin(@RequestBody SiginRequest payload, HttpServletResponse response, Locale locale) {
+        log.info("authenticating for username = {}", payload.getUsername());
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(payload.getUsername(), payload.getPassword()));
+            log.info("login ok with username = {}", payload.getUsername());
+        } catch (AuthenticationException e) {
+            String loginFail = messageSource.getMessage("login_fail", null, locale);
+            log.error(loginFail);
+            return ResponseEntity.badRequest().body(new MessageResponse(loginFail));
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        var user = (User) authentication.getPrincipal();
+        String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
+        String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
+        userDetailService.setRefreshToken(user.getId(), jwtRefresh);
+
+        response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
+        if (user.getRoles().equals("ROLE_USER"))
+            return ResponseEntity.badRequest().body("Access denied");
+        AdminLog adminLog = AdminLog.builder()
+         		.handlerObjectId(user.getId())
+         		.content("is sign in")
+         		.time(new Date())
+         		.relatedObjectId(user.getId())
+         		.build();
+        adminLogService.writeLog(adminLog);
+        return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
+    }
 
     @PostMapping(path = "/signin", consumes = "application/json")
     public ResponseEntity<?> signin(@RequestBody SiginRequest payload, HttpServletResponse response, Locale locale) {
