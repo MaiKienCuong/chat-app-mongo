@@ -25,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -80,7 +81,7 @@ public class AdminRest {
     @PostMapping("/change_password")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ApiOperation("Thay đổi mật khẩu cho người dùng")
-    public ResponseEntity<?> ChangePasswordUser(@ApiIgnore @AuthenticationPrincipal User admin, @RequestBody ResetPasswordDto dto){
+    public ResponseEntity<?> ChangePasswordUser(@ApiIgnore @AuthenticationPrincipal User admin, @Valid @RequestBody ResetPasswordDto dto){
         User user = userDetailService.findById(dto.getUserId()).get();
         if (user==null)
             return ResponseEntity.badRequest().body(new MessageResponse("User does not exist"));
