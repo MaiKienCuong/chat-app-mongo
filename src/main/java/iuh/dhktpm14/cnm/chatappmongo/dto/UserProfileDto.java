@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
+import iuh.dhktpm14.cnm.chatappmongo.util.Utils;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,7 +12,7 @@ import java.util.Date;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserProfileDto implements Serializable {
+public class UserProfileDto implements Serializable, Comparable<UserProfileDto> {
     private String id;
     private String displayName;
     private String imageUrl;
@@ -21,4 +22,31 @@ public class UserProfileDto implements Serializable {
     private Date lastOnline;
     private FriendStatus friendStatus;
     private String phoneNumber;
+
+    @Override
+    public int compareTo(UserProfileDto o) {
+        if (displayName == null)
+            return 0;
+        if (o == null)
+            return 0;
+        if (o.getDisplayName() == null)
+            return 0;
+
+        String fullNameOfFirstUser = Utils.removeAccent(displayName.trim());
+        String fullNameOfSecondUser = Utils.removeAccent(o.getDisplayName().trim());
+
+        String nameOfFirstUser;
+        String nameOfSecondUser;
+        if (fullNameOfFirstUser.contains(" "))
+            nameOfFirstUser = fullNameOfFirstUser.substring(fullNameOfFirstUser.lastIndexOf(" ") + 1);
+        else
+            nameOfFirstUser = fullNameOfFirstUser;
+        if (fullNameOfSecondUser.contains(" "))
+            nameOfSecondUser = fullNameOfSecondUser.substring(fullNameOfSecondUser.lastIndexOf(" ") + 1);
+        else
+            nameOfSecondUser = fullNameOfSecondUser;
+
+        return nameOfFirstUser.compareTo(nameOfSecondUser);
+    }
+
 }

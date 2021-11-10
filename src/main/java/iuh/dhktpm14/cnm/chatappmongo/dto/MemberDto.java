@@ -22,11 +22,12 @@ public class MemberDto implements Serializable, Comparable<MemberDto> {
 
     @Override
     public int compareTo(MemberDto o) {
-        if (user != null && o != null && o.getUser() != null) {
-            var nameOfFirstUser = user.getDisplayName().substring(user.getDisplayName().lastIndexOf(" ") + 1);
-            var nameOfSecondUser = o.getUser().getDisplayName().substring(o.getUser().getDisplayName().lastIndexOf(" ") + 1);
-            return nameOfFirstUser.compareTo(nameOfSecondUser);
-        }
-        return 0;
+        if (user == null)
+            return 0;
+        if (o == null)
+            return 0;
+        if (o.getUser() == null)
+            return 0;
+        return user.compareTo(o.getUser());
     }
 }

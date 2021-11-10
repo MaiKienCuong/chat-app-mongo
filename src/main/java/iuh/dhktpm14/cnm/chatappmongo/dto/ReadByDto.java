@@ -23,6 +23,12 @@ public class ReadByDto implements Serializable, Comparable<ReadByDto> {
 
     @Override
     public int compareTo(ReadByDto o) {
-        return readAt.compareTo(o.getReadAt());
+        if (readAt == null)
+            return 0;
+        if (o == null)
+            return 0;
+        if (o.getReadAt() == null)
+            return 0;
+        return o.getReadAt().compareTo(readAt);
     }
 }
