@@ -12,6 +12,7 @@ import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
+import iuh.dhktpm14.cnm.chatappmongo.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -74,12 +75,33 @@ public class FriendRest {
         log.info("get all friend of userId = {}, page = {}, size = {}", user.getId(), pageable.getPageNumber(), pageable.getPageSize());
         log.info("query = {}", query);
         if (query.isPresent() && ! query.get().trim().isEmpty()) {
-            Page<Friend> friendDtoPage = friendService.findByUsernameOrPhoneOrDisplayNameRegex(user.getId(), query.get(), pageable);
+            String regex = Utils.removeAccent(query.get()).replace(" ", "");
+            Page<Friend> friendDtoPage = friendService.findByUsernameOrPhoneOrDisplayNameRegex(user.getId(), regex, pageable);
             return ResponseEntity.ok(toFriendDto(friendDtoPage));
         }
         Page<Friend> friendPage = friendService.getAllFriendOfUser(user.getId(), pageable);
 
         return ResponseEntity.ok(toFriendDto(friendPage));
+    }
+
+    /**
+     * lấy danh sách bạn bè của người dùng hiện tại đã đăng nhập ngoại trừ một số người
+     */
+    @PostMapping("/notIn")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Lấy danh sách bạn bè")
+    public ResponseEntity<?> getAllFriendOfCurrentUserAndFriendIdsNotIn(@ApiIgnore @AuthenticationPrincipal User user,
+                                                                        Pageable pageable,
+                                                                        @RequestParam Optional<String> query,
+                                                                        @RequestBody List<String> friendIds) {
+        if (query.isPresent() && ! query.get().trim().isEmpty()) {
+            String regex = Utils.removeAccent(query.get()).replace(" ", "");
+            Page<Friend> friendDtoPage = friendService.findByUsernameOrPhoneOrDisplayNameRegexAndFriendIdsNotIn(user.getId(), regex, friendIds, pageable);
+            return ResponseEntity.ok(List.of(toFriendDto(friendDtoPage)));
+        }
+        Page<Friend> friendPage = friendService.getAllFriendOfUserNotIn(user.getId(), friendIds, pageable);
+
+        return ResponseEntity.ok(List.of(toFriendDto(friendPage)));
     }
 
     /**

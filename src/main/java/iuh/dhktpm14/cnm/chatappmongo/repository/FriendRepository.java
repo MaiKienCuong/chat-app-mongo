@@ -7,8 +7,16 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface FriendRepository extends MongoRepository<Friend, String> {
+
+    /**
+     * lấy danh sách bạn bè của người dùng hiện tại mà id của họ đó không nằm trong friendIds
+     */
+    @Query(value = "{userId: ?0, friendId: {$nin: ?1}}", sort = "{createAt: -1}")
+    Page<Friend> getAllFriendOfUserNotIn(String currentUserId, List<String> friendIds, Pageable pageable);
 
     /**
      * lấy danh sách bạn bè của người dùng hiện tại
