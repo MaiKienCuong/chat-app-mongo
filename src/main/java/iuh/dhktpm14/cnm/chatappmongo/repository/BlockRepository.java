@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface BlockRepository extends MongoRepository<Block, String> {
 
+    @Query(value = "{userId: ?0}", sort = "{createAt: -1}")
     Page<Block> findAllByUserId(String userId, Pageable pageable);
 
     @Query(value = "{userId: ?0, blockId: ?1}", exists = true)
