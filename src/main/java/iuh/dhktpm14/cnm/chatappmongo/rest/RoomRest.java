@@ -187,6 +187,11 @@ public class RoomRest {
         Optional<Room> optional = roomService.findById(roomId);
         if (optional.isPresent()) {
             roomService.renameRoom(roomId, room.getName());
+            optional = roomService.findById(roomId);
+            String content = messageSource.getMessage("message_after_rename_room",
+                    new Object[]{ user.getDisplayName(), room.getName() }, locale);
+            sendSystemMessage(content, optional.get());
+            roomRestSocketService.sendAfterRename(optional.get());
             return ResponseEntity.ok(room.getName());
         }
         String roomNotFound = messageSource.getMessage("room_not_found", null, locale);
@@ -236,6 +241,10 @@ public class RoomRest {
             log.info("setting new image for room with url = {}", url);
             room.setImageUrl(url);
             roomService.save(room);
+            String content = messageSource.getMessage("message_after_change_image_room",
+                    new Object[]{ user.getDisplayName() }, locale);
+            sendSystemMessage(content, optional.get());
+            roomRestSocketService.sendAfterChangeImage(room);
             return ResponseEntity.ok(List.of(url));
         }
         String roomNotFound = messageSource.getMessage("room_not_found", null, locale);

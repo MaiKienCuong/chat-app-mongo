@@ -35,6 +35,24 @@ public class RoomRestSocketService {
         }
     }
 
+    public void sendAfterRename(Room room) {
+        if (valid(room)) {
+            for (Member member : room.getMembers()) {
+                messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/rename",
+                        roomMapper.toRoomSummaryDto(room));
+            }
+        }
+    }
+
+    public void sendAfterChangeImage(Room room) {
+        if (valid(room)) {
+            for (Member member : room.getMembers()) {
+                messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/changeImage",
+                        roomMapper.toRoomSummaryDto(room));
+            }
+        }
+    }
+
     private boolean valid(Room room) {
         if (room == null)
             return false;
