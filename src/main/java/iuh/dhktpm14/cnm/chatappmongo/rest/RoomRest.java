@@ -23,6 +23,7 @@ import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
+import iuh.dhktpm14.cnm.chatappmongo.service.RoomRestSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +97,9 @@ public class RoomRest {
 
     @Autowired
     private InboxMessageService inboxMessageService;
+
+    @Autowired
+    private RoomRestSocketService roomRestSocketService;
 
     /**
      * endpoint lấy số tin nhắn mới theo roomId, nếu cần
@@ -410,6 +414,7 @@ public class RoomRest {
             boolean deleted = roomService.deleteMember(memberId, roomId, user.getId());
             if (deleted) {
                 roomOptional = roomService.findById(roomId);
+                roomRestSocketService.sendAfterDeleteMember(roomOptional.get());
                 return ResponseEntity.ok(roomOptional.get().getMembers().stream().map(memberMapper::toMemberDto).collect(Collectors.toList()));
             } else
                 return ResponseEntity.badRequest().build();
@@ -456,6 +461,7 @@ public class RoomRest {
         }
         roomService.addMembersToRoom(members, roomId);
         room = roomService.findById(roomId).get();
+        roomRestSocketService.sendAfterAddMember(room);
         /*
         gửi tin nhắn hệ thống thông báo thêm thành viên
          */
