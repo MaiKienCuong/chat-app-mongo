@@ -22,16 +22,14 @@ public class FriendMapper {
         return dto;
     }
 
-    public FriendRequestDto toFriendRequestDto(FriendRequest friendRequest, boolean isSent) {
+    public FriendRequestDto toFriendRequestDto(FriendRequest friendRequest) {
         if (friendRequest == null)
             return null;
         var dto = new FriendRequestDto();
         dto.setId(friendRequest.getId());
         dto.setCreateAt(friendRequest.getCreateAt());
-        if (isSent)
-            dto.setTo(userMapper.toUserProfileDto(friendRequest.getToId()));
-        else
-            dto.setFrom(userMapper.toUserProfileDto(friendRequest.getFromId()));
+        dto.setTo(userMapper.toUserProfileDto(friendRequest.getToId()));
+        dto.setFrom(userMapper.toUserProfileDto(friendRequest.getFromId()));
         return dto;
     }
 

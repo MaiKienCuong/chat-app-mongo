@@ -86,7 +86,7 @@ public class FriendRequestRest {
                 pageable.getPageNumber(), pageable.getPageSize());
         Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestReceived(user.getId(), pageable);
 
-        return ResponseEntity.ok(toFriendRequestDto(friendRequestPage, false));
+        return ResponseEntity.ok(toFriendRequestDto(friendRequestPage));
     }
 
     @GetMapping("/count")
@@ -118,7 +118,7 @@ public class FriendRequestRest {
                 pageable.getPageNumber(), pageable.getPageSize());
         Page<FriendRequest> friendRequestPage = friendRequestService.getAllFriendRequestSent(user.getId(), pageable);
 
-        return ResponseEntity.ok(toFriendRequestDto(friendRequestPage, true));
+        return ResponseEntity.ok(toFriendRequestDto(friendRequestPage));
     }
 
     /**
@@ -294,10 +294,10 @@ public class FriendRequestRest {
     /**
      *
      */
-    private Page<?> toFriendRequestDto(Page<FriendRequest> friendRequestPage, boolean isSent) {
+    private Page<?> toFriendRequestDto(Page<FriendRequest> friendRequestPage) {
         List<FriendRequest> content = friendRequestPage.getContent();
         List<FriendRequestDto> dto = content.stream()
-                .map(x -> friendMapper.toFriendRequestDto(x, isSent))
+                .map(x -> friendMapper.toFriendRequestDto(x))
                 .collect(Collectors.toList());
         return new PageImpl<>(dto, friendRequestPage.getPageable(), friendRequestPage.getTotalElements());
     }

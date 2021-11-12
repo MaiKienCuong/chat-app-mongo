@@ -21,7 +21,10 @@ public class FriendRequestSocketService {
             return false;
         log.info("sending friend request received from userId = {}, to userId = {}", friendRequest.getFromId(), friendRequest.getToId());
         messagingTemplate.convertAndSendToUser(friendRequest.getToId(), "/queue/friendRequest/received",
-                friendMapper.toFriendRequestDto(friendRequest, false));
+                friendMapper.toFriendRequestDto(friendRequest));
+
+        messagingTemplate.convertAndSendToUser(friendRequest.getFromId(), "/queue/friendRequest/received",
+                friendMapper.toFriendRequestDto(friendRequest));
         return true;
     }
 
@@ -30,10 +33,10 @@ public class FriendRequestSocketService {
             return false;
         log.info("sending friend request accept from userId = {}, to userId = {}", friendRequest.getToId(), friendRequest.getFromId());
         messagingTemplate.convertAndSendToUser(friendRequest.getFromId(), "/queue/friendRequest/accept",
-                friendMapper.toFriendRequestDto(friendRequest, true));
+                friendMapper.toFriendRequestDto(friendRequest));
 
         messagingTemplate.convertAndSendToUser(friendRequest.getToId(), "/queue/friendRequest/accept",
-                friendMapper.toFriendRequestDto(friendRequest, true));
+                friendMapper.toFriendRequestDto(friendRequest));
         return true;
     }
 
@@ -42,7 +45,10 @@ public class FriendRequestSocketService {
             return false;
         log.info("sending friend request recall from userId = {}, to userId = {}", friendRequest.getFromId(), friendRequest.getToId());
         messagingTemplate.convertAndSendToUser(friendRequest.getToId(), "/queue/friendRequest/recall",
-                friendMapper.toFriendRequestDto(friendRequest, false));
+                friendMapper.toFriendRequestDto(friendRequest));
+
+        messagingTemplate.convertAndSendToUser(friendRequest.getFromId(), "/queue/friendRequest/recall",
+                friendMapper.toFriendRequestDto(friendRequest));
         return true;
     }
 
@@ -51,7 +57,10 @@ public class FriendRequestSocketService {
             return false;
         log.info("sending friend request delete from userId = {}, to userId = {}", friendRequest.getFromId(), friendRequest.getToId());
         messagingTemplate.convertAndSendToUser(friendRequest.getFromId(), "/queue/friendRequest/delete",
-                friendMapper.toFriendRequestDto(friendRequest, true));
+                friendMapper.toFriendRequestDto(friendRequest));
+
+        messagingTemplate.convertAndSendToUser(friendRequest.getToId(), "/queue/friendRequest/delete",
+                friendMapper.toFriendRequestDto(friendRequest));
         return true;
     }
 
