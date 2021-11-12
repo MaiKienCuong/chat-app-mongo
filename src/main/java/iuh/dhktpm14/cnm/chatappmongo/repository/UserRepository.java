@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +24,10 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findDistinctByUsername(String userName);
     Page<User> findAllByRoles(String roles, Pageable pageable);
+
+    @Query(value = "{'createAt':{ $gte: ?0, $lte: ?1}}")
+    List<User> findByCreateAtBetween(Date from, Date to);
+
 
     Optional<User> findDistinctByEmail(String email);
 

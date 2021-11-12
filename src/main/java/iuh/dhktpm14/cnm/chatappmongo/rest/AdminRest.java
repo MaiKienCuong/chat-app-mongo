@@ -1,19 +1,17 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
-import iuh.dhktpm14.cnm.chatappmongo.dto.ChangePasswordDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.ResetPasswordDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.UserDetailDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
+import iuh.dhktpm14.cnm.chatappmongo.dto.*;
 import iuh.dhktpm14.cnm.chatappmongo.entity.AdminLog;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AdminLogService;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -49,6 +47,9 @@ public class AdminRest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private MessageService messageService;
+
     @GetMapping(value = "/list")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ApiOperation("Lấy danh sách tất cả user")
@@ -70,8 +71,15 @@ public class AdminRest {
     @PutMapping("/update")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ApiOperation("Cập nhật thông tin người dùng")
-    public ResponseEntity<?> updateInformationUser(@ApiIgnore @AuthenticationPrincipal User admin, @RequestBody User user){
-    	log.info("admin = {} update information for user = {}",admin.getDisplayName(),user.getId());
+    public ResponseEntity<?> updateInformationUser(@ApiIgnore @AuthenticationPrincipal User admin, @RequestBody User update){
+    	log.info("admin = {} update information for user = {}",admin.getDisplayName(),update.getId());
+        User user = userDetailService.findById(update.getId()).get();
+        user.setImageUrl(update.getImageUrl());
+        user.setEmail(update.getEmail());
+        user.setDisplayName(update.getDisplayName());
+        user.setPhoneNumber(update.getPhoneNumber());
+        user.setGender(update.getGender());
+        user.setDateOfBirth(update.getDateOfBirth());
     	writeLogToDatabase(admin, user,"update information for user");
     	return ResponseEntity.ok(userDetailService.save(user));
     }
@@ -132,6 +140,31 @@ public class AdminRest {
                 .map(userMapper::toUserProfileDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userProfiles);
+    }
+
+
+    @PostMapping("/total_sign_up")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Lấy số lượng đăng ký trong một khoảng thời gian")
+    public Integer getNumberSignUpInMonth(@ApiIgnore @AuthenticationPrincipal User admin,@Valid @RequestBody MonthDto dto){
+
+        return userDetailService.findByCreateAtBetween(dto.getFrom(),dto.getTo()).size();
+    }
+
+    @PostMapping("/total_message")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Lấy số lượng tin nhắn đã được gửi trong một khoảng thời gian")
+    public Integer getTotalMessageInMonth(@ApiIgnore @AuthenticationPrincipal User admin,@Valid @RequestBody MonthDto dto){
+
+        return messageService.findByCreateAtBetween(dto.getFrom(),dto.getTo()).size();
+    }
+
+    @GetMapping("/statistic_message")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Thống kê số lượng tin nhắn trong 1 năm bất kỳ")
+    public ResponseEntity<?> getTotalMessageInMonth(@ApiIgnore @AuthenticationPrincipal User admin,
+                                          @RequestParam int year){
+        return ResponseEntity.ok(messageService.statisticsByMonths(year));
     }
 
     /**

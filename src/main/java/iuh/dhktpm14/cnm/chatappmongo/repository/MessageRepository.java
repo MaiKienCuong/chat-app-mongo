@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -29,5 +30,10 @@ public interface MessageRepository extends MongoRepository<Message, String> {
 
     @Query(value = "{id: {$in: ?0}}", sort = "{createAt: -1}")
     List<Message> findAllByIdInMessageIds(List<String> messageIds, Pageable pageable);
+
+    @Query(value = "{'createAt':{ $gte: ?0, $lte: ?1}}")
+    List<Message> findByCreateAtBetween(Date from, Date to);
+
+
 
 }

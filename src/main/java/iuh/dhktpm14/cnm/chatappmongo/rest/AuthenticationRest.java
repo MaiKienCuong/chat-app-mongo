@@ -78,13 +78,15 @@ public class AuthenticationRest {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         var user = (User) authentication.getPrincipal();
+
+        if (user.getRoles().equals("ROLE_USER"))
+            return ResponseEntity.badRequest().body(new MessageResponse("Access denied"));
+
         String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
         String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
         userDetailService.setRefreshToken(user.getId(), jwtRefresh);
-
         response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
-        if (user.getRoles().equals("ROLE_USER"))
-            return ResponseEntity.badRequest().body("Access denied");
+
         AdminLog adminLog = AdminLog.builder()
          		.handlerObjectId(user.getId())
          		.content("is sign in")

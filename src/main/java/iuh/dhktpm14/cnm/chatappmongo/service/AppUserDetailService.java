@@ -213,6 +213,10 @@ public class AppUserDetailService implements UserDetailsService {
         return userRepository.findByIdIn(ids);
     }
 
+    public List<User> findByCreateAtBetween(Date from, Date to){
+        return userRepository.findByCreateAtBetween(from,to);
+    }
+
     public Optional<User> findDistinctByUsername(String userName) {
         return userRepository.findDistinctByUsername(userName);
     }
