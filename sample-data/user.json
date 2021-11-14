@@ -1,0 +1,105 @@
+[{
+  "_id": "1",
+  "username": "maikiencuong",
+  "email": "maikiencuongiuh@gmail.com",
+  "phoneNumber": "0961516941",
+  "password": "$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO",
+  "displayName": "Mai Kiên Cường",
+  "gender": "Nam",
+  "dateOfBirth": {
+    "$date": "2021-11-12T23:42:56.773Z"
+  },
+  "block": false,
+  "imageUrl": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+  "roles": "ROLE_USER",
+  "enable": true,
+  "verificationCode": "123456",
+  "refreshToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNjM2OTE5MzU3LCJleHAiOjE3MjMzMTkzNTd9.IbmN3ux-TwqjujsWU8nXxZKQsRI7TYcl7zMnuXrjc4euir8glH5NjbDlrFZN16TkzK2opNcRd-6At4JE2XUG5A",
+  "onlineStatus": "ONLINE",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.User"
+},{
+  "_id": "2",
+  "username": "truongcongcuong",
+  "email": "truongcongcuong@gmail.com",
+  "phoneNumber": "0961516942",
+  "password": "$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO",
+  "displayName": "Trương Công Cường",
+  "gender": "Nam",
+  "dateOfBirth": {
+    "$date": "2021-11-12T23:42:56.830Z"
+  },
+  "block": false,
+  "imageUrl": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+  "roles": "ROLE_USER",
+  "enable": true,
+  "verificationCode": "123456",
+  "refreshToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyIiwiaWF0IjoxNjM2OTI1NTI1LCJleHAiOjE3MjMzMjU1MjV9.WOSm6-WUHlAv3NtALhii4ARR6TpJyGNmmsUByYri8cxEUQTDxBbks_73BFWSZMFVEyWawrhpjuREUJxfryTnNQ",
+  "onlineStatus": "ONLINE",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.User"
+},{
+  "_id": "3",
+  "username": "nguyencongthanhdat",
+  "email": "nguyencongthanhdat@gmail.com",
+  "phoneNumber": "0961516943",
+  "password": "$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO",
+  "displayName": "Nguyễn Công Thành Đạt",
+  "gender": "Nam",
+  "dateOfBirth": {
+    "$date": "2021-11-12T23:42:56.833Z"
+  },
+  "block": false,
+  "imageUrl": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+  "roles": "ROLE_USER",
+  "enable": true,
+  "verificationCode": "123456",
+  "refreshToken": null,
+  "onlineStatus": "OFFLINE",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.User",
+  "lastOnline": {
+    "$date": "2021-11-13T00:29:27.744Z"
+  }
+},{
+  "_id": "4",
+  "username": "luutuankha",
+  "email": "luutuankha@gmail.com",
+  "phoneNumber": "0961516944",
+  "password": "$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO",
+  "displayName": "Lưu Tuấn Kha",
+  "gender": "Nam",
+  "dateOfBirth": {
+    "$date": "2021-11-12T23:42:56.836Z"
+  },
+  "block": false,
+  "imageUrl": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+  "roles": "ROLE_USER",
+  "enable": true,
+  "verificationCode": "123456",
+  "refreshToken": "$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO",
+  "onlineStatus": "OFFLINE",
+  "lastOnline": {
+    "$date": "2021-11-12T23:42:56.836Z"
+  },
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.User"
+},{
+  "_id": "5",
+  "username": "hoanghuuhuy",
+  "email": "hoanghuuhuy@gmail.com",
+  "phoneNumber": "0961516945",
+  "password": "$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO",
+  "displayName": "Hoàng Hữu Huy",
+  "gender": "Nam",
+  "dateOfBirth": {
+    "$date": "2021-11-12T23:42:56.838Z"
+  },
+  "block": false,
+  "imageUrl": "https://img.webmd.com/dtmcms/live/webmd/consumer_assets/site_images/article_thumbnails/other/scoop_on_cat_poop_other/1800x1200_scoop_on_cat_poop_other.jpg?resize=600px:*",
+  "roles": "ROLE_USER",
+  "enable": true,
+  "verificationCode": "123456",
+  "refreshToken": "$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO",
+  "onlineStatus": "OFFLINE",
+  "lastOnline": {
+    "$date": "2021-11-12T23:42:56.838Z"
+  },
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.User"
+}]

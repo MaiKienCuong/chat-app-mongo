@@ -1,0 +1,71 @@
+[{
+  "_id": {
+    "$oid": "61916701f961a031351d51c3"
+  },
+  "userId": "1",
+  "friendId": "2",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "61916715f961a031351d51c4"
+  },
+  "userId": "2",
+  "friendId": "1",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "6191671bf961a031351d51c5"
+  },
+  "userId": "2",
+  "friendId": "3",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "61916724f961a031351d51c6"
+  },
+  "userId": "3",
+  "friendId": "2",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "61916729f961a031351d51c7"
+  },
+  "userId": "2",
+  "friendId": "4",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "61916733f961a031351d51c8"
+  },
+  "userId": "4",
+  "friendId": "2",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "61916737f961a031351d51c9"
+  },
+  "userId": "4",
+  "friendId": "1",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "6191673ef961a031351d51ca"
+  },
+  "userId": "1",
+  "friendId": "4",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "61916742f961a031351d51cb"
+  },
+  "userId": "1",
+  "friendId": "3",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+},{
+  "_id": {
+    "$oid": "61916749f961a031351d51cc"
+  },
+  "userId": "3",
+  "friendId": "1",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Friend"
+}]

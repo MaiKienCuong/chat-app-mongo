@@ -1,0 +1,143 @@
+[{
+  "_id": "1",
+  "ofUserId": "2",
+  "roomId": "1",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-13T21:12:20.281Z"
+  }
+},{
+  "_id": "2",
+  "ofUserId": "4",
+  "roomId": "1",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-13T21:12:20.281Z"
+  }
+},{
+  "_id": "3",
+  "ofUserId": "5",
+  "roomId": "2",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T20:21:40.453Z"
+  }
+},{
+  "_id": "4",
+  "ofUserId": "1",
+  "roomId": "2",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T20:21:40.453Z"
+  }
+},{
+  "_id": "5",
+  "ofUserId": "2",
+  "roomId": "2",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T20:21:40.453Z"
+  }
+},{
+  "_id": "6",
+  "ofUserId": "3",
+  "roomId": "2",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T20:21:40.453Z"
+  }
+},{
+  "_id": {
+    "$oid": "61902be54294932a0e9a4100"
+  },
+  "ofUserId": "2",
+  "roomId": "61902be54294932a0e9a40ff",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-13T21:20:55.903Z"
+  }
+},{
+  "_id": {
+    "$oid": "61902be54294932a0e9a4102"
+  },
+  "ofUserId": "1",
+  "roomId": "61902be54294932a0e9a40ff",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-13T21:20:55.903Z"
+  }
+},{
+  "_id": {
+    "$oid": "61902c6b4294932a0e9a410b"
+  },
+  "ofUserId": "2",
+  "roomId": "61902c6b4294932a0e9a410a",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-13T21:36:13.908Z"
+  }
+},{
+  "_id": {
+    "$oid": "61902c6d4294932a0e9a410d"
+  },
+  "ofUserId": "3",
+  "roomId": "61902c6b4294932a0e9a410a",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-13T21:36:13.908Z"
+  }
+},{
+  "_id": {
+    "$oid": "6191677d9197ec1b58ce6dfa"
+  },
+  "ofUserId": "1",
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T19:48:56.286Z"
+  }
+},{
+  "_id": {
+    "$oid": "6191677e9197ec1b58ce6dfc"
+  },
+  "ofUserId": "2",
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T19:48:56.286Z"
+  }
+},{
+  "_id": {
+    "$oid": "6191677e9197ec1b58ce6dfd"
+  },
+  "ofUserId": "3",
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T19:48:56.286Z"
+  }
+},{
+  "_id": {
+    "$oid": "6191677e9197ec1b58ce6dfe"
+  },
+  "ofUserId": "4",
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "empty": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Inbox",
+  "lastTime": {
+    "$date": "2021-11-14T19:48:56.286Z"
+  }
+}]

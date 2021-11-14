@@ -1,0 +1,144 @@
+[{
+  "_id": "1",
+  "type": "ONE",
+  "members": [
+    {
+      "userId": "2",
+      "isAdmin": false
+    },
+    {
+      "userId": "4",
+      "isAdmin": false
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Room"
+},{
+  "_id": "2",
+  "name": "Nhóm chat 2",
+  "type": "GROUP",
+  "members": [
+    {
+      "userId": "5",
+      "addByUserId": "1",
+      "addTime": {
+        "$date": "2021-08-20T09:17:59Z"
+      },
+      "isAdmin": false
+    },
+    {
+      "userId": "1",
+      "isAdmin": false
+    },
+    {
+      "userId": "2",
+      "addByUserId": "1",
+      "addTime": {
+        "$date": "2021-08-20T09:18:00Z"
+      },
+      "isAdmin": false
+    },
+    {
+      "userId": "3",
+      "addByUserId": "1",
+      "addTime": {
+        "$date": "2021-08-20T09:18:01Z"
+      },
+      "isAdmin": false
+    }
+  ],
+  "createByUserId": "1",
+  "imageUrl": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Room"
+},{
+  "_id": {
+    "$oid": "61902be54294932a0e9a40ff"
+  },
+  "createAt": {
+    "$date": "2021-11-13T21:19:33Z"
+  },
+  "type": "ONE",
+  "members": [
+    {
+      "userId": "1",
+      "addTime": {
+        "$date": "2021-11-13T21:19:33Z"
+      },
+      "isAdmin": false
+    },
+    {
+      "userId": "2",
+      "addTime": {
+        "$date": "2021-11-13T21:19:33Z"
+      },
+      "isAdmin": false
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Room"
+},{
+  "_id": {
+    "$oid": "61902c6b4294932a0e9a410a"
+  },
+  "createAt": {
+    "$date": "2021-11-13T21:21:47.167Z"
+  },
+  "type": "ONE",
+  "members": [
+    {
+      "userId": "2",
+      "addTime": {
+        "$date": "2021-11-13T21:21:47.167Z"
+      },
+      "isAdmin": false
+    },
+    {
+      "userId": "3",
+      "addTime": {
+        "$date": "2021-11-13T21:21:47.167Z"
+      },
+      "isAdmin": false
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Room"
+},{
+  "_id": {
+    "$oid": "6191677d9197ec1b58ce6df9"
+  },
+  "name": "test create group",
+  "createAt": {
+    "$date": "2021-11-14T19:46:05.947Z"
+  },
+  "type": "GROUP",
+  "members": [
+    {
+      "userId": "1",
+      "isAdmin": true
+    },
+    {
+      "userId": "2",
+      "addByUserId": "1",
+      "addTime": {
+        "$date": "2021-11-14T19:46:05.955Z"
+      },
+      "isAdmin": false
+    },
+    {
+      "userId": "3",
+      "addByUserId": "1",
+      "addTime": {
+        "$date": "2021-11-14T19:46:05.955Z"
+      },
+      "isAdmin": false
+    },
+    {
+      "userId": "4",
+      "addByUserId": "1",
+      "addTime": {
+        "$date": "2021-11-14T19:46:05.955Z"
+      },
+      "isAdmin": false
+    }
+  ],
+  "createByUserId": "1",
+  "imageUrl": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636919198869_IMG_20211115_004636.jpg",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Room"
+}]
