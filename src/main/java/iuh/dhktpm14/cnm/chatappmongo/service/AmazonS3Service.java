@@ -8,6 +8,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
+import iuh.dhktpm14.cnm.chatappmongo.util.FileUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,20 +84,27 @@ public class AmazonS3Service {
     }
 
     /**
-     * gọi hàm upload và trả về link của file
+     * gọi hàm upload và trả về đối tượng media
      */
-    public String uploadFile(MultipartFile multipartFile) {
+    public MyMedia uploadFile(MultipartFile multipartFile) {
         var fileUrl = "";
+        var myMedia = new MyMedia();
         try {
             var file = convertMultiPartToFile(multipartFile);
             String fileName = generateFileName(multipartFile);
             uploadFileTos3bucket(fileName, file);
             fileUrl = s3client.getUrl(bucketName, fileName).toString();
+
+            myMedia.setUrl(fileUrl);
+            myMedia.setName(fileName);
+            myMedia.setSize(s3client.getObjectMetadata(bucketName, fileName).getContentLength());
+            myMedia.setType(FileUtil.getMediaType(fileUrl));
+
             file.delete();
         } catch (Exception e) {
             e.printStackTrace();
         }
         logger.log(Level.INFO, "upload finish, fileUrl = {0}", fileUrl);
-        return fileUrl;
+        return myMedia;
     }
 }
