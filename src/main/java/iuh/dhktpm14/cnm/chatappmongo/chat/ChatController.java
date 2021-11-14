@@ -63,6 +63,7 @@ public class ChatController {
                             .type(messageDto.getType())
                             .content(messageDto.getContent())
                             .replyId(messageDto.getReplyId())
+                            .media(messageDto.getMedia())
                             .build();
                     log.info("sending message = {} to websocket", message);
                     chatSocketService.sendMessage(message, room, userId);

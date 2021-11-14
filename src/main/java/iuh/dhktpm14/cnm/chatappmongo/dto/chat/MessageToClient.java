@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ReadByDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
+import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import lombok.Data;
@@ -28,4 +29,5 @@ public class MessageToClient implements Serializable {
     private MessageToClient reply;
     private boolean pin;
     private boolean deleted;
+    private List<MyMedia> media;
 }

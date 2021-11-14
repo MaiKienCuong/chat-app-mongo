@@ -71,6 +71,7 @@ public class MessageMapper {
         List<ReadTracking> readTracking = readTrackingService.findAllByMessageId(message.getId());
         List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
         dto.setReadbyes(readBy);
+        dto.setMedia(message.getMedia());
         return dto;
     }
 
@@ -100,6 +101,7 @@ public class MessageMapper {
 //        List<ReadTracking> readTracking = readTrackingRepository.findAllByMessageId(message.getId());
 //        List<ReadByDto> readBy = readTracking.stream().map(readByMapper::toReadByDto).collect(Collectors.toList());
 //        dto.setReadbyes(readBy);
+        dto.setMedia(message.getMedia());
         return dto;
     }
 }

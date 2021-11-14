@@ -2,6 +2,7 @@ package iuh.dhktpm14.cnm.chatappmongo.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
@@ -28,4 +29,5 @@ public class MessageDto implements Serializable {
     private List<Reaction> reactions;
     private List<ReadByDto> readbyes;
     private MessageDto reply;
+    private List<MyMedia> media;
 }
