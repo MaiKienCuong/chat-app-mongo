@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ChangePasswordDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserUpdateDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ViewProfileDto;
+import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
@@ -174,8 +175,8 @@ public class UserRest {
             log.error(message);
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
-        String newImageUrl = s3Service.uploadFile(files);
-        user.setImageUrl(newImageUrl);
+        MyMedia media = s3Service.uploadFile(files);
+        user.setImageUrl(media.getUrl());
         userDetailService.save(user);
         log.info("change image success");
         return ResponseEntity.ok(userMapper.toUserDetailDto(user));

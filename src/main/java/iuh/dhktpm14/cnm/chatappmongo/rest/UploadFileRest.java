@@ -1,6 +1,7 @@
 package iuh.dhktpm14.cnm.chatappmongo.rest;
 
 import io.swagger.annotations.ApiOperation;
+import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
@@ -50,7 +51,7 @@ public class UploadFileRest {
     public ResponseEntity<?> uploadFileMobile(@ApiIgnore @AuthenticationPrincipal User user,
                                               @RequestParam List<MultipartFile> files,
                                               Locale locale) {
-        List<String> urls = new ArrayList<>();
+        List<MyMedia> mediaList = new ArrayList<>();
         String message;
         if (files == null) {
             message = messageSource.getMessage("file_is_null", null, locale);
@@ -61,10 +62,10 @@ public class UploadFileRest {
             return ResponseEntity.badRequest().body(new MessageResponse(message));
         }
         for (MultipartFile file : files) {
-            String newImageUrl = s3Service.uploadFile(file);
-            urls.add(newImageUrl);
+            MyMedia media = s3Service.uploadFile(file);
+            mediaList.add(media);
         }
-        return ResponseEntity.ok(urls);
+        return ResponseEntity.ok(mediaList);
     }
 
 }

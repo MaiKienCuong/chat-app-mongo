@@ -239,13 +239,13 @@ public class RoomRest {
             var room = optional.get();
             var url = s3Service.uploadFile(files.get(0));
             log.info("setting new image for room with url = {}", url);
-            room.setImageUrl(url);
+            room.setImageUrl(url.getUrl());
             roomService.save(room);
             String content = messageSource.getMessage("message_after_change_image_room",
                     new Object[]{ user.getDisplayName() }, locale);
             sendSystemMessage(content, optional.get());
             roomRestSocketService.sendAfterChangeImage(room);
-            return ResponseEntity.ok(List.of(url));
+            return ResponseEntity.ok(url);
         }
         String roomNotFound = messageSource.getMessage("room_not_found", null, locale);
         log.error(roomNotFound);
