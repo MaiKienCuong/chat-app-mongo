@@ -9,6 +9,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReactionMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.ReadByMapper;
@@ -95,7 +96,7 @@ public class MessageRest {
             cập nhật số tin nhắn mới bằng 0, và set tin nhắn đã đọc là tin nhắn mới nhất
              */
             log.info("userid = {} get all message of inboxId = {}, in roomId = {}", user.getId(), inboxId, inbox.getRoomId());
-            log.info("page = {}, size = {}",  pageable.getPageNumber(), pageable.getPageSize());
+            log.info("page = {}, size = {}", pageable.getPageNumber(), pageable.getPageSize());
             /*
              lấy ra danh sách messageIds của inbox này, phân trang và sắp xếp theo messageCreateAt: -1
              sau lệnh này nếu k chỉ định size thì mặc định chỉ lấy 20 document
@@ -161,6 +162,8 @@ public class MessageRest {
                         new Object[]{ user.getDisplayName() }, locale);
                 message.setDeleted(true);
                 message.setContent(contentOfMessageDeleted);
+                message.setType(MessageType.TEXT);
+                message.setMedia(null);
                 messageService.deleteMessage(messageId, contentOfMessageDeleted);
                 chatSocketService.sendDeletedMessage(message, message.getRoomId());
                 return ResponseEntity.ok().build();

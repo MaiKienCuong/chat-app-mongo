@@ -5,6 +5,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,6 +51,8 @@ public class MessageService {
         var update = new Update();
         update.set("content", newContent);
         update.set("deleted", true);
+        update.unset("media");
+        update.set("type", MessageType.TEXT);
         mongoTemplate.updateFirst(Query.query(criteria), update, Message.class);
     }
 
