@@ -1,0 +1,2420 @@
+[{
+  "_id": "1",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:17:59Z"
+  },
+  "type": "MEDIA",
+  "content": "1. Lorem Ipsum is simply dummy text of the printing and typesetting industry.05481abc-871e-44b3-a4bc-ea43b2d84093 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "WOW"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "2",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:00Z"
+  },
+  "type": "MEDIA",
+  "content": "2. Lorem Ipsum is simply dummy text of the printing and typesetting industry.76bf3c24-c378-4f3b-b166-b286a6235c47 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "3",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:01Z"
+  },
+  "type": "MEDIA",
+  "content": "3. Lorem Ipsum is simply dummy text of the printing and typesetting industry.cba216d1-47e1-43ca-81e7-a95432afc9a0 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "WOW"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LIKE"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "SAD"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "4",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:02Z"
+  },
+  "type": "MEDIA",
+  "content": "4. Lorem Ipsum is simply dummy text of the printing and typesetting industry.10a91dee-a588-42c8-a426-2823cf771842 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "SAD"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "5",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:03Z"
+  },
+  "type": "MEDIA",
+  "content": "5. Lorem Ipsum is simply dummy text of the printing and typesetting industry.7de370fd-8135-40cd-a864-c23c9f8fcf59 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "FILE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "6",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:04Z"
+  },
+  "type": "MEDIA",
+  "content": "6. Lorem Ipsum is simply dummy text of the printing and typesetting industry.41544b8b-3f64-4d0b-a088-55b05cb25aab Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "WOW"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "7",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:05Z"
+  },
+  "type": "MEDIA",
+  "content": "7. Lorem Ipsum is simply dummy text of the printing and typesetting industry.6a45bce0-cc88-4b98-bb19-7289dad0bc65 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "LIKE"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "8",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:06Z"
+  },
+  "type": "MEDIA",
+  "content": "8.sdfghjkwertyuisdfghjwertyuiasdcvfbnmzwxecrvtbynumizqwxecrvtbynumi,wxecrvtbynumi,",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "LIKE"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LIKE"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "WOW"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "9",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:07Z"
+  },
+  "type": "MEDIA",
+  "content": "9.",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "WOW"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "10",
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:08Z"
+  },
+  "type": "MEDIA",
+  "content": "10. Lorem Ipsum is simply dummy text of the printing and typesetting industry.70ea9492-9997-4037-9e51-1ca511961c09 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "SAD"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LIKE"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efc009eedde18af31a5f0"
+  },
+  "roomId": "1",
+  "createAt": {
+    "$date": "2021-08-20T09:18:12Z"
+  },
+  "type": "SYSTEM",
+  "content": "Các bạn giờ đã là bạn bè",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "11",
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:10Z"
+  },
+  "type": "MEDIA",
+  "content": "11",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "1",
+      "type": "LIKE"
+    },
+    {
+      "reactByUserId": "1",
+      "type": "WOW"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "12",
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:11Z"
+  },
+  "type": "MEDIA",
+  "content": "12",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "1",
+      "type": "SAD"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "13",
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-08-20T09:18:12Z"
+  },
+  "type": "MEDIA",
+  "content": "13. Lorem Ipsum is simply dummy text of the printing and typesetting industry.53f1c77d-5dfb-45ae-a8ac-d263d2f59bb8 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "14",
+  "roomId": "2",
+  "senderId": "5",
+  "createAt": {
+    "$date": "2021-08-20T09:18:13Z"
+  },
+  "type": "MEDIA",
+  "content": "14. Lorem Ipsum is simply dummy text of the printing and typesetting industry.9949c5d9-3624-47ac-babb-3eb79c0d1fcf Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "15",
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:14Z"
+  },
+  "type": "MEDIA",
+  "content": "15. Lorem Ipsum is simply dummy text of the printing and typesetting industry.031c75c9-4d3d-4a52-be8e-4a7a1e42ba3b Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "WOW"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "16",
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:15Z"
+  },
+  "type": "MEDIA",
+  "content": "16. Lorem Ipsum is simply dummy text of the printing and typesetting industry.f701c36e-4eb3-4379-a7ff-44da89275cd2 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "SAD"
+    },
+    {
+      "reactByUserId": "5",
+      "type": "WOW"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "LIKE"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "17",
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:16Z"
+  },
+  "type": "TEXT",
+  "content": "Tin nhắn đã được thu hồi.",
+  "pin": false,
+  "reactions": [],
+  "deleted": true,
+  "media": [],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "18",
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-08-20T09:18:17Z"
+  },
+  "type": "MEDIA",
+  "content": "18. Lorem Ipsum is simply dummy text of the printing and typesetting industry.39470b8a-6664-4dcc-bc4a-9dc59602e0de Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "WOW"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "19",
+  "roomId": "2",
+  "senderId": "5",
+  "createAt": {
+    "$date": "2021-08-20T09:18:18Z"
+  },
+  "type": "MEDIA",
+  "content": "19. Lorem Ipsum is simply dummy text of the printing and typesetting industry.3a13a72f-518e-4c9b-9eb6-c53c1dde7e08 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://images-na.ssl-images-amazon.com/images/I/81BES%2BtsVvL.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": "20",
+  "roomId": "2",
+  "senderId": "5",
+  "createAt": {
+    "$date": "2021-08-20T09:18:19Z"
+  },
+  "type": "MEDIA",
+  "content": "20. Lorem Ipsum is simply dummy text of the printing and typesetting industry.b9cbc793-9e61-4180-8df5-5b2ce4c211e8 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "5",
+      "type": "WOW"
+    },
+    {
+      "reactByUserId": "2",
+      "type": "SAD"
+    },
+    {
+      "reactByUserId": "5",
+      "type": "LIKE"
+    }
+  ],
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://i.guim.co.uk/img/media/c9b0aad22638133aa06cd68347bed2390b555e63/0_477_2945_1767/master/2945.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=97bf92d90f51da7067d00f8156512925",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://timesofindia.indiatimes.com/photo/67586673.cms",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efc019eedde18af31a5f1"
+  },
+  "roomId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:23Z"
+  },
+  "type": "SYSTEM",
+  "content": "Các bạn giờ đã là bạn bè",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efc019eedde18af31a5f2"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:24Z"
+  },
+  "type": "TEXT",
+  "content": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1630819495838-20201226_055434.jpg",
+  "pin": false,
+  "reactions": [],
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efc019eedde18af31a5f3"
+  },
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-08-20T09:18:25Z"
+  },
+  "type": "TEXT",
+  "content": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/Landscapes-+Volume+4K+(UHD)_Trim.mp4",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "SAD"
+    },
+    {
+      "reactByUserId": "3",
+      "type": "SAD"
+    },
+    {
+      "reactByUserId": "1",
+      "type": "SAD"
+    }
+  ],
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efcaff67e7a53ad1a101a"
+  },
+  "roomId": "1",
+  "createAt": {
+    "$date": "2021-08-20T09:18:09Z"
+  },
+  "type": "SYSTEM",
+  "content": "Các bạn giờ đã là bạn bè",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efcaff67e7a53ad1a101b"
+  },
+  "roomId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:20Z"
+  },
+  "type": "SYSTEM",
+  "content": "Các bạn giờ đã là bạn bè",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efcaff67e7a53ad1a101c"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:21Z"
+  },
+  "type": "TEXT",
+  "content": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1630819495838-20201226_055434.jpg",
+  "pin": false,
+  "reactions": [
+    {
+      "reactByUserId": "1",
+      "type": "WOW"
+    },
+    {
+      "reactByUserId": "3",
+      "type": "LIKE"
+    }
+  ],
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618efcaff67e7a53ad1a101d"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-08-20T09:18:22Z"
+  },
+  "type": "TEXT",
+  "content": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/Landscapes-+Volume+4K+(UHD)_Trim.mp4",
+  "pin": false,
+  "reactions": [],
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618fff7a1a04e620c0c5bf05"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T18:10:02.374Z"
+  },
+  "type": "TEXT",
+  "content": "M",
+  "pin": false,
+  "deleted": false,
+  "replyId": "618efc019eedde18af31a5f2",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "618fff8d1a04e620c0c5bf0a"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T18:10:21.796Z"
+  },
+  "type": "TEXT",
+  "content": "Qwertyuiopasdfghjklxcvbnm,mxcvbnmqwertyuio",
+  "pin": false,
+  "deleted": false,
+  "replyId": "618fff7a1a04e620c0c5bf05",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619003d41a04e620c0c5bf0d"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T18:28:36.492Z"
+  },
+  "type": "TEXT",
+  "content": "A",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619003f71a04e620c0c5bf10"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T18:29:11.958Z"
+  },
+  "type": "TEXT",
+  "content": "Asdasdmaksdmaskdaddd",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6190283c1a04e620c0c5bf13"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:03:56.517Z"
+  },
+  "type": "TEXT",
+  "content": "Alo",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6190287f1a04e620c0c5bf16"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:05:03.746Z"
+  },
+  "type": "TEXT",
+  "content": "Test2",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619028851a04e620c0c5bf19"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:05:09.763Z"
+  },
+  "type": "TEXT",
+  "content": "Test3",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619028a61a04e620c0c5bf1c"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:05:42.473Z"
+  },
+  "type": "MEDIA",
+  "content": "Test4",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6190293b1a04e620c0c5bf1f"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:08:11.565Z"
+  },
+  "type": "MEDIA",
+  "content": "Test5",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619029f34294932a0e9a40f3"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:11:15.270Z"
+  },
+  "type": "MEDIA",
+  "content": "Test6",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837874170_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902a094294932a0e9a40f6"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:11:37.331Z"
+  },
+  "type": "MEDIA",
+  "content": "Test7",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837896170_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837896912_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902a1e4294932a0e9a40f9"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:11:58.681Z"
+  },
+  "type": "MEDIA",
+  "content": "Test8",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837916755_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837918084_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837918281_IMG_20211113_054552.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902a344294932a0e9a40fc"
+  },
+  "roomId": "1",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:12:20.263Z"
+  },
+  "type": "MEDIA",
+  "content": "Test9",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837938802_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837939505_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837939737_IMG_20211113_054552.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636837939913_IMG_20211111_080350.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902be54294932a0e9a4101"
+  },
+  "roomId": "61902be54294932a0e9a40ff",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:19:33.558Z"
+  },
+  "type": "TEXT",
+  "content": "Alo",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902c374294932a0e9a4107"
+  },
+  "roomId": "61902be54294932a0e9a40ff",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:20:55.884Z"
+  },
+  "type": "TEXT",
+  "content": "Awsedfghujk",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902c6d4294932a0e9a410c"
+  },
+  "roomId": "61902c6b4294932a0e9a410a",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:21:49.270Z"
+  },
+  "type": "MEDIA",
+  "content": "Hello",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636838507695_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636838508648_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636838508834_IMG_20211113_054552.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636838509052_IMG_20211111_080350.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902dad4294932a0e9a4112"
+  },
+  "roomId": "61902c6b4294932a0e9a410a",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:27:09.048Z"
+  },
+  "type": "MEDIA",
+  "content": "Gogo",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636838827441_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636838828636_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636838828879_IMG_20211113_054552.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902ef74294932a0e9a4115"
+  },
+  "roomId": "61902c6b4294932a0e9a410a",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:32:39.306Z"
+  },
+  "type": "MEDIA",
+  "content": "Kk",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839158018_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839159089_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902f024294932a0e9a4118"
+  },
+  "roomId": "61902c6b4294932a0e9a410a",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:32:50.794Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839169408_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839170559_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61902fcd4294932a0e9a411b"
+  },
+  "roomId": "61902c6b4294932a0e9a410a",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:36:13.899Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839372454_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619031234294932a0e9a411e"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:41:55.976Z"
+  },
+  "type": "MEDIA",
+  "content": "Lo",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839714770_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839715845_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619031454294932a0e9a4125"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:42:29.126Z"
+  },
+  "type": "TEXT",
+  "content": "Kkk",
+  "pin": false,
+  "deleted": false,
+  "replyId": "618efc019eedde18af31a5f3",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6190316a4294932a0e9a412a"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:43:06.276Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636839785063_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619032644294932a0e9a412f"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:47:16.106Z"
+  },
+  "type": "MEDIA",
+  "content": "Aaa",
+  "pin": false,
+  "deleted": false,
+  "replyId": "618efc019eedde18af31a5f3",
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840034659_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840035540_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840035841_IMG_20211113_054552.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619032954294932a0e9a4134"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:48:05.346Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "replyId": "618efc019eedde18af31a5f3",
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840084186_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619032b54294932a0e9a4139"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:48:37.897Z"
+  },
+  "type": "TEXT",
+  "content": "Sdf",
+  "pin": false,
+  "deleted": false,
+  "replyId": "618efc019eedde18af31a5f3",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6190335d4294932a0e9a413e"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T21:51:25.134Z"
+  },
+  "type": "MEDIA",
+  "content": "Go",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840283006_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840284010_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840284364_IMG_20211113_054552.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636840284675_IMG_20211111_080350.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619049a74294932a0e9a4143"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-13T23:26:31.390Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/IMG_2102.JPG",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "content": ""
+},{
+  "_id": {
+    "$oid": "619059954294932a0e9a414d"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T00:34:28.992Z"
+  },
+  "type": "TEXT",
+  "content": "N",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619059ce4294932a0e9a4152"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T00:35:26.914Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/%40sashimeomeo+(%40sashimmeomeo)+TikTok+-+Xem+c%C3%A1c+video+m%E1%BB%9Bi+nh%E1%BA%A5t+c%E1%BB%A7a+%40sashimeomeo+tr%C3%AAn+TikTok.mp4",
+      "type": "VIDEO"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "reactions": [
+    {
+      "reactByUserId": "1",
+      "type": "HAHA"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "619059dd4294932a0e9a4157"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T00:35:41.477Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636850139878_IMG_20211113_054553.jpg",
+      "type": "IMAGE"
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636850141182_IMG_20211113_054551.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61905b274294932a0e9a415c"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T00:41:11.298Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1630819495838-20201226_055434.jpg",
+      "type": "IMAGE"
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "reactions": [
+    {
+      "reactByUserId": "1",
+      "type": "LOVE"
+    },
+    {
+      "reactByUserId": "1",
+      "type": "HAHA"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "61913b25e613b51e7e3b9bdb"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T16:36:52.970Z"
+  },
+  "type": "TEXT",
+  "content": "0961516941",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61914fede613b51e7e3b9be0"
+  },
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-11-14T18:05:33.116Z"
+  },
+  "type": "MEDIA",
+  "content": "Aloalo",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636913131464_IMG_20211115_004636.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "LOVE"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "61915008e613b51e7e3b9be5"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:06:00.131Z"
+  },
+  "type": "TEXT",
+  "content": "Blo",
+  "pin": false,
+  "deleted": false,
+  "replyId": "61914fede613b51e7e3b9be0",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "reactions": [
+    {
+      "reactByUserId": "1",
+      "type": "HAHA"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "619157d0e613b51e7e3b9bea"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:39:12.702Z"
+  },
+  "type": "TEXT",
+  "content": "Gogo",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619157dce613b51e7e3b9bef"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:39:24.796Z"
+  },
+  "type": "MEDIA",
+  "content": "Gogogo",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915163314_IMG_20211113_054553.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915164154_IMG_20211113_054551.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915164362_IMG_20211113_054552.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915164513_IMG_20211111_080350.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619157f9e613b51e7e3b9bf4"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:39:53.046Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915192042_IMG_20211113_054553.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915192505_IMG_20211113_054551.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915192682_IMG_20211113_054552.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915192887_IMG_20211111_080350.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6191586de613b51e7e3b9bf9"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:41:49.252Z"
+  },
+  "type": "TEXT",
+  "content": "Aloalo",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6191587ce613b51e7e3b9bfe"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:42:04.049Z"
+  },
+  "type": "MEDIA",
+  "content": "Alo alo",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915322205_IMG_20211113_054553.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915323081_IMG_20211113_054551.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915323386_IMG_20211113_054552.jpg",
+      "type": "IMAGE",
+      "size": 0
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915323695_IMG_20211111_080350.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619158a3e613b51e7e3b9c03"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:42:43.967Z"
+  },
+  "type": "TEXT",
+  "content": "Nghe ro tra loi mau",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619158c6e613b51e7e3b9c08"
+  },
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-11-14T18:43:18.103Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915397335_IMG_20211115_004636.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61915a05e613b51e7e3b9c0d"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:48:37.039Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636915715715_IMG_20211113_054553.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61915a11e613b51e7e3b9c12"
+  },
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-11-14T18:48:49.396Z"
+  },
+  "type": "TEXT",
+  "content": "Tin nhắn đã được thu hồi.",
+  "pin": false,
+  "deleted": true,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "reactions": [
+    {
+      "reactByUserId": "2",
+      "type": "HAHA"
+    }
+  ],
+  "media": []
+},{
+  "_id": {
+    "$oid": "61915a30e613b51e7e3b9c17"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T18:49:20.198Z"
+  },
+  "type": "TEXT",
+  "content": "Tin nhắn đã được thu hồi.",
+  "pin": false,
+  "deleted": true,
+  "replyId": "61915a11e613b51e7e3b9c12",
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "media": []
+},{
+  "_id": {
+    "$oid": "61915e156a639953337ca7a0"
+  },
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-11-14T19:05:57.978Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636916756093_IMG_20211115_004636.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61915f470ac2c55f2955e843"
+  },
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-11-14T19:11:03.798Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636917062627_IMG_20211115_004636.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619161145a43690a328ef33d"
+  },
+  "roomId": "2",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-11-14T19:18:44.591Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636917522839_IMG_20211115_004636.jpg",
+      "type": "IMAGE",
+      "size": 0
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6191667a9197ec1b58ce6def"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T19:41:46.536Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636918904568_IMG_20211113_054553.jpg",
+      "type": "IMAGE",
+      "name": "1636918904568_IMG_20211113_054553.jpg",
+      "size": 39745
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619166879197ec1b58ce6df4"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T19:41:59.370Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636918918571_IMG_20211113_054553.jpg",
+      "type": "IMAGE",
+      "name": "1636918918571_IMG_20211113_054553.jpg",
+      "size": 39745
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636918918917_IMG_20211113_054551.jpg",
+      "type": "IMAGE",
+      "name": "1636918918917_IMG_20211113_054551.jpg",
+      "size": 37037
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636918919066_IMG_20211113_054552.jpg",
+      "type": "IMAGE",
+      "name": "1636918919066_IMG_20211113_054552.jpg",
+      "size": 37037
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636918919203_IMG_20211111_080350.jpg",
+      "type": "IMAGE",
+      "name": "1636918919203_IMG_20211111_080350.jpg",
+      "size": 39745
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "6191677e9197ec1b58ce6dfb"
+  },
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "createAt": {
+    "$date": "2021-11-14T19:46:06.002Z"
+  },
+  "type": "SYSTEM",
+  "content": "Mai Kiên Cường đã tạo nhóm, hãy trò chuyện cùng nhau.",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619167959197ec1b58ce6e07"
+  },
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "createAt": {
+    "$date": "2021-11-14T19:46:29.392Z"
+  },
+  "type": "SYSTEM",
+  "content": "Trương Công Cường đã cập nhật ảnh đại diện của nhóm.",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619167a09197ec1b58ce6e0c"
+  },
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "createAt": {
+    "$date": "2021-11-14T19:46:40.494Z"
+  },
+  "type": "SYSTEM",
+  "content": "Mai Kiên Cường đã cập nhật ảnh đại diện của nhóm.",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619167e29197ec1b58ce6e11"
+  },
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "senderId": "1",
+  "createAt": {
+    "$date": "2021-11-14T19:47:46.402Z"
+  },
+  "type": "MEDIA",
+  "content": "Alo",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636919264341_IMG_20211115_004636.jpg",
+      "type": "FILE",
+      "name": "1636919264341_IMG_20211115_004636.jpg",
+      "size": 145551
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "619168289197ec1b58ce6e16"
+  },
+  "roomId": "6191677d9197ec1b58ce6df9",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T19:48:56.271Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636919334559_IMG_20211113_054553.jpg",
+      "type": "IMAGE",
+      "name": "1636919334559_IMG_20211113_054553.jpg",
+      "size": 39745
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636919335630_IMG_20211113_054551.jpg",
+      "type": "FILE",
+      "name": "1636919335630_IMG_20211113_054551.jpg",
+      "size": 37037
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636919335945_IMG_20211113_054552.jpg",
+      "type": "IMAGE",
+      "name": "1636919335945_IMG_20211113_054552.jpg",
+      "size": 37037
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916b049197ec1b58ce6e1b"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:01:08.873Z"
+  },
+  "type": "TEXT",
+  "content": "G",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916b149197ec1b58ce6e20"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:01:24.697Z"
+  },
+  "type": "TEXT",
+  "content": "M",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916bef9197ec1b58ce6e25"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:05:03.422Z"
+  },
+  "type": "TEXT",
+  "content": "K",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916c109197ec1b58ce6e2a"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:05:36.026Z"
+  },
+  "type": "TEXT",
+  "content": "G",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916d2b9197ec1b58ce6e2f"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:10:19.963Z"
+  },
+  "type": "TEXT",
+  "content": "Alo",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916d5e9197ec1b58ce6e34"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:11:10.067Z"
+  },
+  "type": "TEXT",
+  "content": "Sadas",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916e5d9197ec1b58ce6e39"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:15:25.397Z"
+  },
+  "type": "TEXT",
+  "content": "Sadkasmd",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916ee29197ec1b58ce6e3e"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:17:38.448Z"
+  },
+  "type": "TEXT",
+  "content": "Samdkm",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916ee89197ec1b58ce6e43"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:17:44.021Z"
+  },
+  "type": "TEXT",
+  "content": "Dámkdm",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916eec9197ec1b58ce6e48"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:17:48.664Z"
+  },
+  "type": "TEXT",
+  "content": "Samdkasmd",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916fce9197ec1b58ce6e4d"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:21:34.415Z"
+  },
+  "type": "TEXT",
+  "content": "Ádmkasm",
+  "pin": false,
+  "deleted": false,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61916fd49197ec1b58ce6e52"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T20:21:40.428Z"
+  },
+  "type": "TEXT",
+  "content": "Tin nhắn đã được thu hồi.",
+  "pin": false,
+  "deleted": true,
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message",
+  "media": []
+},{
+  "_id": {
+    "$oid": "61918d432334cc5a5f02fdbb"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T22:27:15.559Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636928834260_IMG_20211113_054553.jpg",
+      "type": "FILE",
+      "name": "1636928834260_IMG_20211113_054553.jpg",
+      "size": 39745
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61918f332334cc5a5f02fdc0"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T22:35:31.469Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929329387_IMG_20211113_054553.jpg",
+      "type": "FILE",
+      "name": "1636929329387_IMG_20211113_054553.jpg",
+      "size": 39745
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929330829_IMG_20211113_054551.jpg",
+      "type": "FILE",
+      "name": "1636929330829_IMG_20211113_054551.jpg",
+      "size": 37037
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61918f592334cc5a5f02fdc5"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T22:36:09.746Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929367988_IMG_20211113_054553.jpg",
+      "type": "FILE",
+      "name": "1636929367988_IMG_20211113_054553.jpg",
+      "size": 39745
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929369065_IMG_20211113_054551.jpg",
+      "type": "FILE",
+      "name": "1636929369065_IMG_20211113_054551.jpg",
+      "size": 37037
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929369412_IMG_20211113_054552.jpg",
+      "type": "FILE",
+      "name": "1636929369412_IMG_20211113_054552.jpg",
+      "size": 37037
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+},{
+  "_id": {
+    "$oid": "61918f792334cc5a5f02fdca"
+  },
+  "roomId": "2",
+  "senderId": "2",
+  "createAt": {
+    "$date": "2021-11-14T22:36:41.300Z"
+  },
+  "type": "MEDIA",
+  "pin": false,
+  "deleted": false,
+  "media": [
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929399345_IMG_20211113_054553.jpg",
+      "type": "FILE",
+      "name": "1636929399345_IMG_20211113_054553.jpg",
+      "size": 39745
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929400341_IMG_20211113_054551.jpg",
+      "type": "FILE",
+      "name": "1636929400341_IMG_20211113_054551.jpg",
+      "size": 37037
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929400645_IMG_20211113_054552.jpg",
+      "type": "FILE",
+      "name": "1636929400645_IMG_20211113_054552.jpg",
+      "size": 37037
+    },
+    {
+      "url": "https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1636929400951_IMG_20211111_080350.jpg",
+      "type": "FILE",
+      "name": "1636929400951_IMG_20211111_080350.jpg",
+      "size": 39745
+    }
+  ],
+  "_class": "iuh.dhktpm14.cnm.chatappmongo.entity.Message"
+}]

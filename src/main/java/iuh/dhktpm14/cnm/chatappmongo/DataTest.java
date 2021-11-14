@@ -36,7 +36,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-//@Component
+@Component
+@ConditionalOnProperty(name = "data.insert")
 //chạy xong lần đầu có dữ liệu rồi thì comment @Component
 public class DataTest implements CommandLineRunner {
 
