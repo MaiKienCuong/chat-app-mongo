@@ -267,12 +267,12 @@ public class FriendRequestRest {
             log.info("deleting sent request");
             Optional<FriendRequest> friendRequestOptional = friendRequestService.findByFromIdAndToId(user.getId(), deleteId);
             if (friendRequestOptional.isPresent()) {
+                friendRequestService.deleteFriendRequest(user.getId(), deleteId);
                 boolean recall = friendRequestSocketService.sendFriendRequestRecall(friendRequestOptional.get());
                 if (recall)
                     log.info("recall friend request via socket successfully");
                 else
                     log.error("recall friend request via socket fail");
-                friendRequestService.deleteFriendRequest(user.getId(), deleteId);
             }
         }
         // xóa lời mời đã nhận được
@@ -280,12 +280,12 @@ public class FriendRequestRest {
             log.info("deleting received request");
             Optional<FriendRequest> friendRequestOptional = friendRequestService.findByFromIdAndToId(deleteId, user.getId());
             if (friendRequestOptional.isPresent()) {
+                friendRequestService.deleteFriendRequest(deleteId, user.getId());
                 boolean delete = friendRequestSocketService.sendFriendRequestDelete(friendRequestOptional.get());
                 if (delete)
                     log.info("delete friend request via socket successfully");
                 else
                     log.error("delete friend request via socket fail");
-                friendRequestService.deleteFriendRequest(deleteId, user.getId());
             }
         }
         return ResponseEntity.ok().build();
