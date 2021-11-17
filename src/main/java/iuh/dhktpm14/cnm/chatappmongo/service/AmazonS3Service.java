@@ -7,23 +7,26 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
 import iuh.dhktpm14.cnm.chatappmongo.util.FileUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+@Slf4j
 @Service
 public class AmazonS3Service {
     private AmazonS3 s3client;
@@ -37,11 +40,9 @@ public class AmazonS3Service {
     @Value("${amazonProperties.secretKey}")
     private String secretKey;
 
-    private static final Logger logger = Logger.getLogger(AmazonS3Service.class.getName());
-
     @PostConstruct
     private void initializeAmazon() {
-        logger.log(Level.INFO, "initial amazon s3 service");
+        log.info("initial amazon s3 service");
 
         AWSCredentials credentials = new BasicAWSCredentials(this.accessKey, this.secretKey);
         this.s3client = AmazonS3ClientBuilder.standard()
@@ -76,11 +77,22 @@ public class AmazonS3Service {
      * upload file lên S3
      */
     private void uploadFileTos3bucket(String fileName, File file) {
-        logger.log(Level.INFO, "uploading to s3 filename = {0}", fileName);
-        logger.log(Level.INFO, "uploading to s3 file = {0}", file);
+        log.info("uploading to s3 filename = {}", fileName);
+        log.info("uploading to s3 file = {}", file);
 
-        s3client.putObject(new PutObjectRequest(bucketName, fileName, file)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
+//        s3client.putObject(new PutObjectRequest(bucketName, fileName, file)
+//                .withCannedAcl(CannedAccessControlList.PublicRead));
+
+        var objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentDisposition("attachment");
+
+        try {
+            s3client.putObject(new PutObjectRequest(bucketName, fileName, new FileInputStream(file), objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+        } catch (FileNotFoundException e) {
+            log.error(e.getMessage());
+        }
+
     }
 
     /**
@@ -104,7 +116,7 @@ public class AmazonS3Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        logger.log(Level.INFO, "upload finish, fileUrl = {0}", fileUrl);
+        log.info("upload finish, fileUrl = {}", fileUrl);
         return myMedia;
     }
 }
