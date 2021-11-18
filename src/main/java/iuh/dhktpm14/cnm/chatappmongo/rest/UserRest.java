@@ -3,10 +3,8 @@ package iuh.dhktpm14.cnm.chatappmongo.rest;
 import io.swagger.annotations.ApiOperation;
 import iuh.dhktpm14.cnm.chatappmongo.dto.ChangePasswordDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserUpdateDto;
-import iuh.dhktpm14.cnm.chatappmongo.dto.ViewProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
@@ -218,19 +216,7 @@ public class UserRest {
         log.info("userId = {} viewing profile of userId = {}", user.getId(), anotherUserId);
         Optional<User> userOptional = userDetailService.findById(anotherUserId);
         if (userOptional.isPresent()) {
-            var friendStatus = FriendStatus.NONE;
-            if (friendService.isFriend(user.getId(), anotherUserId))
-                friendStatus = FriendStatus.FRIEND;
-            else if (friendRequestService.isSent(user.getId(), anotherUserId))
-                friendStatus = FriendStatus.SENT;
-            else if (friendRequestService.isReceived(user.getId(), anotherUserId))
-                friendStatus = FriendStatus.RECEIVED;
-            log.info("friend status = {}", friendStatus);
-            ViewProfileDto viewProfile = ViewProfileDto.builder()
-                    .user(userMapper.toUserProfileDto(userOptional.get()))
-                    .friendStatus(friendStatus)
-                    .build();
-            return ResponseEntity.ok(viewProfile);
+            return ResponseEntity.ok(userMapper.toViewProfileDto(userOptional.get()));
         }
         String message = messageSource.getMessage("user_not_found", null, locale);
         log.error(message);

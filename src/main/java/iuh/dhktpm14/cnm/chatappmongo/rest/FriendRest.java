@@ -10,8 +10,8 @@ import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
-import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
+import iuh.dhktpm14.cnm.chatappmongo.service.FriendSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ public class FriendRest {
     private UserMapper userMapper;
 
     @Autowired
-    private FriendRequestService friendRequestService;
+    private FriendSocketService friendSocketService;
 
     @Autowired
     private MessageSource messageSource;
@@ -129,6 +129,7 @@ public class FriendRest {
         if (friendService.isFriend(user.getId(), deleteId)) {
             log.info("deleting friend in database");
             friendService.deleteFriend(user.getId(), deleteId);
+            friendSocketService.sendDeleteFriendMessage(user.getId(), deleteId);
             return ResponseEntity.ok().build();
         }
         log.error("userId = {} and userId = {} are not friend", user.getId(), deleteId);
