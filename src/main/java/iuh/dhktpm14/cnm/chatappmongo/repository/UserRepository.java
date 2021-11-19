@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.repository;
 
+import iuh.dhktpm14.cnm.chatappmongo.dto.StatisticsSignUpByGender;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 
 import org.springframework.data.domain.Page;
@@ -41,5 +42,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
+
 
 }

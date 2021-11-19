@@ -236,4 +236,6 @@ public class UserRest {
         return ResponseEntity.badRequest().body(new MessageResponse(message));
     }
 
+
+
 }

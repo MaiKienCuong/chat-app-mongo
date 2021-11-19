@@ -167,6 +167,22 @@ public class AdminRest {
         return ResponseEntity.ok(messageService.statisticsByMonths(year));
     }
 
+    @GetMapping("/statistic_sign_up")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Thống kê số lượng đăng ký trong 1 năm bất kỳ")
+    public ResponseEntity<?> statisticsSignUpByGender(@ApiIgnore @AuthenticationPrincipal User admin,
+                                                    @RequestParam int year){
+        return ResponseEntity.ok(userDetailService.statisticsSignUpByGender(year));
+    }
+
+    @GetMapping("/read_log")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Đọc nhật ký hoạt động của quản trị")
+    public ResponseEntity<?> readLog(@ApiIgnore @AuthenticationPrincipal User admin){
+        return ResponseEntity.ok(adminLogService.findAll());
+    }
+
+
     /**
      *
      */
@@ -181,7 +197,7 @@ public class AdminRest {
     
     private void writeLogToDatabase(User admin, User user, String content) {
     	 AdminLog adminLog = AdminLog.builder()
-         		.handlerObjectId(user.getId())
+         		.handlerObjectId(admin.getId())
          		.content(content)
          		.time(new Date())
          		.relatedObjectId(user.getId())
