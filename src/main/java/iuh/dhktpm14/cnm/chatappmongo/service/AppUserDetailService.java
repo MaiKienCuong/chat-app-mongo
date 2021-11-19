@@ -215,6 +215,10 @@ public class AppUserDetailService implements UserDetailsService {
         return userRepository.findByIdIn(ids);
     }
 
+    public List<User> findByCreateAtBetween(Date from, Date to){
+        return userRepository.findByCreateAtBetween(from,to);
+    }
+
     public Optional<User> findDistinctByUsername(String userName) {
         return userRepository.findDistinctByUsername(userName);
     }
@@ -225,6 +229,10 @@ public class AppUserDetailService implements UserDetailsService {
 
     public Optional<User> findDistinctByPhoneNumberOrUsernameOrEmail(String phoneNumber) {
         return userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(phoneNumber);
+    }
+    
+    public Page<User> findAllByRoles(String roles, Pageable pageable) {
+        return userRepository.findAllByRoles(roles, pageable);
     }
 
     public boolean existsById(String userId) {
@@ -246,4 +254,6 @@ public class AppUserDetailService implements UserDetailsService {
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
+    
+    
 }

@@ -1,21 +1,28 @@
 package iuh.dhktpm14.cnm.chatappmongo.service;
 
+import iuh.dhktpm14.cnm.chatappmongo.dto.StatisticsByMonth;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
+import iuh.dhktpm14.cnm.chatappmongo.projection.CustomAggregationOperation;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -147,5 +154,22 @@ public class MessageService {
             return Optional.empty();
         return Optional.ofNullable(results.getMappedResults().get(0));
     }*/
+
+    public List<Message> findByCreateAtBetween(Date from, Date to) {
+        return messageRepository.findByCreateAtBetween(from, to);
+    }
+
+    public List<StatisticsByMonth> statisticsByMonths(int year) {
+        var aggregation = Aggregation.newAggregation(
+                new CustomAggregationOperation("{$project:{_id:0,year:{$year:'$createAt'},month:{$month:'$createAt'}}}"),
+                new CustomAggregationOperation("{$match:{year:{$eq:" + year + "}}}"),
+                new CustomAggregationOperation("{$group:{_id:'$month',sum:{$sum:1}}}"),
+                new CustomAggregationOperation("{$project:{_id:0,month:'$_id',sum:1}}"),
+                Aggregation.sort(Sort.by(Sort.Direction.ASC, "month"))
+        );
+
+        AggregationResults<StatisticsByMonth> statistics = mongoTemplate.aggregate(aggregation, "message", StatisticsByMonth.class);
+        return statistics.getMappedResults();
+    }
 
 }

@@ -23,7 +23,9 @@ import iuh.dhktpm14.cnm.chatappmongo.repository.RoomRepository;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -92,7 +94,7 @@ public class DataTest implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        insertUser();
+//        insertUser();
 
 //        insertRoom();
 
@@ -102,11 +104,11 @@ public class DataTest implements CommandLineRunner {
 
 //        insertInboxMessage();
 
-        insertFriend();
-
-        insertMoreUser();
-
-        insertFriendRequest();
+//        insertFriend();
+//
+//        insertMoreUser();
+//
+//        insertFriendRequest();
 
         logger.log(Level.INFO, "------insert ok------");
 
@@ -261,7 +263,7 @@ public class DataTest implements CommandLineRunner {
                 .roomId("2")
                 .senderId(senderId)
                 .createAt(new Date(time))
-                .type(MessageType.IMAGE)
+//                .type(MessageType.IMAGE)
                 .content("https://chatappmongo.s3.ap-southeast-1.amazonaws.com/1630819495838-20201226_055434.jpg")
                 .reactions(reactions)
                 .deleted(false)
@@ -285,7 +287,7 @@ public class DataTest implements CommandLineRunner {
                 .roomId("2")
                 .senderId(senderId)
                 .createAt(new Date(time))
-                .type(MessageType.VIDEO)
+//                .type(MessageType.VIDEO)
                 .content("https://chatappmongo.s3.ap-southeast-1.amazonaws.com/Landscapes-+Volume+4K+(UHD)_Trim.mp4")
                 .reactions(reactions)
                 .deleted(false)
