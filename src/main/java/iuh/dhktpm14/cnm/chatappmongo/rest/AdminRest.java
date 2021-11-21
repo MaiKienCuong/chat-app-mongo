@@ -126,6 +126,18 @@ public class AdminRest {
     	
     }
 
+    @PostMapping("/unlock_account")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Mở khóa tài khoản user")
+    public ResponseEntity<?> unlockAccount(@ApiIgnore @AuthenticationPrincipal User admin, @RequestParam String userId){
+        User user = userDetailService.findById(userId).get();
+        log.info("admin = {} , locked account = {}",admin.getDisplayName(),user.toString());
+        user.setBlock(false);
+        writeLogToDatabase(admin, user,"unlock account user");
+        return ResponseEntity.ok(userDetailService.save(user));
+
+    }
+
 
     @PostMapping("/users/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
@@ -192,6 +204,8 @@ public class AdminRest {
 
         return ResponseEntity.ok(logs);
     }
+
+
 
 
     /**
