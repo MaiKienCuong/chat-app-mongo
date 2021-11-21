@@ -21,6 +21,8 @@ public interface UserRepository extends MongoRepository<User, String> {
      */
     List<User> findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(String displayName, String phoneNumber);
 
+    Page<User> findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(String displayName, String phoneNumber, Pageable pageable);
+
     List<User> findByIdIn(List<String> ids);
 
     Optional<User> findDistinctByUsername(String userName);

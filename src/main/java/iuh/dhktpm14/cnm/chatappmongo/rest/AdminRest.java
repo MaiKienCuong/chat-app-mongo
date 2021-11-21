@@ -64,7 +64,7 @@ public class AdminRest {
         		return ResponseEntity.badRequest().body("Role does not exist");
         writeLogToDatabase(admin, admin,"getting all user with "+ role);
         Page<User> findAll = userDetailService.findAllByRoles(role,pageable);
-        return ResponseEntity.ok(toUserProfileDto(findAll));
+        return ResponseEntity.ok(toUserDto(findAll));
     }
     
     
@@ -130,16 +130,24 @@ public class AdminRest {
     @PostMapping("/users/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @ApiOperation("Tìm kiếm user theo tên hoặc số điện thoại gần đúng")
-    public ResponseEntity<?> searchUser(@ApiIgnore @AuthenticationPrincipal User user, @RequestParam String textToSearch) {
-        log.info("admin with username = {} finding user with key = {}", user.getUsername(), textToSearch);
-        List<User> result = userDetailService.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch);
-        if (result == null) {
-            return ResponseEntity.ok(new ArrayList<>(0));
+    public ResponseEntity<?> searchUser(@ApiIgnore @AuthenticationPrincipal User user, @RequestParam String textToSearch, Pageable pageable) {
+        if (user.getRoles().equalsIgnoreCase("ROLE_USER")){
+            List<User> result = userDetailService.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch);
+
+            if (result == null) {
+                return ResponseEntity.ok(new ArrayList<>(0));
+            }
+            List<UserProfileDto> userProfiles = result.stream().filter(x -> ! x.getId().equals(user.getId()))
+                    .map(userMapper::toUserProfileDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(userProfiles);
         }
-        List<UserProfileDto> userProfiles = result.stream().filter(x -> ! x.getId().equals(user.getId()))
-                .map(userMapper::toUserProfileDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(userProfiles);
+
+        Page<User> result = userDetailService.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch, pageable);
+
+        log.info("admin with username = {} finding user with key = {}", user.getUsername(), textToSearch);
+        writeLogToDatabase(user,user,"finding user with key : " + textToSearch);
+        return ResponseEntity.ok(toUserProfileDto(result));
     }
 
 
@@ -178,19 +186,30 @@ public class AdminRest {
     @GetMapping("/read_log")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ApiOperation("Đọc nhật ký hoạt động của quản trị")
-    public ResponseEntity<?> readLog(@ApiIgnore @AuthenticationPrincipal User admin){
-        return ResponseEntity.ok(adminLogService.findAll());
+    public ResponseEntity<?> readLog(@ApiIgnore @AuthenticationPrincipal User admin , Pageable pageable){
+        Page<AdminLog> logs = adminLogService.findAll(pageable);
+        writeLogToDatabase(admin,admin,"truy cập nhật ký hoạt động của quản trị");
+
+        return ResponseEntity.ok(logs);
     }
 
 
     /**
      *
      */
-    private Page<?> toUserProfileDto(Page<User> userPage) {
+    private Page<?> toUserDto(Page<User> userPage) {
         List<User> content = userPage.getContent();
 //        List<UserProfileDto> dto = content.stream()
 //                .map(x -> userMapper.toUserProfileDto(x))
 //                .collect(Collectors.toList());
+        return new PageImpl<>(content, userPage.getPageable(), userPage.getTotalElements());
+    }
+
+    private Page<?> toUserProfileDto(Page<User> userPage) {
+        List<User> content = userPage.getContent();
+        List<UserProfileDto> dto = content.stream()
+                .map(x -> userMapper.toUserProfileDto(x))
+                .collect(Collectors.toList());
         return new PageImpl<>(content, userPage.getPageable(), userPage.getTotalElements());
     }
     

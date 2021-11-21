@@ -1,6 +1,8 @@
 package iuh.dhktpm14.cnm.chatappmongo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import iuh.dhktpm14.cnm.chatappmongo.entity.AdminLog;
@@ -20,8 +22,8 @@ public class AdminLogService {
 		return logRepository.save(log);
 	}
 
-	public List<AdminLog> findAll(){
-		return logRepository.findAll();
+	public Page<AdminLog> findAll(Pageable pageable){
+		return logRepository.findAll(pageable);
 	}
 
 }

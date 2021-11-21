@@ -215,6 +215,10 @@ public class AppUserDetailService implements UserDetailsService {
         return userRepository.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(displayName, phoneNumber);
     }
 
+    public Page<User> findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(String displayName, String phoneNumber, Pageable pageable) {
+        return userRepository.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(displayName, phoneNumber, pageable);
+    }
+
     public List<User> findByIdIn(List<String> ids) {
         return userRepository.findByIdIn(ids);
     }
