@@ -19,6 +19,8 @@ public class UserUpdateDto {
     @NotBlank(message = "{displayName_not_empty}")
     private String displayName;
 
+    private String username;
+
     @NotBlank(message = "{gender_not_empty}")
     private String gender;
 

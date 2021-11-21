@@ -54,7 +54,10 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler {
         var bindingResult = ex.getBindingResult();
         if (bindingResult.hasFieldErrors()) {
             List<FieldError> errors = bindingResult.getFieldErrors();
-            return ResponseEntity.badRequest().body(new MessageResponse(errors.get(0).getDefaultMessage()));
+            var fieldError = errors.get(0);
+            var response = new MessageResponse(fieldError.getDefaultMessage());
+            response.setField(fieldError.getField());
+            return ResponseEntity.badRequest().body(response);
         }
         String message = messageSource.getMessage("method_argument_not_valid", null, LocaleContextHolder.getLocale());
         log.error(message);

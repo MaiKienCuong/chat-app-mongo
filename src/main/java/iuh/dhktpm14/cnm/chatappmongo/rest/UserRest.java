@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -87,8 +86,26 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Cập nhật thông tin user")
     public ResponseEntity<?> updateInformationUser(@ApiIgnore @AuthenticationPrincipal User user,
-                                                   @Valid @RequestBody UserUpdateDto userUpdate) {
+                                                   @Valid @RequestBody UserUpdateDto userUpdate,
+                                                   Locale locale) {
         log.info("userUpdate from client = {}", userUpdate);
+
+        if (userUpdate.getUsername() != null) {
+            Optional<User> userOptional = userDetailService.findDistinctByUsername(userUpdate.getUsername());
+            if (userOptional.isPresent()) {
+                var existsUser = userOptional.get();
+                if (! existsUser.getId().equals(user.getId())) {
+                    String message = messageSource.getMessage("username_is_exists",
+                            new Object[]{ userUpdate.getUsername() }, locale);
+                    log.error(message);
+                    return ResponseEntity.badRequest().body(new MessageResponse(message));
+                } else {
+                    user.setUsername(userUpdate.getUsername());
+                }
+            } else {
+                user.setUsername(userUpdate.getUsername());
+            }
+        }
 
         user.setEmail(userUpdate.getEmail());
         user.setDisplayName(userUpdate.getDisplayName());
@@ -106,13 +123,8 @@ public class UserRest {
     @ApiOperation("Cập nhật thông tin user")
     public ResponseEntity<?> updateInformationUserForMobile(@ApiIgnore @AuthenticationPrincipal User user,
                                                             @Valid UserUpdateDto userUpdate,
-                                                            BindingResult result,
                                                             Locale locale) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), locale)));
-        }
-        return updateInformationUser(user, userUpdate);
+        return updateInformationUser(user, userUpdate, locale);
     }
 
     @PutMapping("/me/changePassword")
@@ -134,7 +146,9 @@ public class UserRest {
             }
             message = messageSource.getMessage("oldPass_incorrect", null, locale);
             log.error(message);
-            return ResponseEntity.badRequest().body(new MessageResponse(message));
+            var response = new MessageResponse(message);
+            response.setField("oldPass");
+            return ResponseEntity.badRequest().body(response);
         }
         message = messageSource.getMessage("changePass_failed", null, locale);
         log.error(message);
@@ -146,12 +160,7 @@ public class UserRest {
     @ApiOperation("Đổi mật khẩu")
     public ResponseEntity<?> changePasswordForMobile(@ApiIgnore @AuthenticationPrincipal User user,
                                                      @Valid ChangePasswordDto passwordDto,
-                                                     Locale locale,
-                                                     BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), locale)));
-        }
+                                                     Locale locale) {
         return changePassword(user, passwordDto, locale);
     }
 

@@ -20,7 +20,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +45,7 @@ import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
 @RequestMapping("/api/auth")
 @CrossOrigin("${spring.security.cross_origin}")
 public class AuthenticationRest {
-	
+
     @Autowired
     private AdminLogService adminLogService;
 
@@ -88,11 +87,11 @@ public class AuthenticationRest {
         response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
 
         AdminLog adminLog = AdminLog.builder()
-         		.handlerObjectId(user.getId())
-         		.content("is sign in")
-         		.time(new Date())
-         		.relatedObjectId(user.getId())
-         		.build();
+                .handlerObjectId(user.getId())
+                .content("is sign in")
+                .time(new Date())
+                .relatedObjectId(user.getId())
+                .build();
         adminLogService.writeLog(adminLog);
         return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
     }
@@ -165,8 +164,10 @@ public class AuthenticationRest {
             }
         }
         String phoneInvalid = messageSource.getMessage("phone_invalid", null, locale);
+        var response = new MessageResponse(phoneInvalid);
+        response.setField("phoneNumber");
         log.error(phoneInvalid);
-        return ResponseEntity.badRequest().body(new MessageResponse(phoneInvalid));
+        return ResponseEntity.badRequest().body(response);
     }
 
     @PutMapping("/signup/save_information")
@@ -289,12 +290,7 @@ public class AuthenticationRest {
     }
 
     @PostMapping(path = "signup/save_information", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<?> signupForMobile(UserSignupDto user, BindingResult result, Locale locale) {
-        if (result.hasErrors()) {
-            log.error("sign up for mobile has an error");
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse(messageSource.getMessage(result.getFieldError(), locale)));
-        }
+    public ResponseEntity<?> signupForMobile(@Valid UserSignupDto user, Locale locale) {
         return signup(user, locale);
     }
 
