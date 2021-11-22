@@ -94,7 +94,7 @@ public class DataTest implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-//        insertUser();
+        insertUser();
 
 //        insertRoom();
 
@@ -104,7 +104,7 @@ public class DataTest implements CommandLineRunner {
 
 //        insertInboxMessage();
 
-//        insertFriend();
+        insertFriend();
 //
 //        insertMoreUser();
 //
@@ -158,6 +158,7 @@ public class DataTest implements CommandLineRunner {
                 var randomId = randomNotDuplicate(5, ids);
                 var friend = Friend.builder()
                         .userId(u.getId())
+                        .createAt(new Date())
                         .friendId(randomId + "")
                         .build();
                 ids.add(randomId);

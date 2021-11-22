@@ -53,7 +53,7 @@ public class ReadTrackingService {
             logger.log(Level.INFO, "old message id of read tracking = {0}, unread message = {1}",
                     new Object[]{ readTracking.getMessageId(), readTracking.getUnReadMessage() });
 
-            if (! messageId.equals(readTracking.getMessageId())) {
+            if (messageId != null && (! messageId.equals(readTracking.getMessageId()))) {
 
                 logger.log(Level.INFO, "updating read tracking of userId = {0}, new messageId = {1}, in roomId = {2}",
                         new Object[]{ userId, messageId, roomId });

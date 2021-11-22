@@ -5,6 +5,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -60,21 +61,25 @@ public class ChatSocketService {
     }
 
     public void sendSystemMessage(Message message, Room room) {
-        message.setSenderId(null);
-        messageService.save(message);
-        saveMessageToDatabase(message, room);
-        inboxService.updateLastTimeForAllInboxOfRoom(room);
-        readTrackingService.incrementUnReadMessageForAllMember(room);
-        sendMessageToAllMemberOfRoom(message, room);
+        if (message != null) {
+            message.setSenderId(null);
+            messageService.save(message);
+            saveMessageToDatabase(message, room);
+            inboxService.updateLastTimeForAllInboxOfRoom(room);
+            readTrackingService.incrementUnReadMessageForAllMember(room);
+            sendMessageToAllMemberOfRoom(message, room);
+        }
     }
 
     public void sendMessage(Message message, Room room, String senderId) {
-        messageService.save(message);
-        saveMessageToDatabase(message, room);
-        inboxService.updateLastTimeForAllInboxOfRoom(room);
-        readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, senderId);
-        readTrackingService.updateReadTracking(senderId, room.getId(), message.getId());
-        sendMessageToAllMemberOfRoom(message, room);
+        if (message != null) {
+            messageService.save(message);
+            saveMessageToDatabase(message, room);
+            inboxService.updateLastTimeForAllInboxOfRoom(room);
+            readTrackingService.incrementUnReadMessageForMembersOfRoomExcludeUserId(room, senderId);
+            readTrackingService.updateReadTracking(senderId, room.getId(), message.getId());
+            sendMessageToAllMemberOfRoom(message, room);
+        }
     }
 
     /**
@@ -88,6 +93,20 @@ public class ChatSocketService {
                         new Object[]{ message.getId(), m.getUserId() });
                 messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
                         messageMapper.toMessageToClient(message));
+            }
+        }
+    }
+
+    public void sendBusyMessage(Message message, Room room) {
+        Set<Member> members = room.getMembers();
+        if (room.getType().equals(RoomType.ONE) && members != null) {
+            for (Member m : members) {
+                if (! m.getUserId().equals(message.getSenderId())) {
+                    logger.log(Level.INFO, "sending busy message from userId = {0} to userId = {1}",
+                            new Object[]{ message.getSenderId(), m.getUserId() });
+                    messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
+                            messageMapper.toMessageToClient(message));
+                }
             }
         }
     }
