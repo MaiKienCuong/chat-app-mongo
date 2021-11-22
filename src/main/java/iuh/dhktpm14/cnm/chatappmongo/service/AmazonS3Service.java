@@ -10,6 +10,7 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MediaType;
 import iuh.dhktpm14.cnm.chatappmongo.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,8 +70,8 @@ public class AmazonS3Service {
     private String generateFileName(MultipartFile multiPart) {
         String originalFilename = multiPart.getOriginalFilename();
         if (originalFilename != null)
-            return new Date().getTime() + "_" + originalFilename.replace(" ", "_");
-        return new Date().getTime() + "_" + UUID.randomUUID().toString().replace("-", "_");
+            return new Date().getTime() + "_" + originalFilename.replaceAll("\\s+", "_");
+        return new Date().getTime() + "_" + UUID.randomUUID().toString();
     }
 
     /**
@@ -80,17 +81,19 @@ public class AmazonS3Service {
         log.info("uploading to s3 filename = {}", fileName);
         log.info("uploading to s3 file = {}", file);
 
-//        s3client.putObject(new PutObjectRequest(bucketName, fileName, file)
-//                .withCannedAcl(CannedAccessControlList.PublicRead));
-
-        var objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentDisposition("attachment");
-
-        try {
-            s3client.putObject(new PutObjectRequest(bucketName, fileName, new FileInputStream(file), objectMetadata)
+        if (FileUtil.getMediaType(file).equals(MediaType.VIDEO)) {
+            s3client.putObject(new PutObjectRequest(bucketName, fileName, file)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
-        } catch (FileNotFoundException e) {
-            log.error(e.getMessage());
+        } else {
+            var objectMetadata = new ObjectMetadata();
+            objectMetadata.setContentDisposition("attachment");
+
+            try {
+                s3client.putObject(new PutObjectRequest(bucketName, fileName, new FileInputStream(file), objectMetadata)
+                        .withCannedAcl(CannedAccessControlList.PublicRead));
+            } catch (FileNotFoundException e) {
+                log.error(e.getMessage());
+            }
         }
 
     }
@@ -108,7 +111,7 @@ public class AmazonS3Service {
             fileUrl = s3client.getUrl(bucketName, fileName).toString();
 
             myMedia.setUrl(fileUrl);
-            myMedia.setName(fileName);
+            myMedia.setName(multipartFile.getOriginalFilename());
             myMedia.setSize(s3client.getObjectMetadata(bucketName, fileName).getContentLength());
             myMedia.setType(FileUtil.getMediaType(fileUrl));
 
