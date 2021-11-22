@@ -7,6 +7,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.FriendStatus;
 import iuh.dhktpm14.cnm.chatappmongo.exceptions.MyException;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.BlockService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class UserMapper {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private BlockService blockService;
 
     private User authenticate() {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -61,6 +65,15 @@ public class UserMapper {
         dto.setLastOnline(user.getLastOnline());
         dto.setPhoneNumber(user.getPhoneNumber());
 
+        if (! currentUser.getId().equals(user.getId())) {
+            dto.setFriendStatus(getFriendStatus(user, currentUser));
+            dto.setBlockMe(blockService.checkThisUserBlockMe(currentUser.getId(), user.getId()));
+        }
+
+        return dto;
+    }
+
+    private FriendStatus getFriendStatus(User user, User currentUser) {
         var friendStatus = FriendStatus.NONE;
         if (friendService.isFriend(currentUser.getId(), user.getId()))
             friendStatus = FriendStatus.FRIEND;
@@ -68,8 +81,7 @@ public class UserMapper {
             friendStatus = FriendStatus.SENT;
         else if (friendRequestService.isReceived(currentUser.getId(), user.getId()))
             friendStatus = FriendStatus.RECEIVED;
-        dto.setFriendStatus(friendStatus);
-        return dto;
+        return friendStatus;
     }
 
     public UserDetailDto toUserDetailDto(User user) {
@@ -108,14 +120,11 @@ public class UserMapper {
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setEmail(user.getEmail());
 
-        var friendStatus = FriendStatus.NONE;
-        if (friendService.isFriend(currentUser.getId(), user.getId()))
-            friendStatus = FriendStatus.FRIEND;
-        else if (friendRequestService.isSent(currentUser.getId(), user.getId()))
-            friendStatus = FriendStatus.SENT;
-        else if (friendRequestService.isReceived(currentUser.getId(), user.getId()))
-            friendStatus = FriendStatus.RECEIVED;
-        dto.setFriendStatus(friendStatus);
+        if (! currentUser.getId().equals(user.getId())) {
+            dto.setFriendStatus(getFriendStatus(user, currentUser));
+            dto.setBlockMe(blockService.checkThisUserBlockMe(currentUser.getId(), user.getId()));
+        }
+
         return dto;
     }
 

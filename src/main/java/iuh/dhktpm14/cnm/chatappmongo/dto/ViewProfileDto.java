@@ -34,4 +34,5 @@ public class ViewProfileDto {
     private Date lastOnline;
 
     private FriendStatus friendStatus;
+    private boolean blockMe;
 }

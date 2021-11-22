@@ -70,7 +70,7 @@ public class BlockRest {
             return ResponseEntity.badRequest().build();
         }
         if (userDetailService.existsById(idOfUserToBlock)) {
-            if (! blockService.checkBlock(user.getId(), idOfUserToBlock)) {
+            if (! blockService.checkMeBlockThisUser(user.getId(), idOfUserToBlock)) {
                 var block = Block.builder()
                         .userId(user.getId())
                         .blockId(idOfUserToBlock)

@@ -18,8 +18,12 @@ public class BlockService {
         return blockRepository.findAllByUserId(userId, pageable);
     }
 
-    public boolean checkBlock(String currentUserId, String anotherUserId) {
-        return blockRepository.checkBlock(currentUserId, anotherUserId);
+    public boolean checkMeBlockThisUser(String currentUserId, String anotherUserId) {
+        return blockRepository.checkMeBlockThisUser(currentUserId, anotherUserId);
+    }
+
+    public boolean checkThisUserBlockMe(String currentUserId, String anotherUserId) {
+        return blockRepository.checkThisUserBlockMe(currentUserId, anotherUserId);
     }
 
     public long unBlock(String currentUserId, String anotherUserId) {

@@ -17,7 +17,10 @@ public interface BlockRepository extends MongoRepository<Block, String> {
     Page<Block> findAllByUserId(String userId, Pageable pageable);
 
     @Query(value = "{userId: ?0, blockId: ?1}", exists = true)
-    boolean checkBlock(String currentUserId, String anotherUserId);
+    boolean checkMeBlockThisUser(String currentUserId, String anotherUserId);
+
+    @Query(value = "{blockId: ?0, userId: ?1}", exists = true)
+    boolean checkThisUserBlockMe(String currentUserId, String anotherUserId);
 
     @Query(value = "{userId: ?0, blockId: ?1}", delete = true)
     long unBlock(String currentUserId, String anotherUserId);
