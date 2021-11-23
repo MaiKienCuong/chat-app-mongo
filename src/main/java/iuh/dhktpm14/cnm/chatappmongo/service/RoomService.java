@@ -123,18 +123,43 @@ public class RoomService {
     /**
      * thêm thành viên làm admin room
      */
+    public boolean recallAdmin(String userId, String roomId, String currentUserId) {
+        logger.log(Level.INFO, "in function recall admin for userId = {0}, in roomId = {1}",
+                new Object[]{ userId, roomId });
+
+        if (roomRepository.isCreatorRoom(currentUserId, roomId)) {
+            if (isMemberOfRoom(userId, roomId)) {
+                logger.log(Level.INFO, "recalling admin ...");
+                var criteria = Criteria.where("_id").is(roomId).and("members.userId").is(userId);
+                var update = new Update();
+                update.set("members.$.isAdmin", false);
+                mongoTemplate.updateFirst(Query.query(criteria), update, Room.class);
+                return true;
+            } else
+                logger.log(Level.WARNING, "cannot recall because userId = {0} not member of roomId = {1}",
+                        new Object[]{ userId, roomId });
+        }
+        return false;
+    }
+
+    /**
+     * thêm thành viên làm admin room
+     */
     public boolean setAdmin(String userId, String roomId, String currentUserId) {
         logger.log(Level.INFO, "in function set admin for userId = {0}, in roomId = {1}",
                 new Object[]{ userId, roomId });
 
         if (roomRepository.isCreatorRoom(currentUserId, roomId) || isAdminOfRoom(currentUserId, roomId)) {
-            logger.log(Level.INFO, "setting admin ...");
-
-            var criteria = Criteria.where("_id").is(roomId).and("members.userId").is(userId);
-            var update = new Update();
-            update.set("members.$.isAdmin", true);
-            mongoTemplate.updateFirst(Query.query(criteria), update, Room.class);
-            return true;
+            if (isMemberOfRoom(userId, roomId)) {
+                logger.log(Level.INFO, "setting admin ...");
+                var criteria = Criteria.where("_id").is(roomId).and("members.userId").is(userId);
+                var update = new Update();
+                update.set("members.$.isAdmin", true);
+                mongoTemplate.updateFirst(Query.query(criteria), update, Room.class);
+                return true;
+            } else
+                logger.log(Level.WARNING, "cannot set admin because userId = {0} not member of roomId = {1}",
+                        new Object[]{ userId, roomId });
         }
         return false;
     }

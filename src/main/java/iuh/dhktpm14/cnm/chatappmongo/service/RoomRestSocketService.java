@@ -17,38 +17,62 @@ public class RoomRestSocketService {
     @Autowired
     private RoomMapper roomMapper;
 
+    public void sendAfterSetAdmin(Room room) {
+        if (valid(room)) {
+            var roomSummaryDto = roomMapper.toRoomSummaryDto(room);
+            for (Member member : room.getMembers()) {
+                messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/members/admin/setNew",
+                        roomSummaryDto);
+            }
+        }
+    }
+
+    public void sendAfterRecallAdmin(Room room) {
+        if (valid(room)) {
+            var roomSummaryDto = roomMapper.toRoomSummaryDto(room);
+            for (Member member : room.getMembers()) {
+                messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/members/admin/recall",
+                        roomSummaryDto);
+            }
+        }
+    }
+
     public void sendAfterAddMember(Room room) {
         if (valid(room)) {
+            var roomSummaryDto = roomMapper.toRoomSummaryDto(room);
             for (Member member : room.getMembers()) {
                 messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/members/add",
-                        roomMapper.toRoomSummaryDto(room));
+                        roomSummaryDto);
             }
         }
     }
 
     public void sendAfterDeleteMember(Room room) {
         if (valid(room)) {
+            var roomSummaryDto = roomMapper.toRoomSummaryDto(room);
             for (Member member : room.getMembers()) {
                 messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/members/delete",
-                        roomMapper.toRoomSummaryDto(room));
+                        roomSummaryDto);
             }
         }
     }
 
     public void sendAfterRename(Room room) {
         if (valid(room)) {
+            var roomSummaryDto = roomMapper.toRoomSummaryDto(room);
             for (Member member : room.getMembers()) {
                 messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/rename",
-                        roomMapper.toRoomSummaryDto(room));
+                        roomSummaryDto);
             }
         }
     }
 
     public void sendAfterChangeImage(Room room) {
         if (valid(room)) {
+            var roomSummaryDto = roomMapper.toRoomSummaryDto(room);
             for (Member member : room.getMembers()) {
                 messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/room/changeImage",
-                        roomMapper.toRoomSummaryDto(room));
+                        roomSummaryDto);
             }
         }
     }

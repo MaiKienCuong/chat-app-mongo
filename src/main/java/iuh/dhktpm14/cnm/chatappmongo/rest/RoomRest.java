@@ -387,15 +387,42 @@ public class RoomRest {
                                                Locale locale) {
         log.info("userId = {} is setting admin for memberId = {}", user.getId(), memberId);
         if (! userDetailService.existsById(memberId)) {
-            String userNotFound = messageSource.getMessage("userNotFound", null, locale);
+            String userNotFound = messageSource.getMessage("user_not_found", null, locale);
             log.error(userNotFound);
             return ResponseEntity.badRequest().body(new MessageResponse(userNotFound));
         }
         if (roomService.setAdmin(memberId, roomId, user.getId())) {
             log.info("setting admin success");
+            var roomOptional = roomService.findById(roomId);
+            roomOptional.ifPresent(room -> roomRestSocketService.sendAfterSetAdmin(room));
             return ResponseEntity.ok().build();
         }
         log.error("setting admin error");
+        return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * thu hồi quyền admin của thành viên, chỉ có người tạo nhóm mới thực hiện được
+     */
+    @DeleteMapping("/admin/{roomId}/{memberId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Thu hồi quyền admin của thành viên")
+    public ResponseEntity<?> recallAdminForMember(@PathVariable String roomId, @PathVariable String memberId,
+                                                  @AuthenticationPrincipal User user,
+                                                  Locale locale) {
+        log.info("userId = {} is recalling admin for memberId = {}", user.getId(), memberId);
+        if (! userDetailService.existsById(memberId)) {
+            String userNotFound = messageSource.getMessage("user_not_found", null, locale);
+            log.error(userNotFound);
+            return ResponseEntity.badRequest().body(new MessageResponse(userNotFound));
+        }
+        if (roomService.recallAdmin(memberId, roomId, user.getId())) {
+            log.info("recall admin success");
+            var roomOptional = roomService.findById(roomId);
+            roomOptional.ifPresent(room -> roomRestSocketService.sendAfterRecallAdmin(room));
+            return ResponseEntity.ok().build();
+        }
+        log.error("recall admin error");
         return ResponseEntity.badRequest().build();
     }
 
