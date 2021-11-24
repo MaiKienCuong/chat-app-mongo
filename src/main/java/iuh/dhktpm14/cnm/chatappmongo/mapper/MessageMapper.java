@@ -62,8 +62,7 @@ public class MessageMapper {
         }
         dto.setRoomId(message.getRoomId());
         if (message.getReplyId() != null) {
-            Optional<Message> optional = messageService.findById(message.getReplyId());
-            optional.ifPresent(value -> dto.setReply(toMessageDto(value)));
+            dto.setReply(toMessageDto(message.getReplyId()));
         }
         /*
         lấy danh sách người đã đọc tin nhắn này

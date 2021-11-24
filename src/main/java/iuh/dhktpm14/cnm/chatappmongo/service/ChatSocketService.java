@@ -50,11 +50,12 @@ public class ChatSocketService {
             var room = roomOptional.get();
             Set<Member> members = room.getMembers();
             if (members != null && ! members.isEmpty()) {
+                var messageToClient = messageMapper.toMessageToClient(message);
                 for (Member m : members) {
                     logger.log(Level.INFO, "sending delete message id = {0} to userId = {1}",
                             new Object[]{ message.getId(), m.getUserId() });
                     messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages/delete",
-                            messageMapper.toMessageToClient(message));
+                            messageToClient);
                 }
             }
         }
@@ -88,11 +89,12 @@ public class ChatSocketService {
     private void sendMessageToAllMemberOfRoom(Message message, Room room) {
         Set<Member> members = room.getMembers();
         if (members != null && ! members.isEmpty()) {
+            var messageToClient = messageMapper.toMessageToClient(message);
             for (Member m : members) {
                 logger.log(Level.INFO, "sending message id = {0} to userId = {1}",
                         new Object[]{ message.getId(), m.getUserId() });
                 messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
-                        messageMapper.toMessageToClient(message));
+                        messageToClient);
             }
         }
     }
@@ -100,12 +102,13 @@ public class ChatSocketService {
     public void sendBusyMessage(Message message, Room room) {
         Set<Member> members = room.getMembers();
         if (room.getType().equals(RoomType.ONE) && members != null) {
+            var messageToClient = messageMapper.toMessageToClient(message);
             for (Member m : members) {
                 if (! m.getUserId().equals(message.getSenderId())) {
                     logger.log(Level.INFO, "sending busy message from userId = {0} to userId = {1}",
                             new Object[]{ message.getSenderId(), m.getUserId() });
                     messagingTemplate.convertAndSendToUser(m.getUserId(), "/queue/messages",
-                            messageMapper.toMessageToClient(message));
+                            messageToClient);
                 }
             }
         }
