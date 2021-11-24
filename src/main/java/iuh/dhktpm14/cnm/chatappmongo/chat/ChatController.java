@@ -71,8 +71,13 @@ public class ChatController {
                         var messageExcludeFile = createMessageExcludeFile(messageDto, room, currentUser);
                         var messageIncludeFile = createMessageIncludeFile(messageDto, room, currentUser);
                         log.info("sending messageExcludeFile = {} to websocket", messageExcludeFile);
-                        chatSocketService.sendMessage(messageExcludeFile, room, userId);
-                        chatSocketService.sendMessage(messageIncludeFile, room, userId);
+                        if (messageDto.getMedia() != null && messageIncludeFile != null && messageIncludeFile.getMedia() != null) {
+                            if (messageIncludeFile.getMedia().size() != messageDto.getMedia().size())
+                                chatSocketService.sendMessage(messageExcludeFile, room, userId);
+                            chatSocketService.sendMessage(messageIncludeFile, room, userId);
+                        } else
+                            chatSocketService.sendMessage(messageExcludeFile, room, userId);
+
                     } else
                         log.error("userId = {} is not member of roomId = {}", userId, room.getId());
                 } else
