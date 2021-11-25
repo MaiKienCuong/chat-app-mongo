@@ -68,6 +68,7 @@ public class UserMapper {
         if (! currentUser.getId().equals(user.getId())) {
             dto.setFriendStatus(getFriendStatus(user, currentUser));
             dto.setBlockMe(blockService.checkThisUserBlockMe(currentUser.getId(), user.getId()));
+            dto.setMeBLock(blockService.checkMeBlockThisUser(currentUser.getId(), user.getId()));
         }
 
         return dto;
@@ -123,6 +124,7 @@ public class UserMapper {
         if (! currentUser.getId().equals(user.getId())) {
             dto.setFriendStatus(getFriendStatus(user, currentUser));
             dto.setBlockMe(blockService.checkThisUserBlockMe(currentUser.getId(), user.getId()));
+            dto.setMeBLock(blockService.checkMeBlockThisUser(currentUser.getId(), user.getId()));
         }
 
         return dto;

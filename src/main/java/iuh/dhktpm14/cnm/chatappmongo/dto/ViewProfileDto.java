@@ -35,4 +35,5 @@ public class ViewProfileDto {
 
     private FriendStatus friendStatus;
     private boolean blockMe;
+    private boolean meBLock;
 }

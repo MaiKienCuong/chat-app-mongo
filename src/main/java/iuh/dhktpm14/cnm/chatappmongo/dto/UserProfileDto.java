@@ -23,6 +23,7 @@ public class UserProfileDto implements Serializable, Comparable<UserProfileDto> 
     private FriendStatus friendStatus;
     private String phoneNumber;
     private boolean blockMe;
+    private boolean meBLock;
 
     @Override
     public int compareTo(UserProfileDto o) {
