@@ -72,8 +72,10 @@ public class ChatController {
                         var messageIncludeFile = createMessageIncludeFile(messageDto, room, currentUser);
                         log.info("sending messageExcludeFile = {} to websocket", messageExcludeFile);
                         if (messageDto.getMedia() != null && messageIncludeFile != null && messageIncludeFile.getMedia() != null) {
-                            if (messageIncludeFile.getMedia().size() != messageDto.getMedia().size())
+                            if (messageIncludeFile.getMedia().size() != messageDto.getMedia().size()) {
+                                messageExcludeFile.setContent(null);
                                 chatSocketService.sendMessage(messageExcludeFile, room, userId);
+                            }
                             chatSocketService.sendMessage(messageIncludeFile, room, userId);
                         } else
                             chatSocketService.sendMessage(messageExcludeFile, room, userId);
