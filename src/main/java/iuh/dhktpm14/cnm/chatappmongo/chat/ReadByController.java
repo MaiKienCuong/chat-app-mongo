@@ -35,9 +35,6 @@ public class ReadByController {
     @Autowired
     private RoomService roomService;
 
-//    @Autowired
-//    private ReadTrackingRepository readTrackingRepository;
-
     @Autowired
     private ReadTrackingService readTrackingService;
 
@@ -72,11 +69,6 @@ public class ReadByController {
                             .readByUser(userMapper.toUserProfileDto(readByFromClient.getUserId()))
                             .build();
 
-                /*var readTracking = readTrackingRepository.findByRoomIdAndUserId(readByFromClient.getRoomId(), userPrincipal.getName());
-                if (readTracking != null) {
-                    readByToClient.setOldMessageId(readTracking.getMessageId());
-                }*/
-
                     log.info("updating read tracking to database");
                     readTrackingService.updateReadTracking(userId, room.getId(), readByFromClient.getMessageId());
 
@@ -87,6 +79,31 @@ public class ReadByController {
                             messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/read", readByToClient);
                         }
                     }
+                } else
+                    log.error("userId = {} is not member of roomId = {}", userId, room.getId());
+            } else
+                log.error("roomId = {} is not exists", readByFromClient.getRoomId());
+        } else
+            log.error("userId or access token is null");
+    }
+
+    @MessageMapping("/read/resetUnreadMessage")
+    public void resetUnreadMessage(@Payload ReadByFromClient readByFromClient, UserPrincipal userPrincipal) {
+        log.info("resetUnreadMessage. read tracking from client: {}", readByFromClient);
+
+        String userId = userPrincipal.getName();
+        String accessToken = userPrincipal.getAccessToken();
+
+        if (userId != null && accessToken != null && jwtUtils.validateJwtToken(accessToken)
+                && userId.equals(jwtUtils.getUserIdFromJwtToken(accessToken))) {
+            Optional<Room> roomOptional = roomService.findById(readByFromClient.getRoomId());
+            Optional<User> userOptional = userDetailService.findById(userId);
+
+            if (roomOptional.isPresent() && userOptional.isPresent()) {
+                setAuthentication(userOptional.get());
+                var room = roomOptional.get();
+                if (room.isMemBerOfRoom(userId)) {
+                    readTrackingService.resetUnReadMessage(userId, room.getId());
                 } else
                     log.error("userId = {} is not member of roomId = {}", userId, room.getId());
             } else

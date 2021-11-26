@@ -78,6 +78,23 @@ public class ReadTrackingService {
         }
     }
 
+    public void resetUnReadMessage(String userId, String roomId) {
+        var readTracking = readTrackingRepository.findByRoomIdAndUserId(roomId, userId);
+        if (readTracking != null) {
+            var criteria = Criteria.where("roomId").is(roomId).and("userId").is(userId);
+            var update = new Update();
+            update.set("unReadMessage", 0);
+            mongoTemplate.updateFirst(Query.query(criteria), update, ReadTracking.class);
+        } else {
+            ReadTracking tracking = ReadTracking.builder()
+                    .roomId(roomId)
+                    .userId(userId)
+                    .unReadMessage(0)
+                    .build();
+            readTrackingRepository.save(tracking);
+        }
+    }
+
     /**
      * set số tin nhắn mới chưa đọc tăng lên 1 khi có tin nhắn mới
      */
