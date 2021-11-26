@@ -65,7 +65,7 @@ public class User implements UserDetails {
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Arrays.stream(roles.split(","))
-                .map(SimpleGrantedAuthority::new)
+                .map(x -> new SimpleGrantedAuthority(x.replaceAll("\\s+", "")))
                 .collect(Collectors.toList());
     }
 
