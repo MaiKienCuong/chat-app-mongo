@@ -5,12 +5,14 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.ChangePasswordDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserUpdateDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.MyMedia;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
+import iuh.dhktpm14.cnm.chatappmongo.entity.UserReport;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.UserReportMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AmazonS3Service;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
-import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
-import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
+import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
+import iuh.dhktpm14.cnm.chatappmongo.service.UserReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -32,6 +34,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -58,10 +61,13 @@ public class UserRest {
     private AmazonS3Service s3Service;
 
     @Autowired
-    private FriendService friendService;
+    private UserReportService userReportService;
 
     @Autowired
-    private FriendRequestService friendRequestService;
+    private MessageService messageService;
+
+    @Autowired
+    private UserReportMapper userReportMapper;
 
     @GetMapping("/email")
     public ResponseEntity<?> existEmail(@RequestBody String email, Locale locale) {
@@ -230,6 +236,31 @@ public class UserRest {
         String message = messageSource.getMessage("user_not_found", null, locale);
         log.error(message);
         return ResponseEntity.badRequest().body(new MessageResponse(message));
+    }
+
+    @PostMapping("/report")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Báo cáo người dùng")
+    public ResponseEntity<?> reportUser(@ApiIgnore @AuthenticationPrincipal User user,
+                                        @RequestBody UserReport userReport,
+                                        Locale locale) {
+        if (userReport == null)
+            return ResponseEntity.badRequest().build();
+        if (userReport.getToId() == null)
+            return ResponseEntity.badRequest().build();
+        log.info("userId = {} report userId = {}", user.getId(), userReport.getId());
+        if (user.getId().equals(userReport.getToId()))
+            return ResponseEntity.badRequest().build();
+        if (! userDetailService.existsById(userReport.getToId()))
+            return ResponseEntity.badRequest().build();
+        userReport.setSeen(false);
+        userReport.setFromId(user.getId());
+        userReport.setCreateAt(new Date());
+        if (userReport.getMessageId() != null && messageService.findById(userReport.getMessageId()).isEmpty()) {
+            userReport.setMessageId(null);
+        }
+        userReportService.save(userReport);
+        return ResponseEntity.ok(userReportMapper.toUserReportDto(userReport));
     }
 
 }

@@ -10,6 +10,7 @@ import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.BlockService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendRequestService;
 import iuh.dhktpm14.cnm.chatappmongo.service.FriendService;
+import iuh.dhktpm14.cnm.chatappmongo.service.UserReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -35,6 +36,9 @@ public class UserMapper {
 
     @Autowired
     private BlockService blockService;
+
+    @Autowired
+    private UserReportService userReportService;
 
     private User authenticate() {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -102,7 +106,15 @@ public class UserMapper {
         dto.setUsername(user.getUsername());
         dto.setOnlineStatus(user.getOnlineStatus());
         dto.setLastOnline(user.getLastOnline());
+        dto.setReportedCount(userReportService.countAllByToId(user.getId()));
         return dto;
+    }
+
+    public UserDetailDto toUserDetailDto(String userId) {
+        if (userId == null)
+            return null;
+        Optional<User> user = userDetailService.findById(userId);
+        return toUserDetailDto(user.orElse(null));
     }
 
     public ViewProfileDto toViewProfileDto(User user) {
