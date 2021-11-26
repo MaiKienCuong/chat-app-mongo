@@ -208,4 +208,12 @@ public class InboxService {
         logger.log(Level.INFO, "number of row deleted = {0}", remove.getDeletedCount());
     }
 
+    public List<Inbox> findAllByRoomId(String roomId) {
+        return inboxRepository.findAllByRoomId(roomId);
+    }
+
+    public long deleteAllByRoomId(String roomId) {
+        return inboxRepository.deleteAllByRoomId(roomId);
+    }
+
 }

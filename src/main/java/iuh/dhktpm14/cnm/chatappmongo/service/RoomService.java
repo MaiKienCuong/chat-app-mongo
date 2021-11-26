@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.service;
 
+import iuh.dhktpm14.cnm.chatappmongo.entity.Inbox;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Member;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomService {
@@ -27,6 +29,18 @@ public class RoomService {
 
     @Autowired
     private RoomRepository roomRepository;
+
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private ReadTrackingService readTrackingService;
+
+    @Autowired
+    private InboxService inboxService;
+
+    @Autowired
+    private InboxMessageService inboxMessageService;
 
     private static final Logger logger = Logger.getLogger(RoomService.class.getName());
 
@@ -199,5 +213,21 @@ public class RoomService {
 
     public List<Room> findCommonGroupBetween(String userId, String anotherUserId) {
         return roomRepository.findCommonGroupBetween(userId, anotherUserId);
+    }
+
+    public boolean deletePermanentlyRoom(String currentUserId, String roomId) {
+        if (roomRepository.isCreatorRoom(currentUserId, roomId)) {
+            readTrackingService.deleteAllByRoomId(roomId);
+
+            List<Inbox> inboxList = inboxService.findAllByRoomId(roomId);
+            List<String> inboxIds = inboxList.stream().map(Inbox::getId).collect(Collectors.toList());
+            inboxMessageService.deleteAllByInboxIdIn(inboxIds);
+
+            messageService.deleteAllByRoomId(roomId);
+            inboxService.deleteAllByRoomId(roomId);
+            roomRepository.deleteById(roomId);
+            return true;
+        }
+        return false;
     }
 }

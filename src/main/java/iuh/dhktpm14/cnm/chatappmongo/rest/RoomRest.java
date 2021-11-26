@@ -591,6 +591,41 @@ public class RoomRest {
         return ResponseEntity.badRequest().body(new MessageResponse(roomNotFound));
     }
 
+    @DeleteMapping("/delete/{roomId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Xóa nhóm vĩnh viễn, chỉ dành cho người tạo nhóm")
+    public ResponseEntity<?> deletePermanentlyRoom(@PathVariable String roomId,
+                                                   @ApiIgnore @AuthenticationPrincipal User user,
+                                                   Locale locale) {
+        log.info("userId = {} is deleting permanently roomId = {}", user.getId(), roomId);
+        if (roomId != null) {
+            Optional<Room> roomOptional = roomService.findById(roomId);
+            if (roomOptional.isPresent()) {
+                var room = roomOptional.get();
+                if (user.getId().equals(room.getCreateByUserId())) {
+                    boolean delete = roomService.deletePermanentlyRoom(user.getId(), roomId);
+                    if (delete) {
+                        String success = messageSource.getMessage("delete_room_permanently_success",
+                                new Object[]{ room.getName() }, locale);
+                        log.info(success);
+                        return ResponseEntity.ok().body(new MessageResponse(success));
+                    }
+                    String fail = messageSource.getMessage("delete_room_permanently_fail",
+                            new Object[]{ room.getName() }, locale);
+                    log.error(fail);
+                    return ResponseEntity.badRequest().body(new MessageResponse(fail));
+                }
+                String accessDenied = messageSource.getMessage("delete_room_permanently_access_denied",
+                        new Object[]{ room.getName() }, locale);
+                log.error(accessDenied);
+                return ResponseEntity.badRequest().body(new MessageResponse(accessDenied));
+            }
+        }
+        String roomNotFound = messageSource.getMessage("room_not_found", null, locale);
+        log.error(roomNotFound);
+        return ResponseEntity.badRequest().body(new MessageResponse(roomNotFound));
+    }
+
     /**
      * chuyển từ Page<Room> qua Page<RoomDto>
      */

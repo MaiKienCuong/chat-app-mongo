@@ -21,4 +21,6 @@ public interface ReadTrackingRepository extends MongoRepository<ReadTracking, St
      */
     List<ReadTracking> findAllByMessageId(String messageId);
 
+    long deleteAllByRoomId(String roomId);
+
 }

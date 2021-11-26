@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -40,4 +41,7 @@ public interface InboxMessageRepository extends MongoRepository<InboxMessage, St
             "{$sort: {messageCreateAt: -1}}",
             "{$limit: 1}" })
     Optional<InboxMessage> getLastMessageByInbox(String inboxId);
+
+    long deleteAllByInboxIdIn(List<String> inboxIds);
+
 }

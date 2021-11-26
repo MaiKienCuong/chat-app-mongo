@@ -34,6 +34,6 @@ public interface MessageRepository extends MongoRepository<Message, String> {
     @Query(value = "{'createAt':{ $gte: ?0, $lte: ?1}}")
     List<Message> findByCreateAtBetween(Date from, Date to);
 
-
+    long deleteAllByRoomId(String roomId);
 
 }

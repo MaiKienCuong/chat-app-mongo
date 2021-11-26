@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,6 +67,10 @@ public class InboxMessageService {
                     new Object[]{ inbox.getId(), roomId });
             deleteAllMessageOfInbox(inbox.getId());
         }
+    }
+
+    public long deleteAllByInboxIdIn(List<String> inboxIds) {
+        return inboxMessageRepository.deleteAllByInboxIdIn(inboxIds);
     }
 
 }

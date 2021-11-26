@@ -14,13 +14,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 
 import java.util.Date;
 import java.util.List;
@@ -170,6 +169,10 @@ public class MessageService {
 
         AggregationResults<StatisticsByMonth> statistics = mongoTemplate.aggregate(aggregation, "message", StatisticsByMonth.class);
         return statistics.getMappedResults();
+    }
+
+    public long deleteAllByRoomId(String roomId) {
+        return messageRepository.deleteAllByRoomId(roomId);
     }
 
 }

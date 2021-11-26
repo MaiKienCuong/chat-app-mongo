@@ -158,4 +158,8 @@ public class ReadTrackingService {
         return readTrackingRepository.findAllByMessageId(id);
     }
 
+    public long deleteAllByRoomId(String roomId) {
+        return readTrackingRepository.deleteAllByRoomId(roomId);
+    }
+
 }
