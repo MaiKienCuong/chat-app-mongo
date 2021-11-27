@@ -8,6 +8,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.InboxMessage;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.ReadTracking;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.MessageMapper;
@@ -19,6 +20,7 @@ import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
+import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -80,6 +83,9 @@ public class MessageRest {
 
     @Autowired
     private ChatSocketService chatSocketService;
+
+    @Autowired
+    private RoomService roomService;
 
     /**
      * lấy tất cả tin nhắn của inboxId
@@ -226,6 +232,39 @@ public class MessageRest {
         return ResponseEntity.ok(new ArrayList<>());
     }
 
+    @GetMapping("/media/{roomId}")
+    @PreAuthorize("isAuthenticated()")
+    @ApiOperation("Lấy danh sách theo loại: IMAGE, VIDEO, FILE")
+    public ResponseEntity<?> getMessageByType(@PathVariable String roomId,
+                                              @ApiIgnore @AuthenticationPrincipal User user,
+                                              Locale locale,
+                                              @RequestParam List<String> type,
+                                              Pageable pageable) {
+        String roomNotFound = messageSource.getMessage("room_not_found", null, locale);
+        if (roomId == null) {
+            log.error(roomNotFound);
+            return ResponseEntity.badRequest().body(new MessageResponse(roomNotFound));
+        }
+        Optional<Room> roomOptional = roomService.findById(roomId);
+        if (roomOptional.isEmpty()) {
+            log.error(roomNotFound);
+            return ResponseEntity.badRequest().body(new MessageResponse(roomNotFound));
+        }
+        var room = roomOptional.get();
+        if (room.isMemBerOfRoom(user.getId())) {
+            List<String> upperList = type.stream().map(String::toUpperCase).collect(Collectors.toList());
+            if (upperList.contains("LINK")) {
+                Page<Message> messageByType = messageService.findAllByTypeLinkOrText(roomId, Collections.singletonList(user.getId()), upperList, pageable);
+                return ResponseEntity.ok(toMessageDto(messageByType));
+            }
+            Page<Message> messageByType = messageService.getListMessageByType(roomId, user.getId(), upperList, pageable);
+            return ResponseEntity.ok(toMessageDto(messageByType));
+        }
+        String message = messageSource.getMessage("user_not_member_of_room", null, locale);
+        log.error(message);
+        return ResponseEntity.badRequest().body(new MessageResponse(message));
+    }
+
     /**
      * chuyển từ page message qua page messageDto
      */
@@ -242,6 +281,14 @@ public class MessageRest {
          */
         Collections.reverse(dto);
         return new PageImpl<>(dto, inboxMessagePage.getPageable(), inboxMessagePage.getTotalElements());
+    }
+
+    private Page<?> toMessageDto(Page<Message> messagePage) {
+        List<Message> content = messagePage.getContent();
+        List<MessageDto> dto = content.stream().map(x -> messageMapper.toMessageMediaDto(x))
+                .collect(Collectors.toList());
+        var pageable = messagePage.getPageable();
+        return new PageImpl<>(dto, pageable, messagePage.getTotalElements());
     }
 
 }

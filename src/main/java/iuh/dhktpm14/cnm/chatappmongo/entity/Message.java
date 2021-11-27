@@ -45,4 +45,5 @@ public class Message implements Serializable {
     private boolean deleted;
     private String replyId;
     private List<MyMedia> media;
+    private List<String> userDelete;
 }

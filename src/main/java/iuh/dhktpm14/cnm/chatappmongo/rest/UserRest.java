@@ -248,7 +248,7 @@ public class UserRest {
             return ResponseEntity.badRequest().build();
         if (userReport.getToId() == null)
             return ResponseEntity.badRequest().build();
-        log.info("userId = {} report userId = {}", user.getId(), userReport.getId());
+        log.info("userId = {} report userId = {}", user.getId(), userReport.getToId());
         if (user.getId().equals(userReport.getToId()))
             return ResponseEntity.badRequest().build();
         if (! userDetailService.existsById(userReport.getToId()))

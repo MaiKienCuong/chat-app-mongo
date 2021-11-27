@@ -15,6 +15,7 @@ import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxMessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.InboxService;
+import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ReadTrackingService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +74,9 @@ public class InboxRest {
 
     @Autowired
     private AppUserDetailService userDetailService;
+
+    @Autowired
+    private MessageService messageService;
 
     /**
      * lấy tất cả inbox của người dùng hiện tại
@@ -146,6 +150,9 @@ public class InboxRest {
 
             // reset số tin nhắn chưa đọc thành 0
             readTrackingService.resetUnreadMessageToZero(inbox.getRoomId(), user.getId());
+
+            // đánh dấu tất cả tin nhắn cho người dùng là đã xóa
+            messageService.deleteInbox(inbox.getRoomId(), user.getId());
             return ResponseEntity.ok().build();
         }
         log.error("inbox is not exists");

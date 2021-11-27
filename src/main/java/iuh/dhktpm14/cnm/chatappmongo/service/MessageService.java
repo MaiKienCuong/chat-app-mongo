@@ -7,10 +7,12 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Reaction;
 import iuh.dhktpm14.cnm.chatappmongo.entity.Room;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
+import iuh.dhktpm14.cnm.chatappmongo.projection.Count;
 import iuh.dhktpm14.cnm.chatappmongo.projection.CustomAggregationOperation;
 import iuh.dhktpm14.cnm.chatappmongo.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -21,6 +23,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +63,16 @@ public class MessageService {
         update.unset("media");
         update.set("type", MessageType.TEXT);
         mongoTemplate.updateFirst(Query.query(criteria), update, Message.class);
+    }
+
+    /*
+    đánh dấu tất cả tin nhắn trong room đối với người này là đã xóa
+     */
+    public void deleteInbox(String roomId, String userId) {
+        var criteria = Criteria.where("roomId").is(roomId);
+        var update = new Update();
+        update.addToSet("userDelete", userId);
+        mongoTemplate.updateMulti(Query.query(criteria), update, Message.class);
     }
 
     /*
@@ -135,25 +148,6 @@ public class MessageService {
         return messageRepository.findById(messageId);
     }
 
-    /*public Optional<Message> getLastMessageOfRoom2(String userId, String roomId) {
-        var aggregation = Aggregation.newAggregation(
-                new CustomAggregationOperation("{$match: {$and: [{ofUserId: {$eq: '" + userId + "'}}, {roomId: {$eq: '" + roomId + "'}}]}}"),
-                new CustomAggregationOperation("{$lookup: {from: 'inboxMessage', let: {iId: {$toString: '$_id'}},  pipeline: [{$sort: {'messageCreateAt': -1}},{$match: {$expr: {$eq: ['$inboxId', '$$iId']}}}, {$limit:1}], as: 'inboxMessage'}}"),
-                new CustomAggregationOperation("{$unwind: '$inboxMessage'}"),
-                new CustomAggregationOperation("{$project: {inboxMessage:1, _id:0}}"),
-                new CustomAggregationOperation("{$replaceRoot: {newRoot: '$inboxMessage'}}"),
-                new CustomAggregationOperation("{$lookup: {from: 'message', let: {mId: '$messageId'}, pipeline: [{$match: {$expr: {$eq: [{$toString: '$_id'}, '$$mId']}}}], as: 'message'}}"),
-                new CustomAggregationOperation("{$project: {'message':1, _id:0}}"),
-                new CustomAggregationOperation("{$unwind: '$message'}"),
-                new CustomAggregationOperation("{$replaceRoot: {newRoot: '$message'}}")
-        );
-
-        AggregationResults<Message> results = mongoTemplate.aggregate(aggregation, "inbox", Message.class);
-        if (results.getMappedResults().isEmpty())
-            return Optional.empty();
-        return Optional.ofNullable(results.getMappedResults().get(0));
-    }*/
-
     public List<Message> findByCreateAtBetween(Date from, Date to) {
         return messageRepository.findByCreateAtBetween(from, to);
     }
@@ -173,6 +167,76 @@ public class MessageService {
 
     public long deleteAllByRoomId(String roomId) {
         return messageRepository.deleteAllByRoomId(roomId);
+    }
+
+    public Page<Message> getListMessageByType(String roomId, String userId, List<String> typeOfMedia, Pageable pageable) {
+        long count = countByType(roomId, userId, typeOfMedia);
+        if (count == 0)
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        var condition = getCriteriaUserDeleteNotInUserId(userId);
+
+        var aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("roomId").is(roomId)),
+                new CustomAggregationOperation("{$match: {type: 'MEDIA', media: {$exists: true}}}"),
+                Aggregation.match(condition),
+                new CustomAggregationOperation("{$unwind: '$media'}"),
+                Aggregation.match(Criteria.where("media.type").in(typeOfMedia)),
+                new CustomAggregationOperation("{$project: {'readbyes': 0, 'reactions': 0, 'reply': 0}}"),
+                new CustomAggregationOperation("{$group: {_id: '$$ROOT', newMedia: {$addToSet: '$media'}}}"),
+                new CustomAggregationOperation("{$set: {'_id.media': '$newMedia'}}"),
+                new CustomAggregationOperation("{$replaceRoot: {newRoot: '$_id'}}"),
+
+                new CustomAggregationOperation("{$sort: {createAt: -1, 'media.name':-1}}"),
+                Aggregation.skip(((long) pageable.getPageNumber() * pageable.getPageSize())),
+                Aggregation.limit(pageable.getPageSize())
+
+        );
+
+        AggregationResults<Message> messages = mongoTemplate.aggregate(aggregation, "message", Message.class);
+        return new PageImpl<>(messages.getMappedResults(), pageable, count);
+    }
+
+    private long countByType(String roomId, String userId, List<String> typeOfMedia) {
+        var condition = getCriteriaUserDeleteNotInUserId(userId);
+
+        var aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("roomId").is(roomId)),
+                new CustomAggregationOperation("{$match: {type: 'MEDIA', media: {$exists: true}}}"),
+                Aggregation.match(condition),
+                new CustomAggregationOperation("{$unwind: '$media'}"),
+                Aggregation.match(Criteria.where("media.type").in(typeOfMedia)),
+                Aggregation.group().count().as("count")
+        );
+
+        AggregationResults<Count> messages = mongoTemplate.aggregate(aggregation, "message", Count.class);
+        return getCountFromAggregationResultsCount(messages);
+    }
+
+    private Criteria getCriteriaUserDeleteNotInUserId(String userId) {
+        final var columnUserDelete = "userDelete";
+        Criteria notIn = Criteria.where(columnUserDelete).nin(Collections.singletonList(userId));
+        Criteria empty = Criteria.where(columnUserDelete).size(0);
+        Criteria notInOrEmpty = new Criteria().orOperator(notIn, empty);
+
+        var exists = new Criteria();
+        exists.andOperator(Criteria.where(columnUserDelete).exists(true), notInOrEmpty);
+
+        var condition = new Criteria();
+        condition.orOperator(exists, Criteria.where(columnUserDelete).is(null));
+        return condition;
+    }
+
+    private int getCountFromAggregationResultsCount(AggregationResults<Count> results) {
+        List<Count> mappedResults = results.getMappedResults();
+        if (mappedResults.isEmpty())
+            return 0;
+        if (mappedResults.get(0) == null)
+            return 0;
+        return mappedResults.get(0).getCount();
+    }
+
+    public Page<Message> findAllByTypeLinkOrText(String roomId, List<String> userDelete, List<String> type, Pageable pageable) {
+        return messageRepository.findAllByTypeLinkOrText(roomId, userDelete, type, pageable);
     }
 
 }

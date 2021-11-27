@@ -74,6 +74,24 @@ public class MessageMapper {
         return dto;
     }
 
+    public MessageDto toMessageMediaDto(Message message) {
+        if (message == null)
+            return null;
+        var dto = new MessageDto();
+        dto.setId(message.getId());
+        if (message.getSenderId() != null)
+            dto.setSender(userMapper.toUserProfileDto(message.getSenderId()));
+        dto.setCreateAt(message.getCreateAt());
+        dto.setType(message.getType());
+        dto.setContent(message.getContent());
+        dto.setPin(message.isPin());
+        dto.setDeleted(message.isDeleted());
+        dto.setStatus(message.getStatus());
+        dto.setRoomId(message.getRoomId());
+        dto.setMedia(message.getMedia());
+        return dto;
+    }
+
     public MessageToClient toMessageToClient(Message message) {
         if (message == null)
             return null;
