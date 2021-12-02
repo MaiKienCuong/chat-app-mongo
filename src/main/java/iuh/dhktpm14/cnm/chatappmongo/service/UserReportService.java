@@ -24,7 +24,7 @@ public class UserReportService {
     }
 
     public Page<UserReport> findAll(Pageable pageable) {
-        return userReportRepository.findAll(pageable);
+        return userReportRepository.findAllByOrderByCreateAtDesc(pageable);
     }
 
     public Page<UserReport> findAll(boolean seen, Pageable pageable) {
