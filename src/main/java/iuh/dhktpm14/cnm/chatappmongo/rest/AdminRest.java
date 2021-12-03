@@ -82,7 +82,7 @@ public class AdminRest {
             return ResponseEntity.badRequest().body("Role does not exist");
         writeLogToDatabase(admin, admin, "getting all user with " + role);
         Page<User> findAll = userDetailService.findAllByRoles(role, pageable);
-        return ResponseEntity.ok(toUserProfileDto(findAll));
+        return ResponseEntity.ok(toUserDto(findAll));
     }
 
 
@@ -141,20 +141,40 @@ public class AdminRest {
 
     }
 
+    @PostMapping("/unlock_account")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Mở khóa tài khoản user")
+    public ResponseEntity<?> unlockAccount(@ApiIgnore @AuthenticationPrincipal User admin, @RequestParam String userId) {
+        User user = userDetailService.findById(userId).get();
+        log.info("admin = {} , locked account = {}", admin.getDisplayName(), user.toString());
+        user.setBlock(false);
+        writeLogToDatabase(admin, user, "unlock account user");
+        return ResponseEntity.ok(userDetailService.save(user));
+
+    }
+
 
     @PostMapping("/users/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @ApiOperation("Tìm kiếm user theo tên hoặc số điện thoại gần đúng")
-    public ResponseEntity<?> searchUser(@ApiIgnore @AuthenticationPrincipal User user, @RequestParam String textToSearch) {
-        log.info("admin with username = {} finding user with key = {}", user.getUsername(), textToSearch);
-        List<User> result = userDetailService.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch);
-        if (result == null) {
-            return ResponseEntity.ok(new ArrayList<>(0));
+    public ResponseEntity<?> searchUser(@ApiIgnore @AuthenticationPrincipal User user, @RequestParam String textToSearch, Pageable pageable) {
+        if (user.getRoles().equalsIgnoreCase("ROLE_USER")) {
+            List<User> result = userDetailService.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch);
+
+            if (result == null) {
+                return ResponseEntity.ok(new ArrayList<>(0));
+            }
+            List<UserProfileDto> userProfiles = result.stream().filter(x -> ! x.getId().equals(user.getId()))
+                    .map(userMapper::toUserProfileDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(userProfiles);
         }
-        List<UserProfileDto> userProfiles = result.stream().filter(x -> ! x.getId().equals(user.getId()))
-                .map(userMapper::toUserProfileDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(userProfiles);
+
+        Page<User> result = userDetailService.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(textToSearch, textToSearch, pageable);
+
+        log.info("admin with username = {} finding user with key = {}", user.getUsername(), textToSearch);
+        writeLogToDatabase(user, user, "finding user with key : " + textToSearch);
+        return ResponseEntity.ok(toUserProfileDto(result));
     }
 
 
@@ -181,6 +201,25 @@ public class AdminRest {
                                                     @RequestParam int year) {
         return ResponseEntity.ok(messageService.statisticsByMonths(year));
     }
+
+    @GetMapping("/statistic_sign_up")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Thống kê số lượng đăng ký trong 1 năm bất kỳ")
+    public ResponseEntity<?> statisticsSignUpByGender(@ApiIgnore @AuthenticationPrincipal User admin,
+                                                      @RequestParam int year) {
+        return ResponseEntity.ok(userDetailService.statisticsSignUpByGender(year));
+    }
+
+    @GetMapping("/read_log")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Đọc nhật ký hoạt động của quản trị")
+    public ResponseEntity<?> readLog(@ApiIgnore @AuthenticationPrincipal User admin, Pageable pageable) {
+        Page<AdminLog> logs = adminLogService.findAll(pageable);
+        writeLogToDatabase(admin, admin, "truy cập nhật ký hoạt động của quản trị");
+
+        return ResponseEntity.ok(logs);
+    }
+
 
     @GetMapping("/userReport")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -242,7 +281,7 @@ public class AdminRest {
     /**
      *
      */
-    private Page<?> toUserProfileDto(Page<User> userPage) {
+    private Page<?> toUserDto(Page<User> userPage) {
         List<User> content = userPage.getContent();
 //        List<UserProfileDto> dto = content.stream()
 //                .map(x -> userMapper.toUserProfileDto(x))
@@ -250,10 +289,18 @@ public class AdminRest {
         return new PageImpl<>(content, userPage.getPageable(), userPage.getTotalElements());
     }
 
+    private Page<?> toUserProfileDto(Page<User> userPage) {
+        List<User> content = userPage.getContent();
+        List<UserProfileDto> dto = content.stream()
+                .map(x -> userMapper.toUserProfileDto(x))
+                .collect(Collectors.toList());
+        return new PageImpl<>(content, userPage.getPageable(), userPage.getTotalElements());
+    }
+
 
     private void writeLogToDatabase(User admin, User user, String content) {
         AdminLog adminLog = AdminLog.builder()
-                .handlerObjectId(user.getId())
+                .handlerObjectId(admin.getId())
                 .content(content)
                 .time(new Date())
                 .relatedObjectId(user.getId())

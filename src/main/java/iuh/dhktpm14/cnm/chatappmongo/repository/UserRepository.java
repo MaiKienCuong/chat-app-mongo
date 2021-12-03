@@ -1,5 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.repository;
 
+import iuh.dhktpm14.cnm.chatappmongo.dto.StatisticsSignUpByGender;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 
 import org.springframework.data.domain.Page;
@@ -19,6 +20,8 @@ public interface UserRepository extends MongoRepository<User, String> {
      * tìm kiếm user theo tên gần đúng, k phân biệt hoa thường
      */
     List<User> findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(String displayName, String phoneNumber);
+
+    Page<User> findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(String displayName, String phoneNumber, Pageable pageable);
 
     List<User> findByIdIn(List<String> ids);
 
@@ -41,5 +44,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
+
 
 }

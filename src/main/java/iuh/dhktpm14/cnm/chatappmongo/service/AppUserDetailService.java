@@ -1,16 +1,21 @@
 package iuh.dhktpm14.cnm.chatappmongo.service;
 
+import iuh.dhktpm14.cnm.chatappmongo.dto.StatisticsSignUpByGender;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserSignupDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.OnlineStatus;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoleType;
+import iuh.dhktpm14.cnm.chatappmongo.projection.CustomAggregationOperation;
 import iuh.dhktpm14.cnm.chatappmongo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -184,6 +189,10 @@ public class AppUserDetailService implements UserDetailsService {
         return userRepository.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(displayName, phoneNumber);
     }
 
+    public Page<User> findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(String displayName, String phoneNumber, Pageable pageable) {
+        return userRepository.findAllByDisplayNameContainingIgnoreCaseOrPhoneNumberContainingIgnoreCaseOrderByDisplayNameAsc(displayName, phoneNumber, pageable);
+    }
+
     public List<User> findByIdIn(List<String> ids) {
         return userRepository.findByIdIn(ids);
     }
@@ -226,6 +235,24 @@ public class AppUserDetailService implements UserDetailsService {
 
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
+    }
+
+
+    //aggregate([
+    // {$project:{_id:0,phoneNumber:1,male:{$cond:[{$eq:['$gender','Nam']},1,0]},female:{$cond:[{$eq:['$gender','Nu']},1,0]},year:{$year:'$createAt'},month:{$month:'$createAt'}}},
+    // {$match:{year:{$eq:2021}}},
+    // {$group:{_id:'$month',male:{$sum:'$male'},female:{$sum:'$female'}}}])
+    public List<StatisticsSignUpByGender> statisticsSignUpByGender(int year) {
+        var aggregation = Aggregation.newAggregation(
+                new CustomAggregationOperation("{$project:{_id:0,phoneNumber:1,male:{$cond:[{$eq:['$gender','Nam']},1,0]},female:{$cond:[{$eq:['$gender','Nu']},1,0]},year:{$year:'$createAt'},month:{$month:'$createAt'}}}"),
+                new CustomAggregationOperation("{$match:{year:{$eq:2021}}}"),
+                new CustomAggregationOperation("{$group:{_id:'$month',male:{$sum:'$male'},female:{$sum:'$female'}}}"),
+                new CustomAggregationOperation("{$project:{_id:0,month:'$_id',male:1,female:1}}"),
+                Aggregation.sort(Sort.by(Sort.Direction.ASC, "month"))
+        );
+
+        AggregationResults<StatisticsSignUpByGender> statistics = mongoTemplate.aggregate(aggregation, "user", StatisticsSignUpByGender.class);
+        return statistics.getMappedResults();
     }
 
 }
