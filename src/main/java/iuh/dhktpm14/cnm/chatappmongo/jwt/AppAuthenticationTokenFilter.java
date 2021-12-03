@@ -78,4 +78,19 @@ public class AppAuthenticationTokenFilter extends OncePerRequestFilter {
         log.error("Authorization header is null, path = {}", request.getRequestURI());
         return null;
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String requestURI = request.getRequestURI();
+        if (requestURI != null && requestURI.startsWith("/api/auth/signup")) {
+            return true;
+        }
+        if (requestURI != null && requestURI.startsWith("/api/auth/signin")) {
+            return true;
+        }
+        if (requestURI != null && requestURI.startsWith("/ws/websocket")) {
+            return true;
+        }
+        return super.shouldNotFilter(request);
+    }
 }

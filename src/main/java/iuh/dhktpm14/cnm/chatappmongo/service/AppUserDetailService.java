@@ -66,24 +66,34 @@ public class AppUserDetailService implements UserDetailsService {
                 });
     }
 
-    public boolean signup(UserSignupDto userDto) {
-        if (userRepository.existsByPhoneNumber(userDto.getPhoneNumber()))
-            return false;
+    public User signupEmail(UserSignupDto userDto) {
         var user = User.builder()
                 .displayName(userDto.getDisplayName())
                 .password(encoder.encode(userDto.getPassword()))
+                .email(userDto.getEmail())
                 .phoneNumber(userDto.getPhoneNumber())
                 .enable(false)
                 .createAt(new Date())
                 .roles(RoleType.ROLE_USER.toString())
                 .build();
-        userRepository.save(user);
-        return true;
+        return userRepository.save(user);
+    }
+
+    public User signupPhone(UserSignupDto userDto) {
+        var user = User.builder()
+                .displayName(userDto.getDisplayName())
+                .password(encoder.encode(userDto.getPassword()))
+                .email(userDto.getEmail())
+                .phoneNumber(userDto.getPhoneNumber())
+                .enable(true)
+                .createAt(new Date())
+                .roles(RoleType.ROLE_USER.toString())
+                .build();
+        return userRepository.save(user);
     }
 
     public void sendVerificationEmail(User user) throws UnsupportedEncodingException, MessagingException {
         int verificationCode = random.nextInt((999999 - 100000) + 1) + 100000;
-//        setVerificationCode(user.getId(), verificationCode + "");
         user.setVerificationCode(String.valueOf(verificationCode));
         userRepository.save(user);
 
@@ -113,34 +123,6 @@ public class AppUserDetailService implements UserDetailsService {
 
     }
 
-    public boolean verify(User user) {
-        Optional<User> userOptional = userRepository.findDistinctByEmail(user.getEmail());
-        if (userOptional.isEmpty())
-            return false;
-        var existsUser = userOptional.get();
-        if (existsUser.getVerificationCode().equalsIgnoreCase(user.getVerificationCode())) {
-            existsUser.setEnable(true);
-            existsUser.setVerificationCode(null);
-            userRepository.save(existsUser);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean updateInformation(UserSignupDto dto) {
-        Optional<User> optional = userRepository.findById(dto.getId());
-        if (optional.isEmpty())
-            return false;
-        var user = optional.get();
-        if (userRepository.existsByPhoneNumber(dto.getPhoneNumber()) && ! user.getPhoneNumber().equals(dto.getPhoneNumber()))
-            return false;
-        user.setDisplayName(dto.getDisplayName());
-        user.setPassword(dto.getPassword());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        userRepository.save(user);
-        return true;
-    }
-
     public boolean regexEmail(String email) {
         var pattern = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
         var matcher = pattern.matcher(email);
@@ -155,15 +137,6 @@ public class AppUserDetailService implements UserDetailsService {
         var criteria = Criteria.where("_id").is(userId);
         var update = new Update();
         update.set("refreshToken", refreshToken);
-        mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
-    }
-
-    private void setVerificationCode(String userId, String verificationCode) {
-        logger.log(Level.INFO, "save verification code = {0} for userId = {1} to database",
-                new Object[]{ verificationCode, userId });
-        var criteria = Criteria.where("_id").is(userId);
-        var update = new Update();
-        update.set("verificationCode", verificationCode);
         mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
     }
 
@@ -191,7 +164,7 @@ public class AppUserDetailService implements UserDetailsService {
         mongoTemplate.updateFirst(Query.query(criteria), update, User.class);
     }
 
-//    @Cacheable("user")
+    //    @Cacheable("user")
     public Optional<User> findById(String id) {
         return userRepository.findById(id);
     }
@@ -215,8 +188,8 @@ public class AppUserDetailService implements UserDetailsService {
         return userRepository.findByIdIn(ids);
     }
 
-    public List<User> findByCreateAtBetween(Date from, Date to){
-        return userRepository.findByCreateAtBetween(from,to);
+    public List<User> findByCreateAtBetween(Date from, Date to) {
+        return userRepository.findByCreateAtBetween(from, to);
     }
 
     public Optional<User> findDistinctByUsername(String userName) {
@@ -230,7 +203,7 @@ public class AppUserDetailService implements UserDetailsService {
     public Optional<User> findDistinctByPhoneNumberOrUsernameOrEmail(String phoneNumber) {
         return userRepository.findDistinctByPhoneNumberOrUsernameOrEmail(phoneNumber);
     }
-    
+
     public Page<User> findAllByRoles(String roles, Pageable pageable) {
         return userRepository.findAllByRoles(roles, pageable);
     }
@@ -254,6 +227,5 @@ public class AppUserDetailService implements UserDetailsService {
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
-    
-    
+
 }

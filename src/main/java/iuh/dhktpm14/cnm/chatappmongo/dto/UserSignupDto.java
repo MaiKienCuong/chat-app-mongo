@@ -5,7 +5,6 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 
 @Data
@@ -27,9 +26,11 @@ public class UserSignupDto implements Serializable {
     @Length(min = 8, message = "{password_must_be_8_character_or_more}")
     private String password;
 
-    @NotBlank(message = "{phone_not_empty}")
-    @Length(max = 11, min = 10, message = "{phone_range_invalid}")
-    @Pattern(regexp = "[0-9]+", message = "{phone_must_be_number}")
+//    @NotBlank(message = "{phone_not_empty}")
+//    @Length(max = 11, min = 10, message = "{phone_range_invalid}")
+//    @Pattern(regexp = "[0-9]+", message = "{phone_must_be_number}")
     private String phoneNumber;
+
+    private String email;
 
 }
