@@ -14,6 +14,7 @@ import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.BlockService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
+import iuh.dhktpm14.cnm.chatappmongo.util.MyAutoLink;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -112,7 +113,7 @@ public class ChatController {
                 .senderId(sender.getId())
                 .createAt(new Date())
                 .type(messageDto.getType())
-                .content(messageDto.getContent())
+                .content(MyAutoLink.detectLink(messageDto.getContent()))
                 .replyId(messageDto.getReplyId())
                 .build();
         if (messageDto.getMedia() != null) {
@@ -139,7 +140,7 @@ public class ChatController {
                         .senderId(sender.getId())
                         .createAt(new Date())
                         .type(messageDto.getType())
-                        .content(messageDto.getContent())
+                        .content(MyAutoLink.detectLink(messageDto.getContent()))
                         .replyId(messageDto.getReplyId())
                         .media(fileList)
                         .build();

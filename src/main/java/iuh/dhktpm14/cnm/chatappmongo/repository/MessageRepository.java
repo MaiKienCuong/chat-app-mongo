@@ -36,7 +36,7 @@ public interface MessageRepository extends MongoRepository<Message, String> {
 
     long deleteAllByRoomId(String roomId);
 
-    @Query(value = "{roomId: ?0, userDelete: {$nin: ?1}, type: {$in: ?2}}", sort = "{createAt: -1}")
-    Page<Message> findAllByTypeLinkOrText(String roomId, List<String> userDelete, List<String> type, Pageable pageable);
+    @Query(value = "{roomId: ?0, userDelete: {$nin: ?1}, content: {$regex: /<a href=\".*\">.*<\\/a>/ }}", sort = "{createAt: -1}")
+    Page<Message> findAllByTypeLink(String roomId, List<String> userDelete, Pageable pageable);
 
 }

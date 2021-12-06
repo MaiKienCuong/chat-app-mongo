@@ -234,7 +234,7 @@ public class MessageRest {
 
     @GetMapping("/media/{roomId}")
     @PreAuthorize("isAuthenticated()")
-    @ApiOperation("Lấy danh sách theo loại: IMAGE, VIDEO, FILE")
+    @ApiOperation("Lấy danh sách theo loại: IMAGE, VIDEO, FILE, LINK")
     public ResponseEntity<?> getMessageByType(@PathVariable String roomId,
                                               @ApiIgnore @AuthenticationPrincipal User user,
                                               Locale locale,
@@ -254,7 +254,7 @@ public class MessageRest {
         if (room.isMemBerOfRoom(user.getId())) {
             List<String> upperList = type.stream().map(String::toUpperCase).collect(Collectors.toList());
             if (upperList.contains("LINK")) {
-                Page<Message> messageByType = messageService.findAllByTypeLinkOrText(roomId, Collections.singletonList(user.getId()), upperList, pageable);
+                Page<Message> messageByType = messageService.findAllByTypeLink(roomId, Collections.singletonList(user.getId()), pageable);
                 return ResponseEntity.ok(toMessageDto(messageByType));
             }
             Page<Message> messageByType = messageService.getListMessageByType(roomId, user.getId(), upperList, pageable);

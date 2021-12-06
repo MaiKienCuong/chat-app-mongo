@@ -22,6 +22,20 @@
     </properties>
 
     <dependencies>
+        <!-- auto detect link in string -->
+        <dependency>
+            <groupId>org.nibor.autolink</groupId>
+            <artifactId>autolink</artifactId>
+            <version>0.10.0</version>
+        </dependency>
+
+        <!-- encode html -->
+        <dependency>
+            <groupId>org.owasp.encoder</groupId>
+            <artifactId>encoder</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

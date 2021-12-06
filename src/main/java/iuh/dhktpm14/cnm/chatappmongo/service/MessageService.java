@@ -186,7 +186,7 @@ public class MessageService {
                 new CustomAggregationOperation("{$set: {'_id.media': '$newMedia'}}"),
                 new CustomAggregationOperation("{$replaceRoot: {newRoot: '$_id'}}"),
 
-                new CustomAggregationOperation("{$sort: {createAt: -1, 'media.name':-1}}"),
+                new CustomAggregationOperation("{$sort: {createAt: -1, 'media.url':-1}}"),
                 Aggregation.skip(((long) pageable.getPageNumber() * pageable.getPageSize())),
                 Aggregation.limit(pageable.getPageSize())
 
@@ -212,6 +212,48 @@ public class MessageService {
         return getCountFromAggregationResultsCount(messages);
     }
 
+//    public Page<Message> getListMessageByType(String roomId, String userId, List<String> typeOfMedia, Pageable pageable) {
+//        long count = countByType(roomId, userId, typeOfMedia);
+//        if (count == 0)
+//            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+//        var condition = getCriteriaUserDeleteNotInUserId(userId);
+//
+//        var aggregation = Aggregation.newAggregation(
+//                Aggregation.match(Criteria.where("roomId").is(roomId)),
+//                Aggregation.match(condition),
+//                Aggregation.project("id", "roomId", "senderId",
+//                        "createAt", "type", "content", "pin", "reactions", "status"
+//                        , "deleted", "replyId", "media", "userDelete")
+//                        .and(ArrayOperators.Filter.filter("$media").as("item")
+//                                .by(ArrayOperators.In.arrayOf(typeOfMedia).containsValue("$$item.type")))
+//                        .as("media"),
+//                new CustomAggregationOperation("{$match: {$and: [{media: {$ne: []}}, {media: {$ne:null}}]}}"),
+//
+//                new CustomAggregationOperation("{$sort: {createAt: -1, 'media.url':-1}}"),
+//                Aggregation.skip(((long) pageable.getPageNumber() * pageable.getPageSize())),
+//                Aggregation.limit(pageable.getPageSize())
+//
+//        );
+//
+//        AggregationResults<Message> messages = mongoTemplate.aggregate(aggregation, "message", Message.class);
+//        return new PageImpl<>(messages.getMappedResults(), pageable, count);
+//    }
+//
+//    private long countByType(String roomId, String userId, List<String> typeOfMedia) {
+//        var condition = getCriteriaUserDeleteNotInUserId(userId);
+//
+//        var aggregation = Aggregation.newAggregation(
+//                Aggregation.match(Criteria.where("roomId").is(roomId)),
+//                new CustomAggregationOperation("{$match: {type: 'MEDIA', media: {$exists: true}}}"),
+//                Aggregation.match(condition),
+//                Aggregation.match(Criteria.where("media.type").in(typeOfMedia)),
+//                Aggregation.group().count().as("count")
+//        );
+//
+//        AggregationResults<Count> messages = mongoTemplate.aggregate(aggregation, "message", Count.class);
+//        return getCountFromAggregationResultsCount(messages);
+//    }
+
     private Criteria getCriteriaUserDeleteNotInUserId(String userId) {
         final var columnUserDelete = "userDelete";
         Criteria notIn = Criteria.where(columnUserDelete).nin(Collections.singletonList(userId));
@@ -235,8 +277,8 @@ public class MessageService {
         return mappedResults.get(0).getCount();
     }
 
-    public Page<Message> findAllByTypeLinkOrText(String roomId, List<String> userDelete, List<String> type, Pageable pageable) {
-        return messageRepository.findAllByTypeLinkOrText(roomId, userDelete, type, pageable);
+    public Page<Message> findAllByTypeLink(String roomId, List<String> userDelete, Pageable pageable) {
+        return messageRepository.findAllByTypeLink(roomId, userDelete, pageable);
     }
 
 }
