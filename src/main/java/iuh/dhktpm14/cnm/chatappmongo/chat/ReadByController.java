@@ -46,8 +46,11 @@ public class ReadByController {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    /*
+    xử lý khi client đã đọc tin nhắn
+     */
     @MessageMapping("/read")
-    public void processMessage(@Payload ReadByFromClient readByFromClient, UserPrincipal userPrincipal) {
+    public void processReadTracking(@Payload ReadByFromClient readByFromClient, UserPrincipal userPrincipal) {
         log.info("read tracking from client: {}", readByFromClient);
 
         String userId = userPrincipal.getName();
@@ -73,11 +76,11 @@ public class ReadByController {
                     readTrackingService.updateReadTracking(userId, room.getId(), readByFromClient.getMessageId());
 
                     for (Member member : room.getMembers()) {
-                        if (! member.getUserId().equals(userId)) {
-                            log.info("sending read tracking of user id={} to member id={}",
-                                    userId, member.getUserId());
-                            messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/read", readByToClient);
-                        }
+//                        if (! member.getUserId().equals(userId)) {
+                        log.info("sending read tracking of user id={} to member id={}",
+                                userId, member.getUserId());
+                        messagingTemplate.convertAndSendToUser(member.getUserId(), "/queue/read", readByToClient);
+//                        }
                     }
                 } else
                     log.error("userId = {} is not member of roomId = {}", userId, room.getId());
@@ -87,6 +90,10 @@ public class ReadByController {
             log.error("userId or access token is null");
     }
 
+    /*
+    xử lý khi client đã đọc tin nhắn, nhưng là tin nhắn có type=SYSTEM, chỉ set số tin nhắn
+    chưa đọc về 0 chứ không cập nhật tin nhắn cuối là tin nhắn SYSTEM
+     */
     @MessageMapping("/read/resetUnreadMessage")
     public void resetUnreadMessage(@Payload ReadByFromClient readByFromClient, UserPrincipal userPrincipal) {
         log.info("resetUnreadMessage. read tracking from client: {}", readByFromClient);

@@ -10,10 +10,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StatisticsSignUpByGender implements Serializable {
-
     private int month;
-
     private int male;
-
     private int female;
 }

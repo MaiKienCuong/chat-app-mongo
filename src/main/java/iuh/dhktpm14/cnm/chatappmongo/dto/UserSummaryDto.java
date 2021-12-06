@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class UserSummaryDto implements Serializable {
     private String id;
     private String username;

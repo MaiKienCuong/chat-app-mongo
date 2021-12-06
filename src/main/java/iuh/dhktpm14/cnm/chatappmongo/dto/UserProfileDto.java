@@ -25,6 +25,10 @@ public class UserProfileDto implements Serializable, Comparable<UserProfileDto> 
     private boolean blockMe;
     private boolean meBLock;
 
+    /*
+    sắp xếp danh sách user theo thứ tự a->z, phải bỏ dấu Tiếng Việt trước khi so sánh
+    do để dấu không chính xác
+    */
     @Override
     public int compareTo(UserProfileDto o) {
         if (displayName == null)

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -14,9 +13,6 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class MonthDto implements Serializable {
-
     private Date from;
-
-
     private Date to;
 }

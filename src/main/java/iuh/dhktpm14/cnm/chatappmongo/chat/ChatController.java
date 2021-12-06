@@ -16,6 +16,8 @@ import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -48,6 +50,12 @@ public class ChatController {
     @Autowired
     private BlockService blockService;
 
+    @Autowired
+    private MessageSource messageSource;
+
+    /*
+    nhận tin nhắn từ client và xử lý, sau đó gửi cho các thành viên trong cuộc trò chuyện
+     */
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageFromClient messageDto, UserPrincipal userPrincipal) {
         log.info("message from client = {}", messageDto);
@@ -70,26 +78,34 @@ public class ChatController {
                     if (room.getMembers().contains(member)) {
                         var messageExcludeFile = createMessageExcludeFile(messageDto, room, currentUser);
                         var messageIncludeFile = createMessageIncludeFile(messageDto, room, currentUser);
-                        log.info("sending messageExcludeFile = {} to websocket", messageExcludeFile);
+                        log.info("messageExcludeFile = {}", messageExcludeFile);
+                        log.info("messageIncludeFile = {}", messageIncludeFile);
                         if (messageDto.getMedia() != null && messageIncludeFile != null && messageIncludeFile.getMedia() != null) {
                             if (messageIncludeFile.getMedia().size() != messageDto.getMedia().size()) {
                                 messageExcludeFile.setContent(null);
+                                log.info("sending message exclude and include file file to websocket");
                                 chatSocketService.sendMessage(messageExcludeFile, room, userId);
                             }
                             chatSocketService.sendMessage(messageIncludeFile, room, userId);
-                        } else
+                        } else {
+                            log.info("sending only message include file to websocket");
                             chatSocketService.sendMessage(messageExcludeFile, room, userId);
-
+                        }
                     } else
                         log.error("userId = {} is not member of roomId = {}", userId, room.getId());
-                } else
+                } else {
+                    log.info("userId = {} is block sending message to roomId  = {}", userId, room.getId());
                     sendBusyMessage(userId, room);
+                }
             } else
                 log.error("roomId = {} not exists", messageDto.getRoomId());
         } else
             log.error("userId or access token is null");
     }
 
+    /*
+    tách tin nhắn từ client thành 1 tin nhắn riêng chỉ chứa hình ảnh hoặc video, k chứa file
+     */
     private Message createMessageExcludeFile(MessageFromClient messageDto, Room room, User sender) {
         var messageExcludeFile = Message.builder()
                 .roomId(room.getId())
@@ -109,6 +125,9 @@ public class ChatController {
         return messageExcludeFile;
     }
 
+    /*
+    tách tin nhắn từ client thành một tin nhắn chỉ chứa file, không chứa hình ảnh hoặc video
+     */
     private Message createMessageIncludeFile(MessageFromClient messageDto, Room room, User sender) {
         Message messageIncludeFile = null;
         if (messageDto.getMedia() != null) {
@@ -130,8 +149,12 @@ public class ChatController {
         return messageIncludeFile;
     }
 
+    /*
+    gửi tin nhắn đang bận lại khi người gửi bị chặn
+     */
     private void sendBusyMessage(String currentUserId, Room room) {
-        log.error("currentUserId = {} cannot send message because has been block", currentUserId);
+        log.error("currentUserId = {} cannot send message to roomId = {} because has been block",
+                currentUserId, room.getId());
         Optional<Member> m = room.getMembers().stream().filter(x -> ! x.getUserId().equals(currentUserId)).findFirst();
         if (m.isPresent()) {
             var busyMessage = Message.builder()
@@ -139,7 +162,7 @@ public class ChatController {
                     .senderId(m.get().getUserId())
                     .createAt(new Date())
                     .type(MessageType.TEXT)
-                    .content("Xin lỗi, hiện tại tôi k muốn nhận tin nhắn.")
+                    .content(messageSource.getMessage("busy_message", null, LocaleContextHolder.getLocale()))
                     .build();
             chatSocketService.sendBusyMessage(busyMessage, room);
         }
@@ -153,6 +176,9 @@ public class ChatController {
         SecurityContextHolder.setContext(context);
     }
 
+    /*
+    kiểm tra xem người gửi tin nhắn có bị chặn trong room này hay không
+     */
     private boolean hasBlock(User currentUser, Room room) {
         RoomType type = room.getType();
         if (type.equals(RoomType.ONE)) {

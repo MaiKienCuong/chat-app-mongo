@@ -44,8 +44,11 @@ public class ReactionController {
     @Autowired
     private AppUserDetailService userDetailService;
 
+    /*
+    xử lý khi client bày tỏ cảm xúc về tin nhắn
+     */
     @MessageMapping("/reaction")
-    public void processMessage(@Payload ReactionFromClient reaction, UserPrincipal userPrincipal) {
+    public void processReaction(@Payload ReactionFromClient reaction, UserPrincipal userPrincipal) {
         log.info("reaction from client = {}", reaction);
 
         String userId = userPrincipal.getName();
@@ -67,14 +70,14 @@ public class ReactionController {
                             .reactByUser(userMapper.toUserProfileDto(reaction.getUserId()))
                             .build();
 
-                    var react = Reaction.builder()
+                    var reactToDatabase = Reaction.builder()
                             .type(reaction.getType())
                             .reactByUserId(reaction.getUserId())
                             .build();
 
                     log.info("adding reaction = {}, to messageId = {}, to database",
-                            react, reaction.getMessageId());
-                    messageService.addReactToMessage(reaction.getMessageId(), react);
+                            reactToDatabase, reaction.getMessageId());
+                    messageService.addReactToMessage(reaction.getMessageId(), reactToDatabase);
 
                     for (Member member : room.getMembers()) {
                         log.info("send reaction type = {}, from userId = {}, to memberId = {}",

@@ -11,6 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StatisticsByMonth {
     private int month;
-
     private int sum;
 }
