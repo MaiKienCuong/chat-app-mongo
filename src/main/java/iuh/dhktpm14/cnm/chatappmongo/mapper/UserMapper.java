@@ -107,6 +107,7 @@ public class UserMapper {
         dto.setOnlineStatus(user.getOnlineStatus());
         dto.setLastOnline(user.getLastOnline());
         dto.setReportedCount(userReportService.countAllByToId(user.getId()));
+        dto.setEnable(user.isEnable());
         return dto;
     }
 
