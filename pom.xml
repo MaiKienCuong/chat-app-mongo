@@ -22,6 +22,13 @@
     </properties>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.googlecode.libphonenumber/libphonenumber -->
+        <dependency>
+            <groupId>com.googlecode.libphonenumber</groupId>
+            <artifactId>libphonenumber</artifactId>
+            <version>8.12.39</version>
+        </dependency>
+
         <!-- auto detect link in string -->
         <dependency>
             <groupId>org.nibor.autolink</groupId>

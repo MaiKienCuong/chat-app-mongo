@@ -73,6 +73,7 @@ public class AppUserDetailService implements UserDetailsService {
 
     public User signupEmail(UserSignupDto userDto) {
         var user = User.builder()
+                .id(userDto.getId())
                 .displayName(userDto.getDisplayName())
                 .password(encoder.encode(userDto.getPassword()))
                 .email(userDto.getEmail())
@@ -86,6 +87,7 @@ public class AppUserDetailService implements UserDetailsService {
 
     public User signupPhone(UserSignupDto userDto) {
         var user = User.builder()
+                .id(userDto.getId())
                 .displayName(userDto.getDisplayName())
                 .password(encoder.encode(userDto.getPassword()))
                 .email(userDto.getEmail())

@@ -31,6 +31,7 @@ public class UserSignupDto implements Serializable {
 //    @Pattern(regexp = "[0-9]+", message = "{phone_must_be_number}")
     private String phoneNumber;
 
+//    @Email(message = "{email_invalid}")
     private String email;
 
 }

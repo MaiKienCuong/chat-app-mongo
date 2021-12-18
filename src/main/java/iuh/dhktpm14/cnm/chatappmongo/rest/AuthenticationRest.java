@@ -35,6 +35,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
 
@@ -82,7 +83,8 @@ public class AuthenticationRest {
         String jwtAccess = jwtUtils.generateJwtAccessTokenFromAuthentication(authentication);
         String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
         userDetailService.setRefreshToken(user.getId(), jwtRefresh);
-        response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
+//        response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
+        response.setHeader("Set-Cookie", Utils.REFRESH_TOKEN + "=" + jwtRefresh + "; Path=/; HttpOnly; SameSite=None; Secure");
 
         AdminLog adminLog = AdminLog.builder()
                 .handlerObjectId(user.getId())
@@ -114,7 +116,8 @@ public class AuthenticationRest {
         String jwtRefresh = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
         userDetailService.setRefreshToken(user.getId(), jwtRefresh);
 
-        response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
+//        response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, jwtRefresh));
+        response.setHeader("Set-Cookie", Utils.REFRESH_TOKEN + "=" + jwtRefresh + ";  Path=/; HttpOnly; SameSite=None; Secure");
 
         return ResponseEntity.ok(new UserSummaryDto(user, jwtAccess));
     }
@@ -130,7 +133,8 @@ public class AuthenticationRest {
                 var user = userOptional.get();
                 String token = jwtUtils.generateJwtAccessTokenFromUserId(user.getId());
                 String newRefreshToken = jwtUtils.generateJwtRefreshTokenFromUserId(user.getId());
-                response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, newRefreshToken));
+//                response.addCookie(getHttpCookie(Utils.REFRESH_TOKEN, newRefreshToken));
+                response.setHeader("Set-Cookie", Utils.REFRESH_TOKEN + "=" + newRefreshToken + ";  Path=/; HttpOnly; SameSite=None; Secure");
 
                 userDetailService.setRefreshToken(userId, newRefreshToken);
                 return ResponseEntity.ok(token);
@@ -150,21 +154,64 @@ public class AuthenticationRest {
     /*
     kiểm tra tính hợp lệ của dữ liệu trước khi đăng ký
      */
-    @PostMapping("/signup/valid")
-    public ResponseEntity<?> valid(@Valid @RequestBody UserSignupDto dto, Locale locale) {
+    @PostMapping("/signup/phone/valid")
+    public ResponseEntity<?> validSignupByPhonePhone(@Valid @RequestBody UserSignupDto dto, Locale locale) {
+        String phoneNumber = dto.getPhoneNumber();
         log.info("valid for userSignup dto displayName = {}, email = {}, phoneNumber= {}",
-                dto.getDisplayName(), dto.getEmail(), dto.getPhoneNumber());
-        if (dto.getPhoneNumber() != null && userDetailService.existsByPhoneNumber(dto.getPhoneNumber())) {
-            String phoneInvalid = messageSource.getMessage("phone_exists", null, locale);
-            log.error(phoneInvalid);
-            return ResponseEntity.badRequest().body(new MessageResponse("phoneNumber", phoneInvalid));
+                dto.getDisplayName(), dto.getEmail(), phoneNumber);
+        if (phoneNumber != null && regexPhone(phoneNumber)) {
+            if (userDetailService.existsByPhoneNumber(phoneNumber)) {
+                Optional<User> userOptional = userDetailService.findDistinctByPhoneNumber(phoneNumber);
+                User user = userOptional.get();
+                if (user.isEnable()) {
+                    String phoneExists = messageSource.getMessage("phone_exists", null, locale);
+                    log.error(phoneExists);
+                    return ResponseEntity.badRequest().body(new MessageResponse("phoneNumber", phoneExists));
+                } else {
+                    dto.setId(user.getId());
+                }
+            }
+            return ResponseEntity.ok(dto);
         }
-        if (dto.getEmail() != null && userDetailService.existsByEmail(dto.getEmail())) {
-            String emailExists = messageSource.getMessage("email_exists", null, locale);
-            log.error(emailExists);
-            return ResponseEntity.badRequest().body(new MessageResponse("email", emailExists));
+        String phoneInvalid = messageSource.getMessage("phone_invalid", null, locale);
+        log.error(phoneInvalid);
+        return ResponseEntity.badRequest().body(new MessageResponse("phoneNumber", phoneInvalid));
+    }
+
+    @PostMapping("/signup/email/valid")
+    public ResponseEntity<?> validEmail(@Valid @RequestBody UserSignupDto dto, Locale locale) {
+        String email = dto.getEmail();
+        log.info("valid for userSignup dto displayName = {}, email = {}, email= {}",
+                dto.getDisplayName(), email, email);
+        if (email != null && regexEmail(email)) {
+            if (userDetailService.existsByEmail(email)) {
+                Optional<User> userOptional = userDetailService.findByEmail(email);
+                User user = userOptional.get();
+                if (user.isEnable()) {
+                    String emailExists = messageSource.getMessage("email_exists", null, locale);
+                    log.error(emailExists);
+                    return ResponseEntity.badRequest().body(new MessageResponse("email", emailExists));
+                } else {
+                    dto.setId(user.getId());
+                }
+            }
+            return ResponseEntity.ok(dto);
         }
-        return ResponseEntity.ok(dto);
+        String emailInvalid = messageSource.getMessage("email_invalid", null, locale);
+        log.error(emailInvalid);
+        return ResponseEntity.badRequest().body(new MessageResponse("email", emailInvalid));
+    }
+
+    public boolean regexPhone(String phone) {
+        var pattern = Pattern.compile("^\\+[1-9]{1}[0-9]{7,11}$", Pattern.CASE_INSENSITIVE);
+        var matcher = pattern.matcher(phone);
+        return matcher.find();
+    }
+
+    public boolean regexEmail(String email) {
+        var pattern = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+        var matcher = pattern.matcher(email);
+        return matcher.find();
     }
 
     @PostMapping("/signup/phone")
@@ -172,16 +219,33 @@ public class AuthenticationRest {
         log.info("phone signup for userSignup dto displayName = {}, email = {}, phoneNumber= {}",
                 dto.getDisplayName(), dto.getEmail(), dto.getPhoneNumber());
         if (dto.getPhoneNumber() != null && userDetailService.existsByPhoneNumber(dto.getPhoneNumber())) {
-            String phoneInvalid = messageSource.getMessage("phone_exists", null, locale);
-            log.error(phoneInvalid);
-            return ResponseEntity.badRequest().body(new MessageResponse("phoneNumber", phoneInvalid));
+            Optional<User> userOptional = userDetailService.findDistinctByPhoneNumber(dto.getPhoneNumber());
+            User user = userOptional.get();
+            if (user.isEnable()) {
+                String phoneInvalid = messageSource.getMessage("phone_exists", null, locale);
+                log.error(phoneInvalid);
+                return ResponseEntity.badRequest().body(new MessageResponse("phoneNumber", phoneInvalid));
+            } else {
+                dto.setId(user.getId());
+                userDetailService.signupPhone(dto);
+                return ResponseEntity.ok(dto);
+            }
         }
         if (dto.getEmail() != null && userDetailService.existsByEmail(dto.getEmail())) {
-            String emailExists = messageSource.getMessage("email_exists", null, locale);
-            log.error(emailExists);
-            return ResponseEntity.badRequest().body(new MessageResponse("email", emailExists));
+            Optional<User> userOptional = userDetailService.findByEmail(dto.getEmail());
+            User user = userOptional.get();
+            if (user.isEnable()) {
+                String emailExists = messageSource.getMessage("email_exists", null, locale);
+                log.error(emailExists);
+                return ResponseEntity.badRequest().body(new MessageResponse("email", emailExists));
+            } else {
+                dto.setId(user.getId());
+                userDetailService.signupEmail(dto);
+                return ResponseEntity.ok(dto);
+            }
         }
-        return ResponseEntity.ok(userDetailService.signupPhone(dto));
+        userDetailService.signupPhone(dto);
+        return ResponseEntity.ok(dto);
     }
 
 
@@ -193,14 +257,30 @@ public class AuthenticationRest {
         log.info("email signup for userSignup dto displayName = {}, email = {}, phoneNumber= {}",
                 dto.getDisplayName(), dto.getEmail(), dto.getPhoneNumber());
         if (dto.getPhoneNumber() != null && userDetailService.existsByPhoneNumber(dto.getPhoneNumber())) {
-            String phoneInvalid = messageSource.getMessage("phone_exists", null, locale);
-            log.error(phoneInvalid);
-            return ResponseEntity.badRequest().body(new MessageResponse("phoneNumber", phoneInvalid));
+            Optional<User> userOptional = userDetailService.findDistinctByPhoneNumber(dto.getPhoneNumber());
+            User user = userOptional.get();
+            if (user.isEnable()) {
+                String phoneInvalid = messageSource.getMessage("phone_exists", null, locale);
+                log.error(phoneInvalid);
+                return ResponseEntity.badRequest().body(new MessageResponse("phoneNumber", phoneInvalid));
+            } else {
+                dto.setId(user.getId());
+                userDetailService.sendVerificationEmail(userDetailService.signupEmail(dto));
+                return ResponseEntity.ok(dto);
+            }
         }
         if (dto.getEmail() != null && userDetailService.existsByEmail(dto.getEmail())) {
-            String emailExists = messageSource.getMessage("email_exists", null, locale);
-            log.error(emailExists);
-            return ResponseEntity.badRequest().body(new MessageResponse("email", emailExists));
+            Optional<User> userOptional = userDetailService.findByEmail(dto.getEmail());
+            User user = userOptional.get();
+            if (user.isEnable()) {
+                String emailExists = messageSource.getMessage("email_exists", null, locale);
+                log.error(emailExists);
+                return ResponseEntity.badRequest().body(new MessageResponse("email", emailExists));
+            } else {
+                dto.setId(user.getId());
+                userDetailService.sendVerificationEmail(userDetailService.signupEmail(dto));
+                return ResponseEntity.ok(dto);
+            }
         }
         var savedUser = userDetailService.signupEmail(dto);
         userDetailService.sendVerificationEmail(savedUser);
@@ -251,21 +331,21 @@ public class AuthenticationRest {
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<?> signout(@CookieValue(value = "refresh_token") String requestRefreshToken, HttpServletResponse response, Locale locale) {
+    public ResponseEntity<?> signout(HttpServletResponse response, Locale locale) {
         log.info("signout");
-        if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
-            String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
-            userDetailService.setRefreshToken(userId, null);
-            var cookie = getHttpCookie(Utils.REFRESH_TOKEN, "");
-            cookie.setMaxAge(0);
-            response.addCookie(cookie);
-            String logoutSuccess = messageSource.getMessage("logout_success", null, locale);
-            log.info(logoutSuccess);
-            return ResponseEntity.ok(new MessageResponse(logoutSuccess));
-        }
-        String sessionExpired = messageSource.getMessage("session_expired", null, locale);
-        log.error(sessionExpired);
-        return ResponseEntity.badRequest().body(new MessageResponse(sessionExpired));
+//        if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
+//            String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
+//            userDetailService.setRefreshToken(userId, null);
+        var cookie = getHttpCookie(Utils.REFRESH_TOKEN, "");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        String logoutSuccess = messageSource.getMessage("logout_success", null, locale);
+        log.info(logoutSuccess);
+        return ResponseEntity.ok(new MessageResponse(logoutSuccess));
+//        }
+//        String sessionExpired = messageSource.getMessage("session_expired", null, locale);
+//        log.error(sessionExpired);
+//        return ResponseEntity.badRequest().body(new MessageResponse(sessionExpired));
 
     }
 
