@@ -6,17 +6,22 @@ import iuh.dhktpm14.cnm.chatappmongo.dto.ResetPasswordDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserProfileDto;
 import iuh.dhktpm14.cnm.chatappmongo.dto.UserReportDto;
 import iuh.dhktpm14.cnm.chatappmongo.entity.AdminLog;
+import iuh.dhktpm14.cnm.chatappmongo.entity.Message;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.entity.UserReport;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
+import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoleType;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.UserReportMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AdminLogService;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
+import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
 import iuh.dhktpm14.cnm.chatappmongo.service.MessageService;
 import iuh.dhktpm14.cnm.chatappmongo.service.UserReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +30,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +45,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -68,6 +75,12 @@ public class AdminRest {
 
     @Autowired
     private UserReportMapper userReportMapper;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private ChatSocketService chatSocketService;
 
     @GetMapping(value = "/list")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -121,11 +134,22 @@ public class AdminRest {
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ApiOperation("Cấp tài khoản quyền admin mới")
-    public ResponseEntity<?> createNewAdminAccount(@ApiIgnore @AuthenticationPrincipal User admin, @RequestBody User user) {
+    public ResponseEntity<?> createNewAdminAccount(@ApiIgnore @AuthenticationPrincipal User admin,
+                                                   @RequestBody User user,
+                                                   Locale locale) {
         log.info("licensor = {} , licensee = {}", admin.getUsername(), user.toString());
-        user.setRoles("ROLE_ADMIN");
-        writeLogToDatabase(admin, user, "update information for user");
-        return ResponseEntity.ok(userDetailService.save(user));
+        if (user.getPassword() != null) {
+            user.setId(null);
+            user.setEnable(true);
+            user.setBlock(false);
+            user.setRoles(RoleType.ROLE_ADMIN.toString());
+            writeLogToDatabase(admin, user, "update information for user");
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            return ResponseEntity.ok(userDetailService.save(user));
+        }
+        String passwordNotEmpty = messageSource.getMessage("password_not_empty", null, locale);
+        log.error(passwordNotEmpty);
+        return ResponseEntity.badRequest().body(new MessageResponse(passwordNotEmpty));
     }
 
 
@@ -265,6 +289,42 @@ public class AdminRest {
             return ResponseEntity.ok(userReportMapper.toUserReportDto(id));
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/blockList")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Danh sách những người bị block hoặc không")
+    public ResponseEntity<?> markSeenReport(@ApiIgnore @AuthenticationPrincipal User admin,
+                                            @RequestParam Optional<Boolean> isBlock,
+                                            Pageable pageable) {
+        if (isBlock.isPresent()) {
+            Page<User> userPage = userDetailService.findByBlock(isBlock.get(), pageable);
+            return ResponseEntity.ok(toUserProfileDto(userPage));
+        }
+        Page<User> userPage = userDetailService.findByBlock(true, pageable);
+        return ResponseEntity.ok(toUserProfileDto(userPage));
+    }
+
+    @DeleteMapping("/message/{messageId}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ApiOperation("Admin gỡ một tin nhắn")
+    public ResponseEntity<?> deleteMessageById(@PathVariable String messageId,
+                                               @ApiIgnore @AuthenticationPrincipal User admin,
+                                               Locale locale) {
+        Optional<Message> messageOptional = messageService.findById(messageId);
+        if (messageOptional.isEmpty()) {
+            String messageNotFound = messageSource.getMessage("message_not_found", null, locale);
+            return ResponseEntity.badRequest().body(new MessageResponse(messageNotFound));
+        }
+        var message = messageOptional.get();
+        String contentOfMessageDeleted = messageSource.getMessage("content_of_message_be_deleted_by_admin", null, locale);
+        message.setDeleted(true);
+        message.setContent(contentOfMessageDeleted);
+        message.setType(MessageType.TEXT);
+        message.setMedia(null);
+        messageService.deleteMessage(messageId, contentOfMessageDeleted);
+        chatSocketService.sendDeletedMessage(message, message.getRoomId());
+        return ResponseEntity.ok().build();
     }
 
     /*

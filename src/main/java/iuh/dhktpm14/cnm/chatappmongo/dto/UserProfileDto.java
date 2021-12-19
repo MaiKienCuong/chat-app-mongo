@@ -22,6 +22,7 @@ public class UserProfileDto implements Serializable, Comparable<UserProfileDto> 
     private Date lastOnline;
     private FriendStatus friendStatus;
     private String phoneNumber;
+    private String email;
     private boolean blockMe;
     private boolean meBLock;
 

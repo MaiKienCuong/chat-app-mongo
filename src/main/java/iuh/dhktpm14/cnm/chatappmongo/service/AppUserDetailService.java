@@ -260,4 +260,8 @@ public class AppUserDetailService implements UserDetailsService {
     public Optional<User> findDistinctByPhoneNumberOrEmail(String phoneNumberOrEmail) {
         return userRepository.findDistinctByPhoneNumberOrEmail(phoneNumberOrEmail);
     }
+
+    public Page<User> findByBlock(boolean isBlock, Pageable pageable) {
+        return userRepository.findByBlock(isBlock, pageable);
+    }
 }

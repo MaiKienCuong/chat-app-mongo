@@ -11,6 +11,7 @@ import iuh.dhktpm14.cnm.chatappmongo.entity.User;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.MessageType;
 import iuh.dhktpm14.cnm.chatappmongo.enumvalue.RoomType;
 import iuh.dhktpm14.cnm.chatappmongo.mapper.FriendMapper;
+import iuh.dhktpm14.cnm.chatappmongo.mapper.UserMapper;
 import iuh.dhktpm14.cnm.chatappmongo.payload.MessageResponse;
 import iuh.dhktpm14.cnm.chatappmongo.service.AppUserDetailService;
 import iuh.dhktpm14.cnm.chatappmongo.service.ChatSocketService;
@@ -74,6 +75,9 @@ public class FriendRequestRest {
 
     @Autowired
     private FriendRequestSocketService friendRequestSocketService;
+
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * lấy tất cả lời mời kết bạn đã nhận được
@@ -213,7 +217,7 @@ public class FriendRequestRest {
              */
             String content = messageSource.getMessage("message_after_accept_friend", null, locale);
             sendMessageAfterCreateFriend(user, idToAccept, content);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(userMapper.toUserProfileDto(idToAccept));
         }
         String message = messageSource.getMessage("no_friend_request_in_database", null, locale);
         log.error(message);

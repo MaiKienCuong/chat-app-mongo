@@ -83,6 +83,7 @@ public class DataTest implements CommandLineRunner {
     private static final Logger logger = Logger.getLogger(DataTest.class.getName());
 
     @Value("${data.path:src/main/resources/DHKTPM14A_Danhsach.xlsx}")
+//    @Value("${data.path:/home/ec2-user/DHKTPM14A_Danhsach.xlsx}")
     private String dataPathFile;
 
     private final List<String> images = List.of(
@@ -130,18 +131,27 @@ public class DataTest implements CommandLineRunner {
     }
 
     private void insertOneGroup() {
-        String createByUser = "25";
+        User createGroup = users.get(25);
         Set<Member> members = new HashSet<>();
         List<Inbox> inboxes = new ArrayList<>();
-        for (int i = 20; i < 70; i++) {
+        for (int i = 20; i < 66; i++) {
             members.add(Member.builder().userId(users.get(i).getId()).build());
         }
+        List<String> ids = new ArrayList<>();
+        ids.add("30");
+        ids.add("31");
+        ids.add("32");
+        ids.add("33");
         for (Member m : members) {
-            if (! m.getUserId().equals(createByUser)) {
-                m.setAddByUserId(createByUser);
+            if (! m.getUserId().equals(createGroup.getId())) {
+                m.setAddByUserId(createGroup.getId());
                 m.setAddTime(new Date(time));
                 time += 1000L;
+            } else {
+                m.setAdmin(true);
             }
+            if (ids.contains(m.getUserId()))
+                m.setAdmin(true);
         }
         Room room = roomRepository.save(Room.builder()
                 .id("1")
@@ -149,7 +159,7 @@ public class DataTest implements CommandLineRunner {
                 .members(members)
                 .type(RoomType.GROUP)
                 .createAt(new Date())
-                .createByUserId(createByUser)
+                .createByUserId(createGroup.getId())
                 .imageUrl(images.get(randomInRange(0, images.size() - 1)))
                 .build());
         int count = 1;
@@ -167,10 +177,11 @@ public class DataTest implements CommandLineRunner {
         }
         var message = Message
                 .builder()
+                .id("1")
                 .roomId(room.getId())
                 .createAt(new Date(time))
                 .type(MessageType.SYSTEM)
-                .content("Mai Kiên Cường đã tạo nhóm. Hãy trò chuyện cùng nhau.")
+                .content(createGroup.getDisplayName() + " đã tạo nhóm. Hãy trò chuyện cùng nhau.")
                 .build();
         time += 1000;
         messageRepository.save(message);
@@ -285,12 +296,33 @@ public class DataTest implements CommandLineRunner {
                     String username = Utils.removeAccent(name).replaceAll("\\s+", "");
                     if (! notUsername.contains(username.toLowerCase()))
                         user.setUsername(username);
-                    user.setEmail(username + "@gmail.com");
+                    user.setEmail(username.toLowerCase() + "@gmail.com");
                     users.add(user);
                     userRepository.save(user);
                 }
             }
             file.close();
+            for (String s : notUsername) {
+                Date date = new Date(time += 10000000);
+                User user = User.builder()
+                        .id(String.valueOf(i))
+                        .displayName("Admin " + s)
+                        .password("$2a$12$TynjW4UAUd2993t5.Rh.X.B/9JU5W6csDFeauOIDjWM8G9cnVdSfO")
+                        .gender("Nam")
+                        .dateOfBirth(date)
+                        .block(false)
+                        .imageUrl(images.get(randomInRange(0, images.size() - 1)))
+                        .roles("ROLE_ADMIN")
+                        .enable(true)
+                        .onlineStatus(OnlineStatus.OFFLINE)
+                        .lastOnline(date)
+                        .createAt(date)
+                        .build();
+                i++;
+                user.setUsername("admin." + s);
+                user.setEmail("admin." + s + "@gmail.com");
+                userRepository.save(user);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

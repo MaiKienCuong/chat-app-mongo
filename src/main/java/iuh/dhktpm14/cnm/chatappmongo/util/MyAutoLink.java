@@ -18,6 +18,10 @@ public class MyAutoLink {
             .build();
 
     public static String detectLink(String input) {
+        if (input == null)
+            return null;
+        if (input.isEmpty())
+            return null;
         Iterable<Span> spans = linkExtractor.extractSpans(input);
 
         var sb = new StringBuilder();

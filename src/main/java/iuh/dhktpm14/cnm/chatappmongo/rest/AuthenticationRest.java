@@ -203,7 +203,7 @@ public class AuthenticationRest {
     }
 
     public boolean regexPhone(String phone) {
-        var pattern = Pattern.compile("^\\+[1-9]{1}[0-9]{7,11}$", Pattern.CASE_INSENSITIVE);
+        var pattern = Pattern.compile("^\\+{0,1}[0-9]{9,12}$", Pattern.CASE_INSENSITIVE);
         var matcher = pattern.matcher(phone);
         return matcher.find();
     }

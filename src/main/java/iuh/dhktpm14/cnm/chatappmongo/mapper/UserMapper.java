@@ -68,6 +68,7 @@ public class UserMapper {
         dto.setOnlineStatus(user.getOnlineStatus());
         dto.setLastOnline(user.getLastOnline());
         dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setEmail(user.getEmail());
 
         if (! currentUser.getId().equals(user.getId())) {
             dto.setFriendStatus(getFriendStatus(user, currentUser));

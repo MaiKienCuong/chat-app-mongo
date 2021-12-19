@@ -47,5 +47,7 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     boolean existsByPhoneNumber(String phoneNumber);
 
+    @Query(value = "{block: ?0}")
+    Page<User> findByBlock(boolean isBlock, Pageable pageable);
 
 }
