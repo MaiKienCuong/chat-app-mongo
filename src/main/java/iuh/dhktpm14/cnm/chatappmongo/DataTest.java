@@ -26,11 +26,13 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -80,6 +82,9 @@ public class DataTest implements CommandLineRunner {
 
     private static final Logger logger = Logger.getLogger(DataTest.class.getName());
 
+    @Value("${data.path:src/main/resources/DHKTPM14A_Danhsach.xlsx}")
+    private String dataPathFile;
+
     private final List<String> images = List.of(
             "https://timesofindia.indiatimes.com/photo/67586673.cms",
             "https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/b5bd34054bc849159d949d50021d8926.png",
@@ -112,11 +117,13 @@ public class DataTest implements CommandLineRunner {
 
         insertUser();
 
-        insertFriend();
+        if (! users.isEmpty()) {
+            insertFriend();
 
-        insertFriendRequest();
+            insertFriendRequest();
 
-        insertOneGroup();
+            insertOneGroup();
+        }
 
         logger.log(Level.INFO, "------insert ok------");
 
@@ -244,7 +251,9 @@ public class DataTest implements CommandLineRunner {
         notUsername.add("luutuankha");
         int i = 1;
         try {
-            FileInputStream file = new FileInputStream("sample-data/DHKTPM14A_Danhsach.xlsx");
+//            Resource resource=new ClassPathResource("DHKTPM14A_Danhsach.xlsx");
+            File f = new File(dataPathFile);
+            FileInputStream file = new FileInputStream(f);
             XSSFWorkbook workbook = new XSSFWorkbook(file);
             XSSFSheet sheet = workbook.getSheetAt(0);
 
@@ -276,6 +285,7 @@ public class DataTest implements CommandLineRunner {
                     String username = Utils.removeAccent(name).replaceAll("\\s+", "");
                     if (! notUsername.contains(username.toLowerCase()))
                         user.setUsername(username);
+                    user.setEmail(username + "@gmail.com");
                     users.add(user);
                     userRepository.save(user);
                 }

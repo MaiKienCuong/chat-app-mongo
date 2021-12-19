@@ -1,8 +1,6 @@
 package iuh.dhktpm14.cnm.chatappmongo.repository;
 
-import iuh.dhktpm14.cnm.chatappmongo.dto.StatisticsSignUpByGender;
 import iuh.dhktpm14.cnm.chatappmongo.entity.User;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -26,6 +24,7 @@ public interface UserRepository extends MongoRepository<User, String> {
     List<User> findByIdIn(List<String> ids);
 
     Optional<User> findDistinctByUsername(String userName);
+
     Page<User> findAllByRoles(String roles, Pageable pageable);
 
     @Query(value = "{'createAt':{ $gte: ?0, $lte: ?1}}")
@@ -35,6 +34,9 @@ public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findDistinctByEmail(String email);
 
     Optional<User> findDistinctByPhoneNumber(String phoneNumber);
+
+    @Query("{$or: [{email: ?0}, {phoneNumber: ?0}]}")
+    Optional<User> findDistinctByPhoneNumberOrEmail(String phoneNumberOrEmail);
 
     @Query("{$or: [{username: ?0}, {email: ?0}, {phoneNumber: ?0}]}")
     Optional<User> findDistinctByPhoneNumberOrUsernameOrEmail(String phoneNumber);

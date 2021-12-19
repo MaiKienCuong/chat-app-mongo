@@ -257,4 +257,7 @@ public class AppUserDetailService implements UserDetailsService {
         return statistics.getMappedResults();
     }
 
+    public Optional<User> findDistinctByPhoneNumberOrEmail(String phoneNumberOrEmail) {
+        return userRepository.findDistinctByPhoneNumberOrEmail(phoneNumberOrEmail);
+    }
 }

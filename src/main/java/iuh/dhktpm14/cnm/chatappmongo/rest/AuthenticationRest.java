@@ -37,7 +37,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_STRICT_COMMENT;
+import static org.eclipse.jetty.http.HttpCookie.SAME_SITE_NONE_COMMENT;
 
 @Slf4j
 @RestController
@@ -336,9 +336,12 @@ public class AuthenticationRest {
 //        if (requestRefreshToken != null && jwtUtils.validateJwtToken(requestRefreshToken)) {
 //            String userId = jwtUtils.getUserIdFromJwtToken(requestRefreshToken);
 //            userDetailService.setRefreshToken(userId, null);
-        var cookie = getHttpCookie(Utils.REFRESH_TOKEN, "");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+//        var cookie = getHttpCookie(Utils.REFRESH_TOKEN, "");
+//        cookie.setMaxAge(0);
+//        response.addCookie(cookie);
+
+        response.setHeader("Set-Cookie", Utils.REFRESH_TOKEN + "=" + "" + ";  Path=/; HttpOnly; SameSite=None; Secure; MaxAge=0");
+
         String logoutSuccess = messageSource.getMessage("logout_success", null, locale);
         log.info(logoutSuccess);
         return ResponseEntity.ok(new MessageResponse(logoutSuccess));
@@ -352,8 +355,8 @@ public class AuthenticationRest {
     private Cookie getHttpCookie(String name, String value) {
         var cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);
-        // cookie.setSecure(true);
-        cookie.setComment(SAME_SITE_STRICT_COMMENT);
+        cookie.setSecure(true);
+        cookie.setComment(SAME_SITE_NONE_COMMENT);
         cookie.setPath("/");
         return cookie;
     }

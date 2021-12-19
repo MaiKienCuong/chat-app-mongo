@@ -208,7 +208,7 @@ public class UserRest {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation("Tìm kiếm user theo tên gần đúng")
     public ResponseEntity<?> searchUser(@ApiIgnore @AuthenticationPrincipal User user, @RequestParam String textToSearch) {
-        Optional<User> userOptional = userDetailService.findDistinctByPhoneNumber(textToSearch);
+        Optional<User> userOptional = userDetailService.findDistinctByPhoneNumberOrEmail(textToSearch);
         if (userOptional.isPresent() && ! user.getId().equals(userOptional.get().getId())) {
             return ResponseEntity.ok(List.of(userOptional.map(userMapper::toUserProfileDto).get()));
         }
